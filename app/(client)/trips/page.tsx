@@ -1,4 +1,4 @@
-import { tripsDatabase } from "../../lib/db";
+import { tripsDatabase } from "@/lib/db";
 import Link from "next/link";
 
 interface SearchParams {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { tripsDatabase } from "@/app/lib/db";
-import SeatSelector from "./SeatSelector";
+import { tripsDatabase } from "@/lib/db";
+import SeatSelector from "@/components/SeatSelector";
 
 interface PageProps {
   params: Promise<{ id: string }>;
