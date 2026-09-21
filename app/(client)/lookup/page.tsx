@@ -23,9 +23,8 @@ export default function Lookup() {
         </div>
       </div>
 
-
       <div className="mt-8 space-y-4 hidden">
-        <h3 className="font-bold text-gray-700 text-lg">Kết quả tra cứu (Ví dụ giao diện):</h3>
+        <h3 className="font-bold text-gray-700 text-lg">Kết quả tra cứu :</h3>
         
         <div className="bg-white p-6 rounded-2xl shadow-sm border-2 border-orange-200">
           <div className="flex justify-between items-center border-b pb-3 mb-4">

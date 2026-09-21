@@ -19,13 +19,13 @@ export default function ClientLayout({
             <Link href="/lookup" className="hover:text-[#ef5222] transition-colors">Tra cứu vé</Link>
             <Link href="#" className="hover:text-[#ef5222] transition-colors">Liên hệ</Link>
           </nav>
-          <div className="flex gap-4">
-            <button className="hidden md:block font-medium text-gray-600 hover:text-gray-900 transition-colors">
+          <div className="flex items-center gap-4">
+            <Link href="/login" className="hidden md:block font-medium text-gray-600 hover:text-[#ef5222] transition-colors">
               Đăng nhập
-            </button>
-            <button className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-medium py-2 px-5 rounded-md transition-colors">
+            </Link>
+            <Link href="/register" className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-medium py-2 px-5 rounded-md transition-colors">
               Đăng ký
-            </button>
+            </Link>
           </div>
         </div>
       </header>
