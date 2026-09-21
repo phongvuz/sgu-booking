@@ -10,15 +10,12 @@ interface Seat {
 
 interface SeatSelectorProps {
   tripId: string;
-  pricePerSeatStr: string; // e.g. "300.000đ"
+  pricePerSeatStr: number; // e.g. "300.000đ"
 }
 
 export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorProps) {
   const router = useRouter();
   
-  // Extract numeric price
-  const priceNumeric = parseInt(pricePerSeatStr.replace(/\D/g, ''));
-
   // Generate some dummy seats for a sleeper bus (2 floors, 3 rows)
   const [seats] = useState<Seat[]>(() => {
     const generated = [];
@@ -71,7 +68,7 @@ export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorPr
     router.push(`/success?tripId=${tripId}&seats=${selectedSeats.join(",")}`);
   };
 
-  const totalPrice = selectedSeats.length * priceNumeric;
+  const totalPrice = selectedSeats.length * pricePerSeatStr;
 
   const renderFloor = (floorNum: number) => {
     const floorSeats = seats.filter(s => s.id.startsWith(floorNum.toString()));

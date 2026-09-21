@@ -8,6 +8,8 @@ interface SearchParams {
 export default async function SuccessPage({searchParams,}: {searchParams: Promise<SearchParams>;}) {
   const params = await searchParams;
 
+  const pnrCode = `NHAXE-${(params.tripId || "VN01")}-8899`;
+
   return (
     <div className="bg-gray-100 min-h-screen py-16 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
@@ -33,7 +35,7 @@ export default async function SuccessPage({searchParams,}: {searchParams: Promis
             </div>
             <div className="flex justify-between">
               <span>Mã đặt chỗ (PNR):</span>
-              <span className="font-bold text-blue-600">NHAXE-{Math.random().toString(36).substring(2, 8).toUpperCase()}</span>
+              <span className="font-bold text-blue-600">{pnrCode}</span>
             </div>
           </div>
         </div>
