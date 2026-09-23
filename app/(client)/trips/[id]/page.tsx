@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatTripTime, formatPrice } from "@/types";
-import SeatSelector from "@/components/SeatSelector";
+import SeatSelector from "@/components/trips/SeatSelector";
 
 interface PageProps {
   params: Promise<{ id: string }>;
