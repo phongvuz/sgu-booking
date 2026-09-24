@@ -32,7 +32,6 @@ export default async function TripDetailPage({ params }: PageProps) {
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Back Link & Header */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between">
           <Link
             href="/trips"
@@ -45,11 +44,10 @@ export default async function TripDetailPage({ params }: PageProps) {
           </h2>
         </div>
 
-        {/* Thông tin hành trình */}
         <div className="bg-white p-6 border border-gray-200 shadow-sm rounded-lg mb-8">
           <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
             <h3 className="text-lg font-bold text-gray-800">
-              Thông tin hành trình (MySQL Database)
+              Thông tin hành trình 
             </h3>
             <span className="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-full font-semibold">
               Còn {tripInfo.availableSeats} ghế trống
@@ -77,7 +75,6 @@ export default async function TripDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* Component Sơ đồ ghế và Thanh toán */}
         <SeatSelector tripId={String(tripInfo.id)} pricePerSeatStr={tripInfo.price} />
       </div>
     </div>
