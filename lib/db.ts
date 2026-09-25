@@ -1,4 +1,6 @@
-export const tripsDatabase = [
+import { Trip } from "@/types";
+
+export const tripsDatabase: Trip[] = [
   {
     id: "VN01",
     from: "Hồ Chí Minh",
