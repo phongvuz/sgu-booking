@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { queryEmployees, createEmployee } from "@/lib/employee-store";
 import { employeeSchema } from "@/lib/validations/employee";
 import { EmployeeQueryParams } from "@/types";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       sortOrder: (searchParams.get("sortOrder") as any) || "desc",
     };
 
-    const result = queryEmployees(params);
+    const result = await queryEmployees(params);
 
     return NextResponse.json({
       success: true,
@@ -61,11 +62,10 @@ export async function POST(request: NextRequest) {
 
     const validData = validationResult.data;
 
-    // Check duplicate email / phone in existing store
-    const existing = queryEmployees({ search: "", limit: 1000 }).data;
-    const emailExists = existing.some(
-      (e) => e.email.toLowerCase() === validData.email.toLowerCase()
-    );
+    // Check duplicate email / phone in database
+    const emailExists = await prisma.employee.findUnique({
+      where: { email: validData.email.toLowerCase() },
+    });
     if (emailExists) {
       return NextResponse.json(
         { success: false, message: `Email "${validData.email}" đã tồn tại trên hệ thống.` },
@@ -73,7 +73,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const phoneExists = existing.some((e) => e.phone === validData.phone);
+    const phoneExists = await prisma.employee.findUnique({
+      where: { phone: validData.phone },
+    });
     if (phoneExists) {
       return NextResponse.json(
         { success: false, message: `Số điện thoại "${validData.phone}" đã được sử dụng.` },
@@ -81,7 +83,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newEmployee = createEmployee({
+    const newEmployee = await createEmployee({
       name: validData.name,
       email: validData.email,
       phone: validData.phone,

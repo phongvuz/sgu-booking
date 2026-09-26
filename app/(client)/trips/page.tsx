@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { formatPrice, formatTripTime, resolveLocationName } from "@/types";
+import { resolveLocationName, formatTripTime, formatPrice } from "@/types";
 import Link from "next/link";
 import TripListWithFilter from "@/components/trips/TripFilter";
 

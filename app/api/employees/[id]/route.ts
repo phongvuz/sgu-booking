@@ -3,9 +3,9 @@ import {
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
-  queryEmployees,
 } from "@/lib/employee-store";
 import { employeeSchema } from "@/lib/validations/employee";
+import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -18,7 +18,7 @@ type ParamsContext = {
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
-    const employee = getEmployeeById(id);
+    const employee = await getEmployeeById(id);
 
     if (!employee) {
       return NextResponse.json(
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
-    const employee = getEmployeeById(id);
+    const employee = await getEmployeeById(id);
 
     if (!employee) {
       return NextResponse.json(
@@ -73,13 +73,13 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
 
     const validData = validationResult.data;
 
-    // Check unique email and phone if changed
-    const allEmployees = queryEmployees({ search: "", limit: 1000 }).data;
-    const emailConflict = allEmployees.some(
-      (e) =>
-        e.id.toLowerCase() !== id.toLowerCase() &&
-        e.email.toLowerCase() === validData.email.toLowerCase()
-    );
+    // Check unique email and phone if changed in database
+    const emailConflict = await prisma.employee.findFirst({
+      where: {
+        email: validData.email.toLowerCase(),
+        NOT: { id },
+      },
+    });
     if (emailConflict) {
       return NextResponse.json(
         {
@@ -90,11 +90,12 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const phoneConflict = allEmployees.some(
-      (e) =>
-        e.id.toLowerCase() !== id.toLowerCase() &&
-        e.phone === validData.phone
-    );
+    const phoneConflict = await prisma.employee.findFirst({
+      where: {
+        phone: validData.phone,
+        NOT: { id },
+      },
+    });
     if (phoneConflict) {
       return NextResponse.json(
         {
@@ -105,7 +106,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const updated = updateEmployee(id, {
+    const updated = await updateEmployee(id, {
       name: validData.name,
       email: validData.email,
       phone: validData.phone,
@@ -135,7 +136,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
-    const employee = getEmployeeById(id);
+    const employee = await getEmployeeById(id);
 
     if (!employee) {
       return NextResponse.json(
@@ -144,7 +145,7 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const deleted = deleteEmployee(id);
+    const deleted = await deleteEmployee(id);
     if (!deleted) {
       return NextResponse.json(
         { success: false, message: `Không thể xóa nhân viên ${id}.` },
