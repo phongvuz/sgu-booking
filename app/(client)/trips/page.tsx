@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { resolveLocationName, formatTripTime, formatPrice } from "@/types";
+import { resolveLocationName } from "@/types";
 import Link from "next/link";
+import TripListWithFilter from "@/components/trips/TripFilter";
 
 interface SearchParams {
   from?: string;
@@ -16,51 +17,21 @@ export default async function TripsPage({
   const params = await searchParams;
   const fromQuery = params.from?.trim() || "";
   const toQuery = params.to?.trim() || "";
-  const dateQuery = params.date?.trim();
+
   const fromCity = resolveLocationName(fromQuery);
   const toCity = resolveLocationName(toQuery);
 
-  const whereClause: {
-    from?: { contains: string };
-    to?: { contains: string };
-    time?: { gte?: Date; lt?: Date };
-  } = {};
-
-  if (fromCity) {
-    whereClause.from = { contains: fromCity };
-  }
-  if (toCity) {
-    whereClause.to = { contains: toCity };
-  }
-  if (dateQuery) {
-    const parsedDate = new Date(dateQuery);
-    if (!isNaN(parsedDate.getTime())) {
-      const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-      whereClause.time = {
-        gte: startOfDay,
-        lt: endOfDay,
-      };
-    }
-  }
-
-  let trips = await prisma.trip.findMany({
-    where: whereClause,
+  const trips = await prisma.trip.findMany({
+    where: {
+      from: fromCity ? { contains: fromCity } : undefined,
+      to: toCity ? { contains: toCity } : undefined,
+    },
     orderBy: { time: "asc" },
   });
-
-  const hasFilter = Boolean(fromCity || toCity || dateQuery);
-  const isFiltered = hasFilter && trips.length > 0;
-  if (trips.length === 0 && hasFilter) {
-    trips = await prisma.trip.findMany({
-      orderBy: { time: "asc" },
-    });
-  }
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
-
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6 flex flex-col md:flex-row md:items-center justify-between border border-gray-200">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Kết quả tìm kiếm</h2>
@@ -75,8 +46,6 @@ export default async function TripsPage({
               </span>
               <span className="mx-2">|</span>
               Ngày đi: <span className="font-bold">{params.date || "Hôm nay"}</span>
-              <span className="mx-2">|</span>
-              Nguồn dữ liệu: <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">MySQL Database</span>
             </p>
           </div>
           <Link href="/" className="mt-4 md:mt-0 text-blue-600 font-medium hover:underline">
