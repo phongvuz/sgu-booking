@@ -102,7 +102,7 @@ export default function Home() {
                 <p className="text-gray-600 mb-4 text-sm">Khoảng 170km - 3.5 tiếng di chuyển</p>
                 <div className="flex justify-between items-center border-t border-gray-100 pt-4">
                   <span className="text-lg font-bold text-[#ef5222]">Từ 165.000đ</span>
-                  <Link href="/trips?from=SGN&to=CTH" className="text-blue-600 font-medium hover:underline text-sm">
+                  <Link href="/trips?from=SGN&to=HAN" className="text-blue-600 font-medium hover:underline text-sm">
                     Xem lịch trình
                   </Link>
                 </div>

@@ -1,5 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolveLocationName } from "@/types";
+
+// GET /api/trips - Lấy danh sách chuyến xe từ MySQL Database (hỗ trợ lọc theo from, to, date)
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const fromParam = searchParams.get("from")?.trim() || "";
+    const toParam = searchParams.get("to")?.trim() || "";
+    const dateParam = searchParams.get("date")?.trim() || "";
+
+    const fromCity = resolveLocationName(fromParam);
+    const toCity = resolveLocationName(toParam);
+
+    let timeFilter = undefined;
+    if (dateParam) {
+      const parsedDate = new Date(dateParam);
+      if (!isNaN(parsedDate.getTime())) {
+        const startOfDay = new Date(parsedDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(parsedDate);
+        endOfDay.setHours(23, 59, 59, 999);
+        timeFilter = {
+          gte: startOfDay,
+          lte: endOfDay,
+        };
+      }
+    }
+
+    const trips = await prisma.trip.findMany({
+      where: {
+        from: fromCity ? { contains: fromCity } : undefined,
+        to: toCity ? { contains: toCity } : undefined,
+        time: timeFilter,
+      },
+      orderBy: { time: "asc" },
+      include: {
+        bookings: {
+          select: {
+            id: true,
+            seatNumber: true,
+            status: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      count: trips.length,
+      data: trips,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách chuyến xe từ database:", error);
+    return NextResponse.json(
+      { success: false, message: "Lỗi hệ thống khi tải danh sách chuyến xe." },
+      { status: 500 }
+    );
+  }
+}
 
 // POST /api/trips - Tạo và lưu trữ một tuyến xe mới vào MySQL
 export async function POST(request: NextRequest) {

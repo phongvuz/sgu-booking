@@ -12,13 +12,12 @@ export default async function TripDetailPage({ params }: PageProps) {
   const resolvedParams = await params;
   const tripId = resolvedParams.id;
 
-  const numId = Number(tripId);
-  const tripInfo = await prisma.trip.findFirst({
+  const tripInfo = await prisma.trip.findUnique({
     where: {
-      OR: [
-        ...(!isNaN(numId) ? [{ id: numId }] : []),
-        { code: tripId },
-      ],
+      code: tripId,
+    },
+    include: {
+      bookings: true,
     },
   });
 
@@ -26,8 +25,9 @@ export default async function TripDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { departureTime, arrivalTime, timeRange, dateFormatted } = formatTripTime(tripInfo.time);
+  const { departureTime, dateFormatted } = formatTripTime(tripInfo.time);
   const formattedPrice = formatPrice(tripInfo.price);
+  const bookedSeats = tripInfo.bookings.map((b) => b.seatNumber);
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
@@ -64,7 +64,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-gray-500 text-sm mb-1">Giờ xuất bến</p>
-              <p className="font-bold text-gray-900">{departureTime} (dự kiến đến {arrivalTime})</p>
+              <p className="font-bold text-gray-900">{departureTime}</p>
             </div>
             <div>
               <p className="text-gray-500 text-sm mb-1">Ngày đi</p>
@@ -77,8 +77,17 @@ export default async function TripDetailPage({ params }: PageProps) {
           </div>
         </div>
 
+<<<<<<< Updated upstream
         {/* Component Sơ đồ ghế và Thanh toán */}
         <SeatSelector tripId={String(tripInfo.id)} pricePerSeatStr={tripInfo.price} />
+=======
+        <SeatSelector
+          tripId={String(tripInfo.id)}
+          tripCode={tripInfo.code}
+          pricePerSeatStr={tripInfo.price}
+          bookedSeats={bookedSeats}
+        />
+>>>>>>> Stashed changes
       </div>
     </div>
   );

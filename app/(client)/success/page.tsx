@@ -1,14 +1,21 @@
 import Link from "next/link";
 
 interface SearchParams {
-  tripId: string;
-  seats: string;
+  tripId?: string;
+  tripCode?: string;
+  seats?: string;
+  pnr?: string;
+  name?: string;
+  total?: string;
 }
 
-export default async function SuccessPage({searchParams,}: {searchParams: Promise<SearchParams>;}) {
+export default async function SuccessPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const params = await searchParams;
-
-  const pnrCode = `NHAXE-${(params.tripId || "VN01")}-8899`;
+  const pnrCode = params.pnr || `NHAXE-${params.tripCode || params.tripId || "BOOKING"}`;
 
   return (
     <div className="bg-gray-100 min-h-screen py-16 px-4">
@@ -19,21 +26,35 @@ export default async function SuccessPage({searchParams,}: {searchParams: Promis
         
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Đặt vé thành công!</h2>
         <p className="text-gray-600 mb-8">
-          Cảm ơn bạn đã tin tưởng và lựa chọn Nhà xe Sài Gòn. Chuyến đi của bạn đã được xác nhận.
+          Cảm ơn bạn đã tin tưởng và lựa chọn Nhà xe Sài Gòn. Chuyến đi của bạn đã được lưu vào hệ thống cơ sở dữ liệu.
         </p>
 
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8 text-left">
           <h3 className="font-bold text-lg mb-4 border-b pb-2">Thông tin vé</h3>
           <div className="space-y-3 text-gray-700">
+            {params.name && (
+              <div className="flex justify-between">
+                <span>Hành khách:</span>
+                <span className="font-bold">{decodeURIComponent(params.name)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Mã chuyến xe:</span>
-              <span className="font-bold">{params.tripId || "VN01"}</span>
+              <span className="font-bold text-[#ef5222]">{params.tripCode || params.tripId || "—"}</span>
             </div>
             <div className="flex justify-between">
               <span>Ghế đã đặt:</span>
-              <span className="font-bold">{params.seats || "Chưa xác định"}</span>
+              <span className="font-bold text-green-700">{params.seats || "Chưa xác định"}</span>
             </div>
-            <div className="flex justify-between">
+            {params.total && (
+              <div className="flex justify-between">
+                <span>Tổng tiền:</span>
+                <span className="font-bold text-[#ef5222]">
+                  {Number(params.total).toLocaleString("vi-VN")} đ
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between pt-2 border-t border-gray-200">
               <span>Mã đặt chỗ (PNR):</span>
               <span className="font-bold text-blue-600">{pnrCode}</span>
             </div>

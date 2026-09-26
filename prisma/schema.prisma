@@ -37,7 +37,10 @@ model Trip {
 model Booking {
   id          Int      @id @default(autoincrement())
   seatNumber  String   // Vị trí ghế
-  status      String   @default("CONFIRMED") // PENDING, CONFIRMED, CANCELLED
+  status      String   @default("PENDING") // PENDING, CONFIRMED, CANCELLED
+  paymentMethod String
+  paymentStatus String @default("UNPAID)
+  expriresAt Datetime
   totalPrice  Float
   userId      Int
   tripId      Int

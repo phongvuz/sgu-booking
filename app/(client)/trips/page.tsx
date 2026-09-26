@@ -8,11 +8,7 @@ interface SearchParams {
   date?: string;
 }
 
-export default async function TripsPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
+export default async function TripsPage({searchParams,}: {searchParams: Promise<SearchParams>;}) {
   const params = await searchParams;
   const fromQuery = params.from?.trim() || "";
   const toQuery = params.to?.trim() || "";
@@ -20,6 +16,7 @@ export default async function TripsPage({
   const fromCity = resolveLocationName(fromQuery);
   const toCity = resolveLocationName(toQuery);
 
+<<<<<<< Updated upstream
   const whereClause: {
     from?: { contains: string };
     to?: { contains: string };
@@ -40,11 +37,25 @@ export default async function TripsPage({
       whereClause.time = {
         gte: startOfDay,
         lt: endOfDay,
+=======
+  let timeFilter = undefined;
+  if (params.date) {
+    const parsedDate = new Date(params.date);
+    if (!isNaN(parsedDate.getTime())) {
+      const startOfDay = new Date(parsedDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(parsedDate);
+      endOfDay.setHours(23, 59, 59, 999);
+      timeFilter = {
+        gte: startOfDay,
+        lte: endOfDay,
+>>>>>>> Stashed changes
       };
     }
   }
 
   let trips = await prisma.trip.findMany({
+<<<<<<< Updated upstream
     where: whereClause,
     orderBy: { time: "asc" },
   });
@@ -53,6 +64,22 @@ export default async function TripsPage({
   const isFiltered = hasFilter && trips.length > 0;
   if (trips.length === 0 && hasFilter) {
     trips = await prisma.trip.findMany({
+=======
+    where: {
+      from: fromCity ? { contains: fromCity } : undefined,
+      to: toCity ? { contains: toCity } : undefined,
+      time: timeFilter,
+    },
+    orderBy: { time: "asc" },
+  });
+
+  if (trips.length === 0 && timeFilter && (fromCity || toCity)) {
+    trips = await prisma.trip.findMany({
+      where: {
+        from: fromCity ? { contains: fromCity } : undefined,
+        to: toCity ? { contains: toCity } : undefined,
+      },
+>>>>>>> Stashed changes
       orderBy: { time: "asc" },
     });
   }

@@ -4,48 +4,93 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 interface Seat {
-  id: string;
+  id: string; // Vd: "A01", "A07"
+  row: string;
+  num: number;
+  floor: number;
   isBooked: boolean;
 }
 
 interface SeatSelectorProps {
   tripId: string;
-  pricePerSeatStr: number; // e.g. "300.000đ"
+  tripCode?: string;
+  pricePerSeatStr: number; 
+  bookedSeats?: string[]; 
 }
 
-export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorProps) {
+export default function SeatSelector({
+  tripId,
+  tripCode,
+  pricePerSeatStr,
+  bookedSeats = [],
+}: SeatSelectorProps) {
   const router = useRouter();
-  
-  // Generate some dummy seats for a sleeper bus (2 floors, 3 rows)
+
+  const checkIsBooked = (seatCode: string, floor: number, row: string, num: number): boolean => {
+    if (!bookedSeats || bookedSeats.length === 0) return false;
+
+    const variants = [
+      seatCode,                                         // "A01"
+      `${row}${num}`,                                   // "A1"
+      `${floor}${row}${num}`,                           // "1A1"
+      `${floor}${row}${String(num).padStart(2, "0")}`,  // "1A01"
+      `${row}${String(num).padStart(2, "0")}`,          // "A01"
+    ].map((v) => v.toUpperCase().trim());
+
+    return bookedSeats.some((b) => variants.includes(b.toUpperCase().trim()));
+  };
+
   const [seats] = useState<Seat[]>(() => {
-    const generated = [];
-    const rows = ['A', 'B', 'C'];
-    for (let floor = 1; floor <= 2; floor++) {
-      for (const row of rows) {
-        for (let num = 1; num <= 6; num++) {
-          generated.push({
-            id: `${floor}${row}${num}`,
-            isBooked: Math.random() > 0.7, // 30% booked
-          });
-        }
+    const generated: Seat[] = [];
+    const rows = ["A", "B", "C"];
+
+    // Tầng 1 (Dưới): 1..6
+    for (const row of rows) {
+      for (let num = 1; num <= 6; num++) {
+        const id = `${row}${String(num).padStart(2, "0")}`;
+        generated.push({
+          id,
+          row,
+          num,
+          floor: 1,
+          isBooked: checkIsBooked(id, 1, row, num),
+        });
       }
     }
+
+    // Tầng 2 (Trên): 7..12
+    for (const row of rows) {
+      for (let num = 7; num <= 12; num++) {
+        const id = `${row}${String(num).padStart(2, "0")}`;
+        generated.push({
+          id,
+          row,
+          num,
+          floor: 2,
+          isBooked: checkIsBooked(id, 2, row, num),
+        });
+      }
+    }
+
     return generated;
   });
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerName, setPassengerName] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const toggleSeat = (seatId: string, isBooked: boolean) => {
     if (isBooked) return;
-    
-    setSelectedSeats(prev => {
+    setErrorMessage("");
+
+    setSelectedSeats((prev) => {
       if (prev.includes(seatId)) {
-        return prev.filter(id => id !== seatId);
+        return prev.filter((id) => id !== seatId);
       } else {
         if (prev.length >= 5) {
-          alert("Bạn chỉ được chọn tối đa 5 ghế");
+          alert("Bạn chỉ được chọn tối đa 5 ghế trong một lượt đặt");
           return prev;
         }
         return [...prev, seatId];
@@ -53,50 +98,87 @@ export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorPr
     });
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+
     if (selectedSeats.length === 0) {
       alert("Vui lòng chọn ít nhất 1 ghế!");
       return;
     }
-    if (!passengerName || !passengerPhone) {
-      alert("Vui lòng nhập đầy đủ thông tin hành khách!");
+    if (!passengerName.trim() || !passengerPhone.trim()) {
+      alert("Vui lòng nhập đầy đủ họ tên và số điện thoại hành khách!");
       return;
     }
-    
-    // In a real app, save to state management or API here
-    router.push(`/success?tripId=${tripId}&seats=${selectedSeats.join(",")}`);
+
+    try {
+      setIsSubmitting(true);
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tripId,
+          seats: selectedSeats,
+          fullName: passengerName.trim(),
+          phone: passengerPhone.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setErrorMessage(data.message || "Đặt vé không thành công, vui lòng thử lại.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Đặt vé thành công -> Chuyển đến trang xác nhận vé thật
+      const pnr = data.data?.pnr || `NHAXE-${tripCode || tripId}`;
+      router.push(
+        `/success?tripId=${tripId}&tripCode=${tripCode || ""}&seats=${selectedSeats.join(",")}&pnr=${pnr}&name=${encodeURIComponent(passengerName)}&total=${totalPrice}`
+      );
+    } catch (err) {
+      console.error("Lỗi khi kết nối đặt vé:", err);
+      setErrorMessage("Lỗi kết nối đến máy chủ. Vui lòng kiểm tra lại kết nối mạng.");
+      setIsSubmitting(false);
+    }
   };
 
   const totalPrice = selectedSeats.length * pricePerSeatStr;
 
   const renderFloor = (floorNum: number) => {
-    const floorSeats = seats.filter(s => s.id.startsWith(floorNum.toString()));
+    const floorSeats = seats.filter((s) => s.floor === floorNum);
     return (
       <div className="bg-white p-4 border border-gray-200 rounded-lg">
         <h4 className="text-center font-bold text-gray-700 mb-4 pb-2 border-b">
-          Tầng {floorNum === 1 ? "Dưới" : "Trên"}
+          Tầng {floorNum === 1 ? "1 (Dưới)" : "2 (Trên)"}
         </h4>
         <div className="grid grid-cols-3 gap-x-4 gap-y-3">
-          {['A', 'B', 'C'].map((row) => (
+          {["A", "B", "C"].map((row) => (
             <div key={row} className="flex flex-col gap-3">
-              {floorSeats.filter(s => s.id.charAt(1) === row).map(seat => (
-                <button
-                  key={seat.id}
-                  type="button"
-                  onClick={() => toggleSeat(seat.id, seat.isBooked)}
-                  disabled={seat.isBooked}
-                  className={`w-full py-3 rounded text-sm font-bold border transition-colors ${
-                    seat.isBooked 
-                      ? "bg-gray-300 text-gray-500 border-gray-400 cursor-not-allowed opacity-50" 
-                      : selectedSeats.includes(seat.id)
-                        ? "bg-[#ef5222] text-white border-[#ef5222]"
+              <span className="text-xs font-semibold text-center text-gray-400">
+                Dãy {row}
+              </span>
+              {floorSeats
+                .filter((s) => s.row === row)
+                .map((seat) => (
+                  <button
+                    key={seat.id}
+                    type="button"
+                    onClick={() => toggleSeat(seat.id, seat.isBooked)}
+                    disabled={seat.isBooked || isSubmitting}
+                    title={seat.isBooked ? `Ghế ${seat.id} đã có người đặt` : `Ghế ${seat.id}`}
+                    className={`w-full py-3 rounded text-sm font-bold border transition-colors ${
+                      seat.isBooked
+                        ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed line-through"
+                        : selectedSeats.includes(seat.id)
+                        ? "bg-[#ef5222] text-white border-[#ef5222] shadow-sm"
                         : "bg-white text-gray-700 border-gray-300 hover:border-[#ef5222] hover:text-[#ef5222]"
-                  }`}
-                >
-                  {seat.id.substring(1)}
-                </button>
-              ))}
+                    }`}
+                  >
+                    {seat.id}
+                  </button>
+                ))}
             </div>
           ))}
         </div>
@@ -106,27 +188,27 @@ export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorPr
 
   return (
     <div className="flex flex-col md:flex-row gap-8">
-      {/* Left: Seat Map */}
+      {/* Cột trái: Sơ đồ chọn ghế */}
       <div className="w-full md:w-7/12">
         <div className="bg-gray-50 p-6 border border-gray-200 rounded-lg shadow-sm">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-lg font-bold text-gray-800">Chọn ghế của bạn</h3>
+            <h3 className="text-lg font-bold text-gray-800">Chọn ghế ngồi</h3>
             <div className="flex gap-4 text-sm font-medium">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
-                <span>Trống</span>
+                <span className="text-gray-600">Trống</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 bg-[#ef5222] border border-[#ef5222] rounded"></div>
-                <span>Đang chọn</span>
+                <span className="text-gray-600">Đang chọn</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-gray-300 border border-gray-400 rounded opacity-50"></div>
-                <span>Đã đặt</span>
+                <div className="w-4 h-4 bg-gray-200 border border-gray-300 rounded"></div>
+                <span className="text-gray-400">Đã đặt</span>
               </div>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             {renderFloor(1)}
             {renderFloor(2)}
@@ -134,63 +216,87 @@ export default function SeatSelector({ tripId, pricePerSeatStr }: SeatSelectorPr
         </div>
       </div>
 
-      {/* Right: Checkout Summary */}
+      {/* Cột phải: Thông tin thanh toán và đặt vé */}
       <div className="w-full md:w-5/12">
         <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 sticky top-24">
-          <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Thông tin thanh toán</h3>
-          
+          <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+            Thông tin đặt vé
+          </h3>
+
           <div className="mb-6">
-            <div className="flex justify-between mb-2">
-              <span className="text-gray-600">Ghế đã chọn:</span>
-              <span className="font-bold">{selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}</span>
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Chuyến xe:</span>
+              <span className="font-bold text-gray-800">{tripCode || tripId}</span>
             </div>
-            <div className="flex justify-between mb-2">
-              <span className="text-gray-600">Tạm tính:</span>
-              <span className="font-bold">{totalPrice.toLocaleString('vi-VN')} đ</span>
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Ghế đã chọn:</span>
+              <span className="font-bold text-[#ef5222]">
+                {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}
+              </span>
+            </div>
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Giá mỗi vé:</span>
+              <span className="font-semibold text-gray-700">
+                {pricePerSeatStr.toLocaleString("vi-VN")} đ
+              </span>
             </div>
             <div className="flex justify-between mt-4 pt-4 border-t border-gray-100">
               <span className="text-gray-800 font-bold text-lg">Tổng tiền:</span>
-              <span className="font-extrabold text-2xl text-[#ef5222]">{totalPrice.toLocaleString('vi-VN')} đ</span>
+              <span className="font-extrabold text-2xl text-[#ef5222]">
+                {totalPrice.toLocaleString("vi-VN")} đ
+              </span>
             </div>
           </div>
 
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+              {errorMessage}
+            </div>
+          )}
+
           <form onSubmit={handleCheckout}>
-            <h4 className="font-bold text-gray-800 mb-3 text-sm">Thông tin hành khách</h4>
+            <h4 className="font-bold text-gray-800 mb-3 text-sm">
+              Thông tin hành khách
+            </h4>
             <div className="space-y-4 mb-6">
               <div>
                 <label className="block text-sm text-gray-600 mb-1">Họ và tên *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={passengerName}
-                  onChange={e => setPassengerName(e.target.value)}
-                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#ef5222]" 
-                  placeholder="Nhập họ tên" 
+                  onChange={(e) => setPassengerName(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#ef5222]"
+                  placeholder="Ví dụ: Nguyễn Văn A"
                 />
               </div>
               <div>
-                <label className="block text-sm text-gray-600 mb-1">Số điện thoại *</label>
-                <input 
-                  type="tel" 
+                <label className="block text-sm text-gray-600 mb-1">
+                  Số điện thoại *
+                </label>
+                <input
+                  type="tel"
                   required
                   value={passengerPhone}
-                  onChange={e => setPassengerPhone(e.target.value)}
-                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#ef5222]" 
-                  placeholder="Nhập số điện thoại" 
+                  onChange={(e) => setPassengerPhone(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#ef5222]"
+                  placeholder="Ví dụ: 0901234567"
                 />
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
-              disabled={selectedSeats.length === 0}
+              disabled={selectedSeats.length === 0 || isSubmitting}
               className={`w-full font-bold py-3 px-4 rounded-md transition-colors ${
-                selectedSeats.length > 0 
-                  ? "bg-[#ef5222] hover:bg-[#d94a1d] text-white" 
+                selectedSeats.length > 0 && !isSubmitting
+                  ? "bg-[#ef5222] hover:bg-[#d94a1d] text-white cursor-pointer"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
-              Thanh toán ngay
+              {isSubmitting ? "Đang xử lý đặt vé..." : "Xác nhận đặt vé"}
             </button>
           </form>
         </div>
