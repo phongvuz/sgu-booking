@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function LogoutButton() {
+export default function LogoutButton({ className = "font-medium text-[#ef5222] disabled:opacity-50" }: { className?: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -19,7 +19,7 @@ export default function LogoutButton() {
     finally { setPending(false); }
   }
   return <div>
-    <button onClick={logout} disabled={pending} className="font-medium text-[#ef5222] disabled:opacity-50">{pending ? "Đang đăng xuất..." : "Đăng xuất"}</button>
+    <button onClick={logout} disabled={pending} className={className}>{pending ? "Đang đăng xuất..." : "Đăng xuất"}</button>
     {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
   </div>;
 }

@@ -10,7 +10,7 @@ export default function ClientLayout({
   return (
     <div className="bg-gray-50 text-gray-800 flex flex-col min-h-screen font-sans">
       <header className="bg-white border-b shadow-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-4 justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">🚌</span>
             <span className="font-extrabold text-2xl text-[#ef5222] tracking-tight">NHAXESAIGON</span>
@@ -21,7 +21,7 @@ export default function ClientLayout({
             <Link href="/lookup" className="hover:text-[#ef5222] transition-colors">Tra cứu vé</Link>
             <Link href="#" className="hover:text-[#ef5222] transition-colors">Liên hệ</Link>
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <Suspense fallback={<span>Đang tải...</span>}><CustomerMenu /></Suspense>
           </div>
         </div>
