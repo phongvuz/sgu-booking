@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import CustomerMenu from "@/components/auth/CustomerMenu";
 
 export default function ClientLayout({
   children,
@@ -20,12 +22,7 @@ export default function ClientLayout({
             <Link href="#" className="hover:text-[#ef5222] transition-colors">Liên hệ</Link>
           </nav>
           <div className="flex items-center gap-4">
-            <Link href="/login" className="hidden md:block font-medium text-gray-600 hover:text-[#ef5222] transition-colors">
-              Đăng nhập
-            </Link>
-            <Link href="/register" className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-medium py-2 px-5 rounded-md transition-colors">
-              Đăng ký
-            </Link>
+            <Suspense fallback={<span>Đang tải...</span>}><CustomerMenu /></Suspense>
           </div>
         </div>
       </header>

@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginForm() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -12,6 +14,7 @@ export default function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isPending) return;
     setError("");
 
     if (!email || !password) {
@@ -21,16 +24,30 @@ export default function LoginForm() {
 
     setIsPending(true);
 
-    setTimeout(() => {
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: email, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.message || "Không thể đăng nhập. Vui lòng thử lại!");
+        return;
+      }
+      router.replace("/");
+      router.refresh();
+    } catch {
+      setError("Không thể kết nối máy chủ. Vui lòng thử lại!");
+    } finally {
       setIsPending(false);
-      alert("Đăng nhập thành công!");
-    }, 1000);
+    }
   };
 
   return (
     <form onSubmit={handleSubmit} className="mt-8 space-y-5">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
+        <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
           <span>⚠️</span>
           <span>{error}</span>
         </div>
@@ -42,6 +59,8 @@ export default function LoginForm() {
         </label>
         <input
           name="email"
+          autoComplete="username"
+          maxLength={191}
           type="text"
           required
           value={email}
@@ -66,6 +85,8 @@ export default function LoginForm() {
         <div className="relative">
           <input
             name="password"
+            autoComplete="current-password"
+            maxLength={128}
             type={showPassword ? "text" : "password"}
             required
             value={password}

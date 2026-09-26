@@ -1,4 +1,4 @@
-import { randomBytes, scrypt } from "node:crypto";
+import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 
 // Store the algorithm and salt alongside the hash for future login verification.
 export async function hashPassword(password: string): Promise<string> {
@@ -10,4 +10,13 @@ export async function hashPassword(password: string): Promise<string> {
     });
   });
   return `scrypt:${salt}:${hash.toString("hex")}`;
+}
+
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
+  if (!/^scrypt:[a-f0-9]{32}:[a-f0-9]{128}$/.test(stored)) return false;
+  const [, salt, hash] = stored.split(":");
+  const actual = await new Promise<Buffer>((resolve, reject) => {
+    scrypt(password, salt, 64, (error, key) => error ? reject(error) : resolve(key));
+  });
+  return timingSafeEqual(actual, Buffer.from(hash, "hex"));
 }
