@@ -123,7 +123,7 @@ export default async function TripsPage({
 
           <div className="w-full md:w-3/4 flex flex-col space-y-4">
             {trips.length > 0 ? (
-              trips.map((trip) => {
+              trips.map((trip: any) => {
                 const { departureTime, arrivalTime, dateFormatted } = formatTripTime(trip.time);
                 const vehicleType = trip.availableSeats <= 22 ? "Limousine 22 phòng" : "Giường nằm 34 chỗ";
 
