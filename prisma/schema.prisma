@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -12,37 +6,55 @@ datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
-model User {
+
+model booking {
+  id         Int      @id @default(autoincrement())
+  seatNumber String
+  status     String   @default("CONFIRMED")
+  totalPrice Float
+  userId     Int
+  tripId     Int
+  createdAt  DateTime @default(now())
+  trip       trip     @relation(fields: [tripId], references: [id], onDelete: Cascade, map: "Booking_tripId_fkey")
+  user       user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Booking_userId_fkey")
+
+  @@index([tripId], map: "Booking_tripId_fkey")
+  @@index([userId], map: "Booking_userId_fkey")
+}
+
+model trip {
+  id             Int       @id @default(autoincrement())
+  code           String    @unique(map: "Trip_code_key")
+  from           String
+  to             String
+  time           DateTime
+  price          Float
+  availableSeats Int
+  createdAt      DateTime  @default(now())
+  booking        booking[]
+}
+
+model user {
   id        Int       @id @default(autoincrement())
   fullName  String
   phone     String
   password  String
-  role      String    @default("USER") // USER, ADMIN
+  role      String    @default("USER")
   createdAt DateTime  @default(now())
-  bookings  Booking[]
+  booking   booking[]
 }
 
-model Trip {
-  id             Int       @id @default(autoincrement())
-  code           String    @unique // Mã chuyến (VD: SG-DL-01)
-  from         String    // Điểm đi
-  to    String    // Điểm đến
-  time  DateTime  // Giờ khởi hành
-  price          Float     // Giá vé
-  availableSeats Int       // Số ghế trống
-  createdAt      DateTime  @default(now())
-  bookings       Booking[]
-}
-
-model Booking {
-  id          Int      @id @default(autoincrement())
-  seatNumber  String   // Vị trí ghế
-  status      String   @default("CONFIRMED") // PENDING, CONFIRMED, CANCELLED
-  totalPrice  Float
-  userId      Int
-  tripId      Int
-  createdAt   DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+model employee {
+  id           String   @id
+  name         String
+  email        String   @unique
+  phone        String   @unique
+  role         String
+  department   String
+  status       String   @default("Đang làm việc")
+  avatar       String?  @db.Text
+  identityCard String?
+  address      String?
+  startDate    String
+  createdAt    DateTime @default(now())
 }
