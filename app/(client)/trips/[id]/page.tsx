@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatTripTime, formatPrice } from "@/types";
-import SeatSelector from "@/components/SeatSelector";
+import SeatSelector from "@/components/trips/SeatSelector";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -12,12 +12,13 @@ export default async function TripDetailPage({ params }: PageProps) {
   const resolvedParams = await params;
   const tripId = resolvedParams.id;
 
-  const tripInfo = await prisma.trip.findUnique({
+  const numId = Number(tripId);
+  const tripInfo = await prisma.trip.findFirst({
     where: {
-      code: tripId,
-    },
-    include: {
-      bookings: true,
+      OR: [
+        ...(!isNaN(numId) ? [{ id: numId }] : []),
+        { code: tripId },
+      ],
     },
   });
 
@@ -25,14 +26,12 @@ export default async function TripDetailPage({ params }: PageProps) {
     notFound();
   }
 
-  const { departureTime, dateFormatted } = formatTripTime(tripInfo.time);
+  const { departureTime, arrivalTime, timeRange, dateFormatted } = formatTripTime(tripInfo.time);
   const formattedPrice = formatPrice(tripInfo.price);
-  const bookedSeats = tripInfo.bookings.map((b) => b.seatNumber);
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">
-        {/* Back Link & Header */}
         <div className="mb-6 flex flex-col md:flex-row md:items-center justify-between">
           <Link
             href="/trips"
@@ -45,11 +44,10 @@ export default async function TripDetailPage({ params }: PageProps) {
           </h2>
         </div>
 
-        {/* Thông tin hành trình */}
         <div className="bg-white p-6 border border-gray-200 shadow-sm rounded-lg mb-8">
           <div className="flex justify-between items-center border-b border-gray-100 pb-3 mb-5">
             <h3 className="text-lg font-bold text-gray-800">
-              Thông tin hành trình (MySQL Database)
+              Thông tin hành trình 
             </h3>
             <span className="bg-green-100 text-green-800 text-xs px-2.5 py-1 rounded-full font-semibold">
               Còn {tripInfo.availableSeats} ghế trống
@@ -64,7 +62,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-gray-500 text-sm mb-1">Giờ xuất bến</p>
-              <p className="font-bold text-gray-900">{departureTime}</p>
+              <p className="font-bold text-gray-900">{departureTime} (dự kiến đến {arrivalTime})</p>
             </div>
             <div>
               <p className="text-gray-500 text-sm mb-1">Ngày đi</p>
@@ -77,17 +75,7 @@ export default async function TripDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-<<<<<<< Updated upstream
-        {/* Component Sơ đồ ghế và Thanh toán */}
         <SeatSelector tripId={String(tripInfo.id)} pricePerSeatStr={tripInfo.price} />
-=======
-        <SeatSelector
-          tripId={String(tripInfo.id)}
-          tripCode={tripInfo.code}
-          pricePerSeatStr={tripInfo.price}
-          bookedSeats={bookedSeats}
-        />
->>>>>>> Stashed changes
       </div>
     </div>
   );

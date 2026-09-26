@@ -199,7 +199,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                     {formatPrice(trip.price)}
                   </p>
                   <Link
-                    href={`/trips/${trip.code}`}
+                    href={`/trips/${trip.id}`}
                     className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
                   >
                     Chọn chuyến
