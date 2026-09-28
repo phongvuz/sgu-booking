@@ -49,7 +49,7 @@ export function EmployeeDetailModal({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-xl font-bold">{employee.name}</h3>
-                <span className="text-xs bg-[#ef5222] px-2 py-0.5 rounded font-mono font-medium">
+                <span className="text-xs bg-[#1a9e09] px-2 py-0.5 rounded font-mono font-medium">
                   {employee.id}
                 </span>
               </div>
@@ -134,7 +134,7 @@ export function EmployeeDetailModal({
                 onClose();
                 onEdit(employee);
               }}
-              className="px-4 py-2 text-sm font-semibold bg-[#ef5222] hover:bg-[#d94a1d] text-white rounded-lg transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
+              className="px-4 py-2 text-sm font-semibold bg-[#1a9e09] hover:bg-[#1db63e] text-white rounded-lg transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
               <span>✎</span> Chỉnh sửa thông tin
             </button>

@@ -1,7 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { resolveLocationName } from "@/types";
+import { getTrips, createTrip } from "@/services/tripService";
 
-// POST /api/trips - Tạo và lưu trữ một tuyến xe mới vào MySQL
+// GET /api/trips - Lấy danh sách chuyến xe (hỗ trợ lọc theo from, to, date)
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const fromParam = searchParams.get("from")?.trim() || "";
+    const toParam = searchParams.get("to")?.trim() || "";
+    const dateParam = searchParams.get("date")?.trim() || "";
+
+    const fromCity = resolveLocationName(fromParam);
+    const toCity = resolveLocationName(toParam);
+
+    const trips = await getTrips({
+      fromCity,
+      toCity,
+      date: dateParam || undefined,
+      includeBookings: true,
+    });
+
+    return NextResponse.json({
+      success: true,
+      count: trips.length,
+      data: trips,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy danh sách chuyến xe:", error);
+    return NextResponse.json(
+      { success: false, message: "Lỗi hệ thống khi tải danh sách chuyến xe." },
+      { status: 500 }
+    );
+  }
+}
+
+// POST /api/trips - Tạo và lưu trữ một tuyến xe mới
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -26,36 +59,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const seats = Number(availableSeats ?? emptySeats ?? 30);
-
-    // Tự sinh mã chuyến nếu chưa có (VD: SG-DL-03)
-    let tripCode = code?.trim();
-    if (!tripCode) {
-      const count = await prisma.trip.count();
-      tripCode = `VN${String(count + 1).padStart(2, "0")}`;
-    }
-
-    // Kiểm tra trùng code
-    const existing = await prisma.trip.findUnique({
-      where: { code: tripCode },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { success: false, message: `Mã chuyến xe ${tripCode} đã tồn tại trong database.` },
-        { status: 409 }
-      );
-    }
-
-    const newTrip = await prisma.trip.create({
-      data: {
-        code: tripCode,
-        from: from.trim(),
-        to: to.trim(),
-        time: new Date(time),
-        price: numPrice,
-        availableSeats: seats,
-      },
+    const newTrip = await createTrip({
+      from,
+      to,
+      time,
+      price: numPrice,
+      availableSeats: Number(availableSeats ?? emptySeats ?? 30),
+      code,
     });
 
     return NextResponse.json(
@@ -67,10 +77,12 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Lỗi khi tạo tuyến xe trong database:", error);
+    console.error("Lỗi khi tạo tuyến xe:", error);
+    const message = error instanceof Error ? error.message : "Lỗi hệ thống khi tạo tuyến xe.";
+    const isConflict = message.includes("đã tồn tại");
     return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tạo tuyến xe." },
-      { status: 500 }
+      { success: false, message },
+      { status: isConflict ? 409 : 500 }
     );
   }
 }

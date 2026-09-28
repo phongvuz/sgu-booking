@@ -158,7 +158,7 @@ CREATE TABLE `customer` (
 --
 -- Đang đổ dữ liệu cho bảng `customer`
 --
-INSERT INTO `customer` (`id`, `name`, `email`, `phone`, `status`, `address`, `startDate`) VALUES
+INSERT INTO `customer` (`id`, `name`, `email`, `phone`, `status`, `address`) VALUES
 ('CUS-001', 'Nguyễn Minh Tuấn', 'tuannguyen@gmail.com', '0903456789', 'Đang hoạt động', 'Quận 10, TP. Hồ Chí Minh'),
 ('CUS-002', 'Trần Ngọc Mai', 'maitran@gmail.com', '0914567890', 'Đang hoạt động', 'Quận Bình Thạnh, TP. Hồ Chí Minh'),
 ('CUS-003', 'Lê Hoàng Nam', 'namle@gmail.com', '0935678901', 'Ngừng hoạt động', 'TP. Thủ Đức, TP. Hồ Chí Minh');
@@ -177,11 +177,11 @@ ALTER TABLE `customer`
 --
 -- Chỉ mục cho bảng `employee`
 --
-ALTER TABLE `customer`
+ALTER TABLE `employee`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `customer_email_key` (`email`),
-  ADD UNIQUE KEY `customer_phone_key` (`phone`);
-SHOW INDEX FROM `customer`;
+  ADD UNIQUE KEY `employee_email_key` (`email`),
+  ADD UNIQUE KEY `employee_phone_key` (`phone`);
+
 --
 -- Chỉ mục cho bảng `booking`
 --
@@ -201,7 +201,8 @@ ALTER TABLE `trip`
 -- Chỉ mục cho bảng `user`
 --
 ALTER TABLE `user`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_phone_key` (`phone`);
 
 --
 -- AUTO_INCREMENT cho các bảng đã đổ

@@ -20,7 +20,7 @@ export function EmployeeStats({ employees, total }: EmployeeStatsProps) {
           <p className="text-xs text-gray-500 font-medium uppercase">Tổng nhân sự</p>
           <p className="text-2xl font-bold text-gray-900 mt-1">{total}</p>
         </div>
-        <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#ef5222] flex items-center justify-center font-bold text-lg">
+        <div className="w-10 h-10 rounded-xl bg-orange-100 text-[#1a9e09] flex items-center justify-center font-bold text-lg">
           👥
         </div>
       </div>

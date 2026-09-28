@@ -24,12 +24,28 @@ export interface SearchParams {
 
 export const STATION_NAMES: Record<string, string> = {
   SGN: "Hồ Chí Minh",
+  HCM: "Hồ Chí Minh",
+  TPHCM: "Hồ Chí Minh",
+  "TP.HCM": "Hồ Chí Minh",
+  "SÀI GÒN": "Hồ Chí Minh",
+  "SAI GON": "Hồ Chí Minh",
   DLT: "Đà Lạt",
+  "ĐÀ LẠT": "Đà Lạt",
+  "DA LAT": "Đà Lạt",
   NHA: "Nha Trang",
+  "NHA TRANG": "Nha Trang",
   HAN: "Hà Nội",
+  "HÀ NỘI": "Hà Nội",
+  "HA NOI": "Hà Nội",
   DAD: "Đà Nẵng",
+  "ĐÀ NẴNG": "Đà Nẵng",
+  "DA NANG": "Đà Nẵng",
   VT: "Vũng Tàu",
+  "VŨNG TÀU": "Vũng Tàu",
+  "VUNG TAU": "Vũng Tàu",
   CTH: "Cần Thơ",
+  "CẦN THƠ": "Cần Thơ",
+  "CAN THO": "Cần Thơ",
 };
 
 export function resolveLocationName(codeOrName?: string): string {

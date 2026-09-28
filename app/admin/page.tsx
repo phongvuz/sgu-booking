@@ -55,21 +55,21 @@ export default function AdminDashboard() {
                   <td className="px-4 py-3 font-medium">NHAXE-1A2B3C</td>
                   <td className="px-4 py-3">Nguyễn Văn A</td>
                   <td className="px-4 py-3">SGN - DLT</td>
-                  <td className="px-4 py-3 text-[#ef5222] font-medium">500.000 đ</td>
+                  <td className="px-4 py-3 text-[#1a9e09] font-medium">500.000 đ</td>
                   <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Đã thanh toán</span></td>
                 </tr>
                 <tr className="border-b">
                   <td className="px-4 py-3 font-medium">NHAXE-X9Y8Z7</td>
                   <td className="px-4 py-3">Trần Thị B</td>
                   <td className="px-4 py-3">SGN - NHA</td>
-                  <td className="px-4 py-3 text-[#ef5222] font-medium">300.000 đ</td>
+                  <td className="px-4 py-3 text-[#1a9e09] font-medium">300.000 đ</td>
                   <td className="px-4 py-3"><span className="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs">Chờ thanh toán</span></td>
                 </tr>
                 <tr className="border-b">
                   <td className="px-4 py-3 font-medium">NHAXE-M1N2P3</td>
                   <td className="px-4 py-3">Lê Hoàng C</td>
                   <td className="px-4 py-3">DLT - SGN</td>
-                  <td className="px-4 py-3 text-[#ef5222] font-medium">250.000 đ</td>
+                  <td className="px-4 py-3 text-[#1a9e09] font-medium">250.000 đ</td>
                   <td className="px-4 py-3"><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs">Đã thanh toán</span></td>
                 </tr>
               </tbody>
