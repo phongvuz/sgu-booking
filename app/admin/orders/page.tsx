@@ -11,7 +11,7 @@ export default function AdminOrdersPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Quản lý Đơn hàng / Vé</h1>
-        <button className="bg-[#ef5222] hover:bg-[#d94a1d] text-white px-4 py-2 rounded-md font-medium transition-colors">
+        <button className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2 rounded-md font-medium transition-colors">
           + Tạo đơn vé mới (Offine)
         </button>
       </div>
@@ -21,13 +21,13 @@ export default function AdminOrdersPage() {
           <input 
             type="text" 
             placeholder="Tìm kiếm mã vé, tên KH, SĐT..." 
-            className="border border-gray-300 rounded px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#ef5222]"
+            className="border border-gray-300 rounded px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#1a9e09]"
           />
           <input 
             type="date" 
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]"
+            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#1a9e09]"
           />
-          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]">
+          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#1a9e09]">
             <option value="">Tất cả trạng thái</option>
             <option value="paid">Đã thanh toán</option>
             <option value="pending">Chờ thanh toán</option>
@@ -51,7 +51,7 @@ export default function AdminOrdersPage() {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-bold text-[#ef5222]">{order.id}</td>
+                  <td className="px-6 py-4 font-bold text-[#1a9e09]">{order.id}</td>
                   <td className="px-6 py-4">
                     <p className="font-medium text-gray-900">{order.customer}</p>
                     <p className="text-xs text-gray-500">{order.phone}</p>

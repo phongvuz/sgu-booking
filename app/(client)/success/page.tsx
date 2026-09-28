@@ -40,7 +40,7 @@ export default async function SuccessPage({
             )}
             <div className="flex justify-between">
               <span>Mã chuyến xe:</span>
-              <span className="font-bold text-[#ef5222]">{params.tripCode || params.tripId || "—"}</span>
+              <span className="font-bold text-[#1a9e09]">{params.tripCode || params.tripId || "—"}</span>
             </div>
             <div className="flex justify-between">
               <span>Ghế đã đặt:</span>
@@ -49,7 +49,7 @@ export default async function SuccessPage({
             {params.total && (
               <div className="flex justify-between">
                 <span>Tổng tiền:</span>
-                <span className="font-bold text-[#ef5222]">
+                <span className="font-bold text-[#1a9e09]">
                   {Number(params.total).toLocaleString("vi-VN")} đ
                 </span>
               </div>
@@ -67,7 +67,7 @@ export default async function SuccessPage({
 
         <Link 
           href="/" 
-          className="inline-block bg-[#ef5222] hover:bg-[#d94a1d] text-white font-bold py-3 px-8 rounded-md transition-colors"
+          className="inline-block bg-[#1a9e09] hover:bg-[#1db63e] text-white font-bold py-3 px-8 rounded-md transition-colors"
         >
           Trở về trang chủ
         </Link>

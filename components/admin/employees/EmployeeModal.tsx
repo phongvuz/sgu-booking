@@ -96,7 +96,7 @@ export function EmployeeModal({
         {/* Header */}
         <div className="px-6 py-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="w-8 h-8 rounded-lg bg-[#ef5222] text-white flex items-center justify-center font-bold text-lg">
+            <span className="w-8 h-8 rounded-lg bg-[#1a9e09] text-white flex items-center justify-center font-bold text-lg">
               {mode === "create" ? "+" : "✎"}
             </span>
             <div>
@@ -135,7 +135,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                   errors.name
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               />
               {errors.name && (
@@ -155,7 +155,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                   errors.email
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               />
               {errors.email && (
@@ -175,7 +175,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                   errors.phone
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               />
               {errors.phone && (
@@ -195,7 +195,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                   errors.identityCard
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               />
               {errors.identityCard && (
@@ -215,7 +215,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${
                   errors.role
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               >
                 <option value="Tài xế">Tài xế</option>
@@ -239,7 +239,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${
                   errors.department
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               >
                 <option value="Đội xe">Đội xe</option>
@@ -262,7 +262,7 @@ export function EmployeeModal({
               </label>
               <select
                 {...register("status")}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#ef5222] bg-white transition-colors cursor-pointer"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#1a9e09] bg-white transition-colors cursor-pointer"
               >
                 <option value="Đang làm việc">🟢 Đang làm việc</option>
                 <option value="Nghỉ phép">🟡 Nghỉ phép</option>
@@ -284,7 +284,7 @@ export function EmployeeModal({
                 className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
                   errors.startDate
                     ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-                    : "border-gray-300 focus:ring-orange-200 focus:border-[#ef5222]"
+                    : "border-gray-300 focus:ring-orange-200 focus:border-[#1a9e09]"
                 }`}
               />
               {errors.startDate && (
@@ -302,7 +302,7 @@ export function EmployeeModal({
               type="text"
               placeholder="VD: Quận 1, TP. Hồ Chí Minh"
               {...register("address")}
-              className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#ef5222] transition-colors"
+              className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#1a9e09] transition-colors"
             />
             {errors.address && (
               <p className="text-xs text-rose-500 mt-1">{errors.address.message}</p>
@@ -319,7 +319,7 @@ export function EmployeeModal({
                 type="text"
                 placeholder="VD: Password@123"
                 {...register("password")}
-                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#ef5222] transition-colors bg-gray-50/40"
+                className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-[#1a9e09] transition-colors bg-gray-50/40"
               />
               <p className="text-[11px] text-gray-500 mt-1">
                 Nhân viên có thể đổi mật khẩu sau lần đăng nhập đầu tiên.
@@ -344,7 +344,7 @@ export function EmployeeModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2 text-sm font-bold bg-[#ef5222] hover:bg-[#d94a1d] text-white rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2 text-sm font-bold bg-[#1a9e09] hover:bg-[#1db63e] text-white rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
             >
               {isSubmitting ? (
                 <>

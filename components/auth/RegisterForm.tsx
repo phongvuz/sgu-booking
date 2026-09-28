@@ -58,7 +58,7 @@ export default function RegisterForm() {
           placeholder="Nguyễn Văn A"
           value={formData.fullName}
           onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ef5222] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
@@ -74,7 +74,7 @@ export default function RegisterForm() {
           placeholder="0912345678"
           value={formData.phone}
           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ef5222] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
@@ -88,7 +88,7 @@ export default function RegisterForm() {
           placeholder="example@gmail.com"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ef5222] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
@@ -104,7 +104,7 @@ export default function RegisterForm() {
             placeholder="Tối thiểu 6 ký tự"
             value={formData.password}
             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ef5222] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 pr-12 text-sm"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 pr-12 text-sm"
           />
           <button
             type="button"
@@ -127,7 +127,7 @@ export default function RegisterForm() {
           placeholder="Nhập lại mật khẩu phía trên"
           value={formData.confirmPassword}
           onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#ef5222] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
@@ -139,11 +139,11 @@ export default function RegisterForm() {
           checked={formData.agreeTerms}
           onChange={(e) => setFormData({ ...formData, agreeTerms: e.target.checked })}
           required
-          className="w-4 h-4 text-[#ef5222] accent-[#ef5222] rounded cursor-pointer"
+          className="w-4 h-4 text-[#1a9e09] accent-[#1a9e09] rounded cursor-pointer"
         />
         <label htmlFor="terms" className="text-xs text-gray-600 cursor-pointer">
           Tôi đồng ý với{" "}
-          <Link href="#" className="text-[#ef5222] hover:underline font-medium">
+          <Link href="#" className="text-[#1a9e09] hover:underline font-medium">
             Điều khoản dịch vụ & Chính sách bảo mật
           </Link>
         </label>
@@ -153,14 +153,14 @@ export default function RegisterForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full mt-2 bg-[#ef5222] hover:bg-[#d94a1d] disabled:bg-orange-300 text-white font-bold py-3.5 px-4 rounded-xl transition duration-200 shadow-md cursor-pointer disabled:cursor-not-allowed text-sm"
+        className="w-full mt-2 bg-[#1a9e09] hover:bg-[#1db63e] disabled:bg-orange-300 text-white font-bold py-3.5 px-4 rounded-xl transition duration-200 shadow-md cursor-pointer disabled:cursor-not-allowed text-sm"
       >
         {isPending ? "Đang tạo tài khoản..." : "Đăng ký tài khoản"}
       </button>
 
       <div className="text-center text-sm text-gray-500 pt-3 border-t">
         Đã có tài khoản?{" "}
-        <Link href="/login" className="font-bold text-[#ef5222] hover:underline">
+        <Link href="/login" className="font-bold text-[#1a9e09] hover:underline">
           Đăng nhập
         </Link>
       </div>

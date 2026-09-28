@@ -53,7 +53,7 @@ export function EmployeePagination({
           <select
             value={limit}
             onChange={(e) => onLimitChange(Number(e.target.value))}
-            className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:border-[#ef5222] cursor-pointer"
+            className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:border-[#1a9e09] cursor-pointer"
           >
             <option value={8}>8</option>
             <option value={12}>12</option>
@@ -83,7 +83,7 @@ export function EmployeePagination({
               onClick={() => onPageChange(p)}
               className={`w-8 h-8 rounded text-xs font-semibold transition-colors cursor-pointer ${
                 p === page
-                  ? "bg-[#ef5222] text-white shadow-sm"
+                  ? "bg-[#1a9e09] text-white shadow-sm"
                   : "border border-gray-200 text-gray-700 hover:bg-gray-100"
               }`}
             >

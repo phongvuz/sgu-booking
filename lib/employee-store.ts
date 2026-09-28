@@ -281,3 +281,35 @@ export async function updateEmployeeStatus(
     return null;
   }
 }
+
+/**
+ * Kiểm tra xem email nhân viên đã tồn tại chưa
+ */
+export async function checkEmployeeEmailConflict(
+  email: string,
+  excludeId?: string
+): Promise<boolean> {
+  const existing = await prisma.employee.findFirst({
+    where: {
+      email: email.trim().toLowerCase(),
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+  });
+  return !!existing;
+}
+
+/**
+ * Kiểm tra xem số điện thoại nhân viên đã tồn tại chưa
+ */
+export async function checkEmployeePhoneConflict(
+  phone: string,
+  excludeId?: string
+): Promise<boolean> {
+  const existing = await prisma.employee.findFirst({
+    where: {
+      phone: phone.trim(),
+      ...(excludeId ? { NOT: { id: excludeId } } : {}),
+    },
+  });
+  return !!existing;
+}

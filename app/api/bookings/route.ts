@@ -1,13 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import {
+  createBooking,
+  getBookings,
+  BookingConflictError,
+  TripNotFoundError,
+} from "@/services/bookingService";
 
-// POST /api/bookings - Đặt vé xe và lưu trực tiếp vào MySQL database
+// POST /api/bookings - Controller tiếp nhận yêu cầu đặt vé
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { tripId, seats, fullName, phone } = body;
 
-    // Validation
+    // 1. Validation tầng Controller
     if (!tripId) {
       return NextResponse.json(
         { success: false, message: "Thiếu mã chuyến xe (tripId)." },
@@ -29,114 +34,40 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const numTripId = Number(tripId);
-    const trip = await prisma.trip.findFirst({
-      where: {
-        OR: [
-          ...(!isNaN(numTripId) ? [{ id: numTripId }] : []),
-          { code: String(tripId) },
-        ],
-      },
-      include: {
-        bookings: true,
-      },
+    // 2. Gọi tầng Service xử lý nghiệp vụ đặt vé
+    const bookingResult = await createBooking({
+      tripId,
+      seats,
+      fullName,
+      phone,
     });
 
-    if (!trip) {
-      return NextResponse.json(
-        { success: false, message: `Không tìm thấy chuyến xe với ID: ${tripId}` },
-        { status: 404 }
-      );
-    }
-
-    // Kiểm tra ghế đã có người đặt chưa
-    const alreadyBookedList = trip.bookings
-      .filter((b) => b.status !== "CANCELLED")
-      .map((b) => b.seatNumber.toUpperCase().trim());
-
-    const conflictingSeats = seats.filter((seat: string) => {
-      const s = seat.toUpperCase().trim();
-      return alreadyBookedList.includes(s);
-    });
-
-    if (conflictingSeats.length > 0) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Ghế ${conflictingSeats.join(", ")} đã được người khác đặt trước đó. Vui lòng chọn ghế khác.`,
-        },
-        { status: 409 }
-      );
-    }
-
-    // Tìm hoặc tạo người dùng theo số điện thoại
-    const trimmedPhone = phone.trim();
-    const trimmedName = fullName.trim();
-
-    let user = await prisma.user.findFirst({
-      where: { phone: trimmedPhone },
-    });
-
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          fullName: trimmedName,
-          phone: trimmedPhone,
-          password: "guest_password",
-          role: "USER",
-        },
-      });
-    }
-
-    // Tạo các bản ghi Booking trong MySQL
-    const createdBookings = await prisma.$transaction(async (tx) => {
-      const bookings = [];
-      for (const seat of seats) {
-        const b = await tx.booking.create({
-          data: {
-            seatNumber: String(seat).trim(),
-            status: "CONFIRMED",
-            totalPrice: trip.price,
-            userId: user.id,
-            tripId: trip.id,
-          },
-        });
-        bookings.push(b);
-      }
-
-      // Cập nhật số ghế trống còn lại trong chuyến xe
-      const newAvailable = Math.max(0, trip.availableSeats - seats.length);
-      await tx.trip.update({
-        where: { id: trip.id },
-        data: { availableSeats: newAvailable },
-      });
-
-      return bookings;
-    });
-
-    const pnrCode = `NHAXE-${trip.code}-${user.id}${createdBookings[0].id}`;
-
+    // 3. Đóng gói kết quả trả về HTTP 201 Created
     return NextResponse.json(
       {
         success: true,
         message: "Đặt vé thành công và đã lưu vào cơ sở dữ liệu!",
-        data: {
-          pnr: pnrCode,
-          tripCode: trip.code,
-          tripId: trip.id,
-          passenger: {
-            name: user.fullName,
-            phone: user.phone,
-          },
-          seats,
-          totalPrice: trip.price * seats.length,
-          bookingIds: createdBookings.map((b) => b.id),
-        },
+        data: bookingResult,
       },
       { status: 201 }
     );
-  } catch (error) {
+  } catch (error: any) {
     console.error("Lỗi khi xử lý đặt vé:", error);
+
+    if (error instanceof TripNotFoundError) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 404 }
+      );
+    }
+
+    if (error instanceof BookingConflictError) {
+      return NextResponse.json(
+        { success: false, message: error.message },
+        { status: 409 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, message: "Lỗi hệ thống khi xử lý đặt vé." },
       { status: 500 }
@@ -144,42 +75,14 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET /api/bookings - Tra cứu vé thật từ MySQL Database (theo phone, pnr, hoặc tripId)
+// GET /api/bookings - Controller tra cứu danh sách vé
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query")?.trim() || "";
     const phone = searchParams.get("phone")?.trim() || "";
 
-    const targetPhone = phone || query;
-
-    if (!targetPhone) {
-      // Trả về danh sách đơn gần nhất
-      const bookings = await prisma.booking.findMany({
-        take: 50,
-        orderBy: { createdAt: "desc" },
-        include: {
-          trip: true,
-          user: true,
-        },
-      });
-      return NextResponse.json({ success: true, data: bookings });
-    }
-
-    const bookings = await prisma.booking.findMany({
-      where: {
-        OR: [
-          { user: { phone: { contains: targetPhone } } },
-          { user: { fullName: { contains: targetPhone } } },
-          ...(!isNaN(Number(targetPhone)) ? [{ id: Number(targetPhone) }] : []),
-        ],
-      },
-      orderBy: { createdAt: "desc" },
-      include: {
-        trip: true,
-        user: true,
-      },
-    });
+    const bookings = await getBookings({ query, phone });
 
     return NextResponse.json({
       success: true,

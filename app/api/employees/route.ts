@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { queryEmployees, createEmployee } from "@/lib/employee-store";
+import {
+  queryEmployees,
+  createEmployee,
+  checkEmployeeEmailConflict,
+  checkEmployeePhoneConflict,
+} from "@/lib/employee-store";
 import { employeeSchema } from "@/lib/validations/employee";
 import { EmployeeQueryParams } from "@/types";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -62,10 +66,8 @@ export async function POST(request: NextRequest) {
 
     const validData = validationResult.data;
 
-    // Check duplicate email / phone in database
-    const emailExists = await prisma.employee.findUnique({
-      where: { email: validData.email.toLowerCase() },
-    });
+    // Check duplicate email / phone qua tầng Service
+    const emailExists = await checkEmployeeEmailConflict(validData.email);
     if (emailExists) {
       return NextResponse.json(
         { success: false, message: `Email "${validData.email}" đã tồn tại trên hệ thống.` },
@@ -73,9 +75,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const phoneExists = await prisma.employee.findUnique({
-      where: { phone: validData.phone },
-    });
+    const phoneExists = await checkEmployeePhoneConflict(validData.phone);
     if (phoneExists) {
       return NextResponse.json(
         { success: false, message: `Số điện thoại "${validData.phone}" đã được sử dụng.` },

@@ -80,7 +80,7 @@ export function EmployeeTable({
   if (employees.length === 0) {
     return (
       <div className="py-16 text-center">
-        <div className="w-16 h-16 bg-orange-50 text-[#ef5222] rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+        <div className="w-16 h-16 bg-orange-50 text-[#1a9e09] rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
           👥
         </div>
         <h4 className="text-base font-semibold text-gray-800 mb-1">
@@ -132,7 +132,7 @@ export function EmployeeTable({
                     <div>
                       <div
                         onClick={() => onView(emp)}
-                        className="font-bold text-gray-900 hover:text-[#ef5222] transition-colors cursor-pointer flex items-center gap-2"
+                        className="font-bold text-gray-900 hover:text-[#1a9e09] transition-colors cursor-pointer flex items-center gap-2"
                       >
                         <span>{emp.name}</span>
                       </div>

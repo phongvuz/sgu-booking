@@ -26,7 +26,7 @@ export default function Error({
       <div className="flex gap-4">
         <button
           onClick={() => reset()}
-          className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-semibold py-2.5 px-6 rounded-lg transition-colors cursor-pointer"
+          className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-semibold py-2.5 px-6 rounded-lg transition-colors cursor-pointer"
         >
           Thử Lại
         </button>

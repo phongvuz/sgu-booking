@@ -3,9 +3,10 @@ import {
   getEmployeeById,
   updateEmployee,
   deleteEmployee,
+  checkEmployeeEmailConflict,
+  checkEmployeePhoneConflict,
 } from "@/lib/employee-store";
 import { employeeSchema } from "@/lib/validations/employee";
-import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -73,13 +74,8 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
 
     const validData = validationResult.data;
 
-    // Check unique email and phone if changed in database
-    const emailConflict = await prisma.employee.findFirst({
-      where: {
-        email: validData.email.toLowerCase(),
-        NOT: { id },
-      },
-    });
+    // Check unique email and phone qua tầng Service
+    const emailConflict = await checkEmployeeEmailConflict(validData.email, id);
     if (emailConflict) {
       return NextResponse.json(
         {
@@ -90,12 +86,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const phoneConflict = await prisma.employee.findFirst({
-      where: {
-        phone: validData.phone,
-        NOT: { id },
-      },
-    });
+    const phoneConflict = await checkEmployeePhoneConflict(validData.phone, id);
     if (phoneConflict) {
       return NextResponse.json(
         {

@@ -69,7 +69,7 @@ export default function Lookup() {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="Nhập số điện thoại (VD: 0901234567) hoặc mã vé..."
-            className="flex-1 border border-gray-300 rounded-xl p-3.5 focus:outline-none focus:border-[#ef5222] text-gray-700 bg-gray-50"
+            className="flex-1 border border-gray-300 rounded-xl p-3.5 focus:outline-none focus:border-[#1a9e09] text-gray-700 bg-gray-50"
           />
           <button
             type="submit"
@@ -77,7 +77,7 @@ export default function Lookup() {
             className={`font-bold px-8 py-3.5 rounded-xl transition shadow-sm ${
               isLoading || !keyword.trim()
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                : "bg-[#ef5222] hover:bg-orange-600 text-white cursor-pointer"
+                : "bg-[#1a9e09] hover:bg-orange-600 text-white cursor-pointer"
             }`}
           >
             {isLoading ? "Đang tra cứu..." : "Tra cứu"}
@@ -104,7 +104,7 @@ export default function Lookup() {
                   className="bg-white p-6 rounded-2xl shadow-sm border border-gray-200 hover:border-orange-300 transition-colors"
                 >
                   <div className="flex justify-between items-center border-b pb-3 mb-4">
-                    <span className="font-bold text-[#ef5222] text-lg">
+                    <span className="font-bold text-[#1a9e09] text-lg">
                       Mã PNR: {pnrCode}
                     </span>
                     <span
@@ -147,7 +147,7 @@ export default function Lookup() {
                     </div>
                     <div>
                       <p className="text-gray-400 text-xs mb-1">Ghế đã đặt</p>
-                      <p className="font-extrabold text-[#ef5222] text-base">
+                      <p className="font-extrabold text-[#1a9e09] text-base">
                         {booking.seatNumber}
                       </p>
                     </div>
@@ -157,7 +157,7 @@ export default function Lookup() {
                     <span className="text-gray-500">
                       Khởi hành: <strong className="text-gray-800">{departureTime}</strong> ({dateFormatted}) | Mã chuyến: <strong className="text-gray-800">{booking.trip?.code}</strong>
                     </span>
-                    <span className="text-xl font-bold text-[#ef5222]">
+                    <span className="text-xl font-bold text-[#1a9e09]">
                       {formatPrice(booking.totalPrice)}
                     </span>
                   </div>
@@ -172,7 +172,7 @@ export default function Lookup() {
               </p>
               <Link
                 href="/trips"
-                className="inline-block mt-4 text-[#ef5222] font-semibold hover:underline"
+                className="inline-block mt-4 text-[#1a9e09] font-semibold hover:underline"
               >
                 Đặt vé chuyến mới ngay &rarr;
               </Link>

@@ -11,7 +11,7 @@ export default function AdminBusesPage() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Quản lý Xe</h1>
-        <button className="bg-[#ef5222] hover:bg-[#d94a1d] text-white px-4 py-2 rounded-md font-medium transition-colors">
+        <button className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2 rounded-md font-medium transition-colors">
           + Thêm xe mới
         </button>
       </div>
@@ -21,9 +21,9 @@ export default function AdminBusesPage() {
           <input 
             type="text" 
             placeholder="Tìm kiếm theo biển số..." 
-            className="border border-gray-300 rounded px-3 py-2 w-64 focus:outline-none focus:border-[#ef5222]"
+            className="border border-gray-300 rounded px-3 py-2 w-64 focus:outline-none focus:border-[#1a9e09]"
           />
-          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]">
+          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#1a9e09]">
             <option value="">Tất cả trạng thái</option>
             <option value="active">Đang hoạt động</option>
             <option value="maintenance">Bảo dưỡng</option>
