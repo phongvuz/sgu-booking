@@ -1,3 +1,4 @@
+import { getCurrentAdmin } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveLocationName } from "@/types";
 import { getTrips, createTrip } from "@/services/tripService";
@@ -37,6 +38,9 @@ export async function GET(request: NextRequest) {
 // POST /api/trips - Tạo và lưu trữ một tuyến xe mới
 export async function POST(request: NextRequest) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const body = await request.json();
     const { from, to, time, price, availableSeats, emptySeats, code } = body;
 

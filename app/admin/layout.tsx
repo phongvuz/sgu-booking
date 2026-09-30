@@ -1,10 +1,16 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
+import LogoutButton from "@/components/auth/LogoutButton";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "ADMIN") redirect("/");
   return (
     <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
       {/* Sidebar */}
@@ -44,7 +50,8 @@ export default function AdminLayout({
             <div className="w-8 h-8 bg-[#1a9e09] text-white rounded-full flex items-center justify-center font-bold">
               A
             </div>
-            <span className="font-medium text-gray-700 hidden sm:block">Admin User</span>
+            <span className="font-medium text-gray-700 hidden sm:block">{user.fullName}</span>
+            <LogoutButton className="text-sm text-gray-600 hover:text-red-600" />
           </div>
         </header>
 

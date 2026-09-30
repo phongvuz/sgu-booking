@@ -35,7 +35,7 @@ export default function LoginForm() {
         setError(data.message || "Không thể đăng nhập. Vui lòng thử lại!");
         return;
       }
-      router.replace("/");
+      router.replace(data.redirectTo === "/admin" ? "/admin" : "/");
       router.refresh();
     } catch {
       setError("Không thể kết nối máy chủ. Vui lòng thử lại!");

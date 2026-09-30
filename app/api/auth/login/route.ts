@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
-import { verifyPassword } from "@/lib/password";
+import { hashPassword, verifyPassword } from "@/lib/password";
+import { createHash, timingSafeEqual } from "node:crypto";
 import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -23,14 +24,27 @@ export async function POST(request: Request) {
       where: identifier.includes("@") ? { email: identifier.toLowerCase() } : { phone: identifier },
       select: { phone: true, status: true },
     });
-    const user = customer ? await prisma.user.findUnique({ where: { phone: customer.phone } }) : null;
+    const phone = identifier.includes("@") ? customer?.phone : identifier;
+    const user = phone ? await prisma.user.findUnique({ where: { phone } }) : null;
     // Spend the same password hashing work for unknown accounts.
     const dummy = `scrypt:${"0".repeat(32)}:${"0".repeat(128)}`;
-    const validPassword = await verifyPassword(password, user?.password ?? dummy);
-    if (!user || !customer || !validPassword || user.role !== "CUSTOMER" || customer.status !== "Đang hoạt động") {
+    const legacyAdmin = user?.role === "ADMIN" && !!user.password && !user.password.includes(":");
+    const hashedPasswordValid = await verifyPassword(password, legacyAdmin ? dummy : user?.password ?? dummy);
+    const validPassword = legacyAdmin
+      ? timingSafeEqual(createHash("sha256").update(password).digest(), createHash("sha256").update(user.password).digest())
+      : hashedPasswordValid;
+    const allowed = user?.role === "ADMIN" || (user?.role === "CUSTOMER" && customer?.status === "Đang hoạt động");
+    if (!user || !validPassword || !allowed) {
       return NextResponse.json({ message: "Thông tin đăng nhập không đúng hoặc tài khoản không được phép đăng nhập!" }, { status: 401 });
     }
-    const response = NextResponse.json({ success: true }, { headers: { "Cache-Control": "no-store" } });
+    if (legacyAdmin) {
+      const updated = await prisma.user.updateMany({
+        where: { id: user.id, password: user.password, role: "ADMIN" },
+        data: { password: await hashPassword(password) },
+      });
+      if (updated.count !== 1) return NextResponse.json({ message: "Vui lòng đăng nhập lại!" }, { status: 401 });
+    }
+    const response = NextResponse.json({ success: true, redirectTo: user.role === "ADMIN" ? "/admin" : "/" }, { headers: { "Cache-Control": "no-store" } });
     response.cookies.set(SESSION_COOKIE, createSessionToken(user.id), sessionCookieOptions);
     return response;
   } catch {

@@ -29,12 +29,21 @@ export function verifySessionToken(token: string, now = Date.now()): number | nu
 }
 
 // Recheck eligibility against the database whenever a session is used.
-export async function getCurrentCustomer() {
+export async function getCurrentUser() {
   const token = (await cookies()).get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const id = verifySessionToken(token);
   if (!id) return null;
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, phone: true, role: true } });
+  return prisma.user.findUnique({ where: { id }, select: { id: true, fullName: true, phone: true, role: true } });
+}
+
+export async function getCurrentAdmin() {
+  const user = await getCurrentUser();
+  return user?.role === "ADMIN" ? user : null;
+}
+
+export async function getCurrentCustomer() {
+  const user = await getCurrentUser();
   if (!user || user.role !== "CUSTOMER") return null;
   const customer = await prisma.customer.findUnique({ where: { phone: user.phone }, select: { id: true, name: true, status: true } });
   if (!customer || customer.status !== "Đang hoạt động") return null;

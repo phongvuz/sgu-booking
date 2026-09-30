@@ -1,3 +1,4 @@
+import { getCurrentAdmin } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
 import { getTripByIdOrCode, updateTrip, deleteTrip } from "@/services/tripService";
 
@@ -34,6 +35,9 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
 // PUT /api/trips/[id] - Cập nhật thông tin tuyến xe
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const { id } = await params;
     const body = await request.json();
 
@@ -74,6 +78,9 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
 // DELETE /api/trips/[id] - Xóa một tuyến xe
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const { id } = await params;
     const deletedTrip = await deleteTrip(id);
 
