@@ -11,7 +11,7 @@ export default function AdminLayout({
       <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shrink-0">
         <div className="p-4 border-b border-slate-800 flex items-center gap-2">
           <span className="text-2xl">🚌</span>
-          <span className="font-bold text-lg tracking-tight text-[#ef5222]">ADMIN PORTAL</span>
+          <span className="font-bold text-lg tracking-tight text-[#1a9e09]">ADMIN PORTAL</span>
         </div>
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           <Link href="/admin" className="block px-4 py-3 rounded hover:bg-slate-800 transition-colors">
@@ -38,10 +38,10 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-          <div className="md:hidden font-bold text-[#ef5222]">NHAXESAIGON ADMIN</div>
+          <div className="md:hidden font-bold text-[#1a9e09]">NHAXESAIGON ADMIN</div>
           <div className="hidden md:block text-gray-500 font-medium">Hệ thống Quản lý Nhà xe Sài Gòn</div>
           <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-[#ef5222] text-white rounded-full flex items-center justify-center font-bold">
+            <div className="w-8 h-8 bg-[#1a9e09] text-white rounded-full flex items-center justify-center font-bold">
               A
             </div>
             <span className="font-medium text-gray-700 hidden sm:block">Admin User</span>

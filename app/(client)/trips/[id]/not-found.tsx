@@ -12,7 +12,7 @@ export default function TripNotFound() {
       </p>
       <Link
         href="/trips"
-        className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-semibold py-2.5 px-6 rounded-md transition-colors"
+        className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-semibold py-2.5 px-6 rounded-md transition-colors"
       >
         Xem danh sách chuyến khác
       </Link>

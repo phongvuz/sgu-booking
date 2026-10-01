@@ -43,7 +43,8 @@ export async function GET(request: NextRequest) {
     );
   }
 }
-00
+
+// POST /api/employees - Tạo mới một nhân viên
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
