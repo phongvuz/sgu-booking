@@ -2,6 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatTripTime, formatPrice } from "@/types";
+<<<<<<< Updated upstream
+=======
+import { getTripByIdOrCode, getBookedSeats } from "@/services/tripService";
+>>>>>>> Stashed changes
 import SeatSelector from "@/components/trips/SeatSelector";
 
 interface PageProps {
@@ -26,7 +30,14 @@ export default async function TripDetailPage({ params }: PageProps) {
     notFound();
   }
 
+<<<<<<< Updated upstream
   const { departureTime, arrivalTime, timeRange, dateFormatted } = formatTripTime(tripInfo.time);
+=======
+  // Lấy danh sách mã ghế đã đặt từ database qua service
+  const bookedSeats = await getBookedSeats(tripInfo.id);
+
+  const { departureTime, arrivalTime, dateFormatted } = formatTripTime(tripInfo.time);
+>>>>>>> Stashed changes
   const formattedPrice = formatPrice(tripInfo.price);
 
   return (
@@ -75,7 +86,12 @@ export default async function TripDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        <SeatSelector tripId={String(tripInfo.id)} pricePerSeatStr={tripInfo.price} />
+        <SeatSelector
+          tripId={String(tripInfo.id)}
+          tripCode={tripInfo.code}
+          pricePerSeatStr={tripInfo.price}
+          bookedSeats={bookedSeats}
+        />
       </div>
     </div>
   );

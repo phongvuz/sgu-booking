@@ -46,3 +46,14 @@ model Booking {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 }
+
+model SeatHold {
+  id         Int      @id @default(autoincrement())
+  tripId     Int
+  seatNumber String
+  clientId   String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@unique([tripId, seatNumber])
+}
