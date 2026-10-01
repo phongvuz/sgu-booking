@@ -2,10 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { formatTripTime, formatPrice } from "@/types";
-<<<<<<< Updated upstream
-=======
-import { getTripByIdOrCode, getBookedSeats } from "@/services/tripService";
->>>>>>> Stashed changes
+import { getBookedSeats } from "@/services/tripService";
 import SeatSelector from "@/components/trips/SeatSelector";
 
 interface PageProps {
@@ -30,14 +27,10 @@ export default async function TripDetailPage({ params }: PageProps) {
     notFound();
   }
 
-<<<<<<< Updated upstream
-  const { departureTime, arrivalTime, timeRange, dateFormatted } = formatTripTime(tripInfo.time);
-=======
   // Lấy danh sách mã ghế đã đặt từ database qua service
   const bookedSeats = await getBookedSeats(tripInfo.id);
 
   const { departureTime, arrivalTime, dateFormatted } = formatTripTime(tripInfo.time);
->>>>>>> Stashed changes
   const formattedPrice = formatPrice(tripInfo.price);
 
   return (
@@ -51,7 +44,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             <span>&larr;</span> Quay lại danh sách
           </Link>
           <h2 className="text-2xl font-bold text-gray-800">
-            Chi tiết chuyến xe: <span className="text-[#ef5222]">{tripInfo.code}</span>
+            Chi tiết chuyến xe: <span className="text-[#1a9e09]">{tripInfo.code}</span>
           </h2>
         </div>
 
@@ -81,7 +74,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             </div>
             <div>
               <p className="text-gray-500 text-sm mb-1">Giá vé</p>
-              <p className="font-extrabold text-xl text-[#ef5222]">{formattedPrice}</p>
+              <p className="font-extrabold text-xl text-[#1a9e09]">{formattedPrice}</p>
             </div>
           </div>
         </div>

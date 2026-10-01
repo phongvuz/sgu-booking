@@ -87,11 +87,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("early")}
                   onChange={() => toggleTimeFilter("early")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Sáng sớm (00:00 - 06:00)
               </label>
@@ -100,11 +96,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("morning")}
                   onChange={() => toggleTimeFilter("morning")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Sáng (06:00 - 12:00)
               </label>
@@ -113,11 +105,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("afternoon")}
                   onChange={() => toggleTimeFilter("afternoon")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Chiều (12:00 - 18:00)
               </label>
@@ -126,11 +114,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("night")}
                   onChange={() => toggleTimeFilter("night")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Tối (18:00 - 24:00)
               </label>
@@ -145,11 +129,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("sleeper")}
                   onChange={() => toggleVehicleFilter("sleeper")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Giường nằm
               </label>
@@ -158,11 +138,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("limousine")}
                   onChange={() => toggleVehicleFilter("limousine")}
-<<<<<<< Updated upstream
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
-=======
                   className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
->>>>>>> Stashed changes
                 />
                 Limousine
               </label>
@@ -219,20 +195,12 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
 
                 {/* Giá và nút chọn */}
                 <div className="mt-6 md:mt-0 md:ml-8 flex flex-col items-start md:items-end justify-center md:border-l md:border-gray-100 md:pl-8">
-<<<<<<< Updated upstream
-                  <p className="text-2xl font-extrabold text-[#ef5222] mb-3">
-=======
                   <p className="text-2xl font-extrabold text-[#1a9e09] mb-3">
->>>>>>> Stashed changes
                     {formatPrice(trip.price)}
                   </p>
                   <Link
                     href={`/trips/${trip.id}`}
-<<<<<<< Updated upstream
-                    className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
-=======
                     className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
->>>>>>> Stashed changes
                   >
                     Chọn chuyến
                   </Link>
@@ -250,11 +218,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-<<<<<<< Updated upstream
-                className="mt-3 text-sm text-[#ef5222] font-semibold hover:underline"
-=======
                 className="mt-3 text-sm text-[#1a9e09] font-semibold hover:underline"
->>>>>>> Stashed changes
               >
                 Đặt lại bộ lọc
               </button>
