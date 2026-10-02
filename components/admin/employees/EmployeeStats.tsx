@@ -25,15 +25,7 @@ export function EmployeeStats({ employees, total }: EmployeeStatsProps) {
         </div>
       </div>
 
-      <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
-        <div>
-          <p className="text-xs text-gray-500 font-medium uppercase">Đang làm việc</p>
-          <p className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</p>
-        </div>
-        <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-lg">
-          🟢
-        </div>
-      </div>
+      
 
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex items-center justify-between">
         <div>
