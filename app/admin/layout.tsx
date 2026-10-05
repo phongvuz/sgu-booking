@@ -1,60 +1,193 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { ToastProvider } from "@/components/admin/Toast";
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: string;
+  exact?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { href: "/admin", label: "Bảng điều khiển", icon: "📊", exact: true },
+  { href: "/admin/trips", label: "Quản lý Chuyến xe", icon: "🛣️" },
+  { href: "/admin/orders", label: "Quản lý Đơn hàng", icon: "🎫" },
+  { href: "/admin/buses", label: "Quản lý Xe", icon: "🚐" },
+  { href: "/admin/employees", label: "Quản lý Nhân viên", icon: "👥" },
+  { href: "/admin/users", label: "Quản lý Khách hàng", icon: "👤" },
+];
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isActive = (item: NavItem) => {
+    if (item.exact) {
+      return pathname === item.href;
+    }
+    return pathname.startsWith(item.href);
+  };
+
   return (
-    <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shrink-0">
-        <div className="p-4 border-b border-slate-800 flex items-center gap-2">
-          <span className="text-2xl">🚌</span>
-          <span className="font-bold text-lg tracking-tight text-[#ef5222]">ADMIN PORTAL</span>
-        </div>
-        <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          <Link href="/admin" className="block px-4 py-3 rounded hover:bg-slate-800 transition-colors">
-            📊 Bảng điều khiển
-          </Link>
-          <Link href="/admin/buses" className="block px-4 py-3 rounded hover:bg-slate-800 transition-colors">
-            🚐 Quản lý Xe
-          </Link>
-          <Link href="/admin/employees" className="block px-4 py-3 rounded hover:bg-slate-800 transition-colors">
-            👥 Quản lý Nhân viên
-          </Link>
-          <Link href="/admin/orders" className="block px-4 py-3 rounded hover:bg-slate-800 transition-colors">
-            🎫 Quản lý Đơn hàng
-          </Link>
-          <div className="pt-4 mt-4 border-t border-slate-800">
-            <Link href="/" className="block px-4 py-3 rounded text-slate-400 hover:text-white hover:bg-slate-800 transition-colors">
-              &larr; Về trang chủ
+    <ToastProvider>
+      <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
+        {/* Desktop Sidebar */}
+        <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shrink-0 border-r border-slate-800">
+          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+            <Link href="/admin" className="flex items-center gap-2">
+              <span className="text-2xl">🚌</span>
+              <span className="font-extrabold text-lg tracking-tight text-[#1a9e09]">
+                ADMIN PORTAL
+              </span>
             </Link>
           </div>
-        </nav>
-      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Top Header */}
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shrink-0 shadow-sm z-10">
-          <div className="md:hidden font-bold text-[#ef5222]">NHAXESAIGON ADMIN</div>
-          <div className="hidden md:block text-gray-500 font-medium">Hệ thống Quản lý Nhà xe Sài Gòn</div>
-          <div className="flex items-center gap-4">
-            <div className="w-8 h-8 bg-[#ef5222] text-white rounded-full flex items-center justify-center font-bold">
+          <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-2">
+              Quản trị hệ thống
+            </div>
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    active
+                      ? "bg-[#1a9e09] text-white shadow-sm font-semibold"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+
+            <div className="pt-4 mt-4 border-t border-slate-800">
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <span>&larr;</span>
+                <span>Về trang đặt vé</span>
+              </Link>
+            </div>
+          </nav>
+
+          <div className="p-4 border-t border-slate-800 bg-slate-950/50 flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-[#1a9e09] text-white flex items-center justify-center font-bold text-sm">
               A
             </div>
-            <span className="font-medium text-gray-700 hidden sm:block">Admin User</span>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-white truncate">Ban Quản Trị</p>
+              <p className="text-[10px] text-slate-400 truncate">admin@nhaxe.vn</p>
+            </div>
           </div>
-        </header>
+        </aside>
 
-        {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6 bg-gray-50">
-          <div className="max-w-6xl mx-auto">
-            {children}
+        {/* Mobile Sidebar Backdrop & Drawer */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
+        <div
+          className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col md:hidden transition-transform duration-300 ease-in-out ${
+            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🚌</span>
+              <span className="font-bold text-lg text-[#1a9e09]">ADMIN PORTAL</span>
+            </div>
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              className="text-slate-400 hover:text-white p-1 rounded"
+            >
+              ✕
+            </button>
           </div>
-        </main>
+          <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
+            {NAV_ITEMS.map((item) => {
+              const active = isActive(item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    active
+                      ? "bg-[#1a9e09] text-white shadow-sm font-semibold"
+                      : "text-slate-300 hover:text-white hover:bg-slate-800"
+                  }`}
+                >
+                  <span className="text-lg">{item.icon}</span>
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <div className="pt-4 mt-4 border-t border-slate-800">
+              <Link
+                href="/"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <span>&larr;</span>
+                <span>Về trang chủ</span>
+              </Link>
+            </div>
+          </nav>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Top Header */}
+          <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 sm:px-6 shrink-0 shadow-xs z-10">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer"
+                aria-label="Mở menu"
+              >
+                ☰
+              </button>
+              <div className="font-bold text-[#1a9e09] md:hidden">NHAXESAIGON</div>
+              <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 font-medium">
+                <span>Trang quản trị vận tải</span>
+                <span className="text-gray-300">/</span>
+                <span className="text-gray-800 font-semibold">
+                  {NAV_ITEMS.find((n) => isActive(n))?.label || "Bảng điều khiển"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4">
+              <div className="w-8 h-8 bg-[#1a9e09] text-white rounded-full flex items-center justify-center font-bold text-xs shadow-xs">
+                A
+              </div>
+              <span className="font-semibold text-xs sm:text-sm text-gray-700 hidden sm:block">
+                Quản trị viên
+              </span>
+            </div>
+          </header>
+
+          {/* Page Content */}
+          <main className="flex-1 overflow-auto p-4 sm:p-6 bg-gray-50">
+            <div className="max-w-7xl mx-auto">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

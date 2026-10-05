@@ -124,7 +124,7 @@ function AdminEmployeesContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
             <span>Quản lý Nhân sự</span>
-            <span className="text-xs bg-orange-100 text-[#ef5222] font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="text-xs bg-orange-100 text-[#1a9e09] font-semibold px-2.5 py-0.5 rounded-full">
               {pagination.total} nhân viên
             </span>
           </h1>
@@ -147,7 +147,7 @@ function AdminEmployeesContent() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="bg-[#ef5222] hover:bg-[#d94a1d] text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer active:scale-98"
+            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span className="text-base font-bold">+</span>
             <span>Thêm nhân viên mới</span>

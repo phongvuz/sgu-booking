@@ -1,76 +1,223 @@
+"use client";
+
+import React, { useState } from "react";
+import { useToast } from "@/components/admin/Toast";
+import { useBuses } from "@/hooks/useBuses";
+import { BusTable } from "@/components/admin/buses/BusTable";
+import { BusFilters } from "@/components/admin/buses/BusFilters";
+import { BusStats } from "@/components/admin/buses/BusStats";
+import { BusModal } from "@/components/admin/buses/BusModal";
+import { BusDetailModal } from "@/components/admin/buses/BusDetailModal";
+import { DeleteBusModal } from "@/components/admin/buses/DeleteBusModal";
+import { EmployeePagination } from "@/components/admin/employees/EmployeePagination";
+import { Bus } from "@/types";
+import { BusFormValues } from "@/lib/validations/bus";
+
 export default function AdminBusesPage() {
-  const buses = [
-    { id: "BUS-001", plate: "51B-123.45", type: "Limousine 22 phòng", seats: 22, status: "Đang hoạt động" },
-    { id: "BUS-002", plate: "51B-987.65", type: "Giường nằm 34 chỗ", seats: 34, status: "Đang hoạt động" },
-    { id: "BUS-003", plate: "51B-456.78", type: "Giường nằm 34 chỗ", seats: 34, status: "Bảo dưỡng" },
-    { id: "BUS-004", plate: "51B-333.33", type: "Limousine 22 phòng", seats: 22, status: "Đang hoạt động" },
-    { id: "BUS-005", plate: "49B-111.11", type: "Giường nằm 34 chỗ", seats: 34, status: "Ngừng hoạt động" },
-  ];
+  const {
+    buses,
+    stats,
+    pagination,
+    loading,
+    error,
+    filters,
+    setSearch,
+    setType,
+    setStatus,
+    setPage,
+    setLimit,
+    resetFilters,
+    refresh,
+    createBus,
+    updateBus,
+    deleteBus,
+    changeStatus,
+  } = useBuses({ limit: 8 });
+
+  const { success, error: toastError, info } = useToast();
+
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [formMode, setFormMode] = useState<"create" | "edit">("create");
+  const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
+
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  const handleOpenCreate = () => {
+    setSelectedBus(null);
+    setFormMode("create");
+    setIsFormModalOpen(true);
+  };
+
+  const handleOpenEdit = (bus: Bus) => {
+    setSelectedBus(bus);
+    setFormMode("edit");
+    setIsFormModalOpen(true);
+  };
+
+  const handleOpenDelete = (bus: Bus) => {
+    setSelectedBus(bus);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleOpenDetail = (bus: Bus) => {
+    setSelectedBus(bus);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleFormSubmit = async (data: BusFormValues) => {
+    if (formMode === "create") {
+      const res = await createBus(data);
+      if (res.success) {
+        success(res.message || "Đã thêm phương tiện thành công!", "Thêm mới xe");
+        return { success: true };
+      } else {
+        toastError(res.message || "Không thể thêm xe", "Lỗi tạo mới");
+        return { success: false, message: res.message };
+      }
+    } else if (selectedBus) {
+      const res = await updateBus(selectedBus.id, data);
+      if (res.success) {
+        success(res.message || "Cập nhật phương tiện thành công!", "Cập nhật");
+        return { success: true };
+      } else {
+        toastError(res.message || "Không thể cập nhật xe", "Lỗi cập nhật");
+        return { success: false, message: res.message };
+      }
+    }
+    return { success: false };
+  };
+
+  const handleConfirmDelete = async (id: string) => {
+    const res = await deleteBus(id);
+    if (res.success) {
+      success(res.message || "Đã xóa xe thành công!", "Đã xóa");
+      return { success: true };
+    } else {
+      toastError(res.message || "Không thể xóa xe", "Lỗi xóa");
+      return { success: false, message: res.message };
+    }
+  };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Quản lý Xe</h1>
-        <button className="bg-[#ef5222] hover:bg-[#d94a1d] text-white px-4 py-2 rounded-md font-medium transition-colors">
-          + Thêm xe mới
-        </button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex gap-4">
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm theo biển số..." 
-            className="border border-gray-300 rounded px-3 py-2 w-64 focus:outline-none focus:border-[#ef5222]"
-          />
-          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]">
-            <option value="">Tất cả trạng thái</option>
-            <option value="active">Đang hoạt động</option>
-            <option value="maintenance">Bảo dưỡng</option>
-          </select>
+    <div className="pb-12">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <span>Quản lý Đội xe</span>
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">
+              {pagination.total} xe
+            </span>
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Quản lý số hiệu xe, biển kiểm soát, loại giường phòng và lịch trình bảo dưỡng
+          </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 font-semibold">Mã Xe</th>
-                <th className="px-6 py-3 font-semibold">Biển số</th>
-                <th className="px-6 py-3 font-semibold">Loại xe</th>
-                <th className="px-6 py-3 font-semibold">Số chỗ</th>
-                <th className="px-6 py-3 font-semibold">Trạng thái</th>
-                <th className="px-6 py-3 font-semibold text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {buses.map((bus) => (
-                <tr key={bus.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{bus.id}</td>
-                  <td className="px-6 py-4 font-bold">{bus.plate}</td>
-                  <td className="px-6 py-4">{bus.type}</td>
-                  <td className="px-6 py-4">{bus.seats}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      bus.status === 'Đang hoạt động' ? 'bg-green-100 text-green-700' : 
-                      bus.status === 'Bảo dưỡng' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {bus.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-blue-600 hover:underline mr-3">Sửa</button>
-                    <button className="text-red-600 hover:underline">Xóa</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        
-        <div className="p-4 border-t border-gray-200 text-sm text-gray-500 text-center">
-          Hiển thị {buses.length} trên tổng số {buses.length} xe
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refresh()}
+            disabled={loading}
+            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg shadow-2xs transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Làm mới dữ liệu"
+          >
+            <span className={loading ? "animate-spin" : ""}>🔄</span>
+            <span className="hidden sm:inline">Làm mới</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+          >
+            <span className="text-base font-bold">+</span>
+            <span>Thêm xe mới</span>
+          </button>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      <BusStats stats={stats} total={pagination.total} />
+
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => refresh()}
+            className="font-bold underline hover:no-underline"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {/* Main Table Card */}
+      <div className="bg-white rounded-xl shadow-2xs border border-gray-200 overflow-hidden">
+        {/* Filters */}
+        <BusFilters
+          search={filters.search}
+          onSearchChange={setSearch}
+          type={filters.type}
+          onTypeChange={setType}
+          status={filters.status}
+          onStatusChange={setStatus}
+          onReset={resetFilters}
+        />
+
+        {/* Table */}
+        <BusTable
+          buses={buses}
+          loading={loading}
+          onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
+          onView={handleOpenDetail}
+          onToggleStatus={(bus) => {
+            const nextStatus =
+              bus.status === "Đang hoạt động"
+                ? "Bảo dưỡng"
+                : bus.status === "Bảo dưỡng"
+                ? "Ngừng hoạt động"
+                : "Đang hoạt động";
+            changeStatus(bus.id, nextStatus);
+            info(`Đã đổi trạng thái xe ${bus.plate} sang ${nextStatus}`);
+          }}
+        />
+
+        {/* Pagination */}
+        <EmployeePagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
+      </div>
+
+      {/* Modals */}
+      <BusModal
+        isOpen={isFormModalOpen}
+        onClose={() => setIsFormModalOpen(false)}
+        onSubmit={handleFormSubmit}
+        initialData={selectedBus}
+        mode={formMode}
+      />
+
+      <BusDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        bus={selectedBus}
+        onEdit={(bus) => handleOpenEdit(bus)}
+      />
+
+      <DeleteBusModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        bus={selectedBus}
+        onConfirmDelete={handleConfirmDelete}
+      />
     </div>
   );
 }

@@ -12,7 +12,7 @@ type ParamsContext = {
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
-    const employee = getEmployeeById(id);
+    const employee = await getEmployeeById(id);
 
     if (!employee) {
       return NextResponse.json(
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const updated = updateEmployeeStatus(id, status);
+    const updated = await updateEmployeeStatus(id, status);
 
     return NextResponse.json({
       success: true,

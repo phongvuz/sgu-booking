@@ -59,7 +59,7 @@ export function DeleteConfirmModal({
           <p className="text-sm text-gray-600 mb-4 leading-relaxed">
             Bạn đang thao tác với nhân sự{" "}
             <span className="font-bold text-gray-900">{employee.name}</span> (Mã:{" "}
-            <span className="font-semibold text-[#ef5222]">{employee.id}</span>).
+            <span className="font-semibold text-[#1a9e09]">{employee.id}</span>).
             <br />
             Bạn có thể chuyển trạng thái sang <span className="font-semibold text-amber-700">"Đã nghỉ việc"</span> hoặc{" "}
             <span className="font-semibold text-rose-700">xóa vĩnh viễn</span> khỏi hệ thống.

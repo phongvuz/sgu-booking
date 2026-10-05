@@ -1,87 +1,191 @@
+"use client";
+
+import React, { useState } from "react";
+import { useToast } from "@/components/admin/Toast";
+import { useOrders } from "@/hooks/useOrders";
+import { OrderTable } from "@/components/admin/orders/OrderTable";
+import { OrderFilters } from "@/components/admin/orders/OrderFilters";
+import { OrderStats } from "@/components/admin/orders/OrderStats";
+import { OrderDetailModal } from "@/components/admin/orders/OrderDetailModal";
+import { CreateOfflineOrderModal } from "@/components/admin/orders/CreateOfflineOrderModal";
+import { CancelOrderModal } from "@/components/admin/orders/CancelOrderModal";
+import { EmployeePagination } from "@/components/admin/employees/EmployeePagination";
+import { OrderItem, BookingStatus } from "@/types";
+import { OfflineOrderFormValues } from "@/lib/validations/order";
+
 export default function AdminOrdersPage() {
-  const orders = [
-    { id: "NHAXE-1A2B3C", customer: "Nguyễn Văn A", phone: "0901112223", route: "SGN - DLT", seats: "1A1, 1A2", total: "500.000 đ", status: "Đã thanh toán", date: "15/09/2026" },
-    { id: "NHAXE-X9Y8Z7", customer: "Trần Thị B", phone: "0912223334", route: "SGN - NHA", seats: "2B3", total: "300.000 đ", status: "Chờ thanh toán", date: "15/09/2026" },
-    { id: "NHAXE-M1N2P3", customer: "Lê Hoàng C", phone: "0923334445", route: "DLT - SGN", seats: "1C5", total: "250.000 đ", status: "Đã thanh toán", date: "16/09/2026" },
-    { id: "NHAXE-Q7W8E9", customer: "Phạm Văn D", phone: "0934445556", route: "SGN - CTH", seats: "1A3, 1B3", total: "330.000 đ", status: "Đã hủy", date: "16/09/2026" },
-    { id: "NHAXE-J5K6L7", customer: "Hoàng Thị E", phone: "0945556667", route: "NHA - SGN", seats: "2A1, 2A2, 2A3", total: "900.000 đ", status: "Đã thanh toán", date: "17/09/2026" },
-  ];
+  const {
+    orders,
+    stats,
+    pagination,
+    loading,
+    error,
+    filters,
+    setSearch,
+    setStatus,
+    setDate,
+    setPage,
+    setLimit,
+    resetFilters,
+    refresh,
+    createOfflineOrder,
+    changeStatus,
+  } = useOrders({ limit: 8 });
+
+  const { success, error: toastError, info } = useToast();
+
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+
+  const handleOpenDetail = (order: OrderItem) => {
+    setSelectedOrder(order);
+    setIsDetailModalOpen(true);
+  };
+
+  const handleOpenCancel = (order: OrderItem) => {
+    setSelectedOrder(order);
+    setIsCancelModalOpen(true);
+  };
+
+  const handleCreateOffline = async (data: OfflineOrderFormValues) => {
+    const res = await createOfflineOrder(data);
+    if (res.success) {
+      success(res.message || "Tạo vé thành công!", "Xuất vé quầy");
+      return { success: true };
+    } else {
+      toastError(res.message || "Không thể tạo vé", "Lỗi");
+      return { success: false, message: res.message };
+    }
+  };
+
+  const handleUpdateStatus = async (order: OrderItem, newStatus: BookingStatus) => {
+    const res = await changeStatus(order.id, newStatus);
+    if (res.success) {
+      success(res.message || "Cập nhật trạng thái thành công!", "Thành công");
+    } else {
+      toastError(res.message || "Không thể cập nhật trạng thái", "Lỗi");
+    }
+  };
+
+  const handleConfirmCancel = async (id: number) => {
+    const res = await changeStatus(id, "CANCELLED");
+    if (res.success) {
+      info(res.message || "Đã hủy đơn vé và hoàn trả ghế trống!", "Đã hủy vé");
+      return { success: true };
+    } else {
+      toastError(res.message || "Không thể hủy vé", "Lỗi");
+      return { success: false, message: res.message };
+    }
+  };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Quản lý Đơn hàng / Vé</h1>
-        <button className="bg-[#ef5222] hover:bg-[#d94a1d] text-white px-4 py-2 rounded-md font-medium transition-colors">
-          + Tạo đơn vé mới (Offine)
-        </button>
-      </div>
-
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-        <div className="p-4 border-b border-gray-200 flex flex-wrap gap-4">
-          <input 
-            type="text" 
-            placeholder="Tìm kiếm mã vé, tên KH, SĐT..." 
-            className="border border-gray-300 rounded px-3 py-2 w-full md:w-64 focus:outline-none focus:border-[#ef5222]"
-          />
-          <input 
-            type="date" 
-            className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]"
-          />
-          <select className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-[#ef5222]">
-            <option value="">Tất cả trạng thái</option>
-            <option value="paid">Đã thanh toán</option>
-            <option value="pending">Chờ thanh toán</option>
-            <option value="cancelled">Đã hủy</option>
-          </select>
+    <div className="pb-12">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
+            <span>Quản lý Đơn hàng & Vé</span>
+            <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">
+              {pagination.total} giao dịch
+            </span>
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Tra cứu mã PNR, xuất vé offline tại quầy, cập nhật thanh toán và xử lý hoàn hủy vé
+          </p>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-600 border-b border-gray-200">
-              <tr>
-                <th className="px-6 py-3 font-semibold">Mã PNR</th>
-                <th className="px-6 py-3 font-semibold">Khách hàng</th>
-                <th className="px-6 py-3 font-semibold">Tuyến & Ngày đi</th>
-                <th className="px-6 py-3 font-semibold">Ghế</th>
-                <th className="px-6 py-3 font-semibold">Tổng tiền</th>
-                <th className="px-6 py-3 font-semibold">Trạng thái</th>
-                <th className="px-6 py-3 font-semibold text-right">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.map((order) => (
-                <tr key={order.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-4 font-bold text-[#ef5222]">{order.id}</td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-gray-900">{order.customer}</p>
-                    <p className="text-xs text-gray-500">{order.phone}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="font-medium">{order.route}</p>
-                    <p className="text-xs text-gray-500">{order.date}</p>
-                  </td>
-                  <td className="px-6 py-4">{order.seats}</td>
-                  <td className="px-6 py-4 font-bold">{order.total}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      order.status === 'Đã thanh toán' ? 'bg-green-100 text-green-700' : 
-                      order.status === 'Chờ thanh toán' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {order.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button className="text-blue-600 hover:underline mr-3">Chi tiết</button>
-                    {order.status !== 'Đã hủy' && (
-                      <button className="text-red-600 hover:underline">Hủy</button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => refresh()}
+            disabled={loading}
+            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg shadow-2xs transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Làm mới dữ liệu"
+          >
+            <span className={loading ? "animate-spin" : ""}>🔄</span>
+            <span className="hidden sm:inline">Làm mới</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+          >
+            <span className="text-base font-bold">+</span>
+            <span>Tạo vé tại quầy (Offline)</span>
+          </button>
         </div>
       </div>
+
+      {/* Stats Cards */}
+      <OrderStats stats={stats} />
+
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span>⚠️</span>
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => refresh()}
+            className="font-bold underline hover:no-underline"
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {/* Main Table Card */}
+      <div className="bg-white rounded-xl shadow-2xs border border-gray-200 overflow-hidden">
+        {/* Filters */}
+        <OrderFilters
+          search={filters.search}
+          onSearchChange={setSearch}
+          status={filters.status}
+          onStatusChange={setStatus}
+          date={filters.date}
+          onDateChange={setDate}
+          onReset={resetFilters}
+        />
+
+        {/* Table */}
+        <OrderTable
+          orders={orders}
+          loading={loading}
+          onView={handleOpenDetail}
+          onUpdateStatus={handleUpdateStatus}
+          onCancel={handleOpenCancel}
+        />
+
+        {/* Pagination */}
+        <EmployeePagination
+          pagination={pagination}
+          onPageChange={setPage}
+          onLimitChange={setLimit}
+        />
+      </div>
+
+      {/* Modals */}
+      <CreateOfflineOrderModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateOffline}
+      />
+
+      <OrderDetailModal
+        isOpen={isDetailModalOpen}
+        onClose={() => setIsDetailModalOpen(false)}
+        order={selectedOrder}
+      />
+
+      <CancelOrderModal
+        isOpen={isCancelModalOpen}
+        onClose={() => setIsCancelModalOpen(false)}
+        order={selectedOrder}
+        onConfirmCancel={handleConfirmCancel}
+      />
     </div>
   );
 }

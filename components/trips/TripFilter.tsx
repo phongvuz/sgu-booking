@@ -87,7 +87,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("early")}
                   onChange={() => toggleTimeFilter("early")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Sáng sớm (00:00 - 06:00)
               </label>
@@ -96,7 +96,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("morning")}
                   onChange={() => toggleTimeFilter("morning")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Sáng (06:00 - 12:00)
               </label>
@@ -105,7 +105,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("afternoon")}
                   onChange={() => toggleTimeFilter("afternoon")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Chiều (12:00 - 18:00)
               </label>
@@ -114,7 +114,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("night")}
                   onChange={() => toggleTimeFilter("night")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Tối (18:00 - 24:00)
               </label>
@@ -129,7 +129,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("sleeper")}
                   onChange={() => toggleVehicleFilter("sleeper")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Giường nằm
               </label>
@@ -138,7 +138,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("limousine")}
                   onChange={() => toggleVehicleFilter("limousine")}
-                  className="rounded text-[#ef5222] focus:ring-[#ef5222]"
+                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
                 />
                 Limousine
               </label>
@@ -195,12 +195,12 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
 
                 {/* Giá và nút chọn */}
                 <div className="mt-6 md:mt-0 md:ml-8 flex flex-col items-start md:items-end justify-center md:border-l md:border-gray-100 md:pl-8">
-                  <p className="text-2xl font-extrabold text-[#ef5222] mb-3">
+                  <p className="text-2xl font-extrabold text-[#1a9e09] mb-3">
                     {formatPrice(trip.price)}
                   </p>
                   <Link
                     href={`/trips/${trip.id}`}
-                    className="bg-[#ef5222] hover:bg-[#d94a1d] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
+                    className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
                   >
                     Chọn chuyến
                   </Link>
@@ -218,7 +218,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-3 text-sm text-[#ef5222] font-semibold hover:underline"
+                className="mt-3 text-sm text-[#1a9e09] font-semibold hover:underline"
               >
                 Đặt lại bộ lọc
               </button>
