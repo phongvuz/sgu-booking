@@ -1,15 +1,20 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import generateSeats, { Seat } from "./seatUtils";
-import SeatMap from "./SeatMap";
-import BookingForm from "./BookingForm";
+
+interface Seat {
+  id: string; // Vd: "A01", "A07"
+  row: string;
+  num: number;
+  floor: number;
+  isBooked: boolean;
+}
 
 interface SeatSelectorProps {
   tripId: string;
   tripCode?: string;
-  pricePerSeatStr: number; // e.g. 300000
+  pricePerSeatStr: number;
   bookedSeats?: string[];
 }
 
@@ -21,198 +26,88 @@ export default function SeatSelector({
 }: SeatSelectorProps) {
   const router = useRouter();
 
-  const [clientId] = useState(() => Math.random().toString(36).substring(2, 15));
-  const [seats] = useState<Seat[]>(() => generateSeats(bookedSeats));
+  const checkIsBooked = (seatCode: string, floor: number, row: string, num: number): boolean => {
+    if (!bookedSeats || bookedSeats.length === 0) return false;
+
+    const variants = [
+      seatCode,                                         // "A01"
+      `${row}${num}`,                                   // "A1"
+      `${floor}${row}${num}`,                           // "1A1"
+      `${floor}${row}${String(num).padStart(2, "0")}`,  // "1A01"
+      `${row}${String(num).padStart(2, "0")}`,          // "A01"
+    ].map((v) => v.toUpperCase().trim());
+
+    return bookedSeats.some((b) => variants.includes(b.toUpperCase().trim()));
+  };
+
+  const [seats] = useState<Seat[]>(() => {
+    const generated: Seat[] = [];
+    const rows = ["A", "B", "C"];
+
+    // Tầng 1 (Dưới): 1..6
+    for (const row of rows) {
+      for (let num = 1; num <= 6; num++) {
+        const id = `${row}${String(num).padStart(2, "0")}`;
+        generated.push({
+          id,
+          row,
+          num,
+          floor: 1,
+          isBooked: checkIsBooked(id, 1, row, num),
+        });
+      }
+    }
+
+    // Tầng 2 (Trên): 7..12
+    for (const row of rows) {
+      for (let num = 7; num <= 12; num++) {
+        const id = `${row}${String(num).padStart(2, "0")}`;
+        generated.push({
+          id,
+          row,
+          num,
+          floor: 2,
+          isBooked: checkIsBooked(id, 2, row, num),
+        });
+      }
+    }
+
+    return generated;
+  });
 
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
-  const [heldSeats, setHeldSeats] = useState<Record<string, string>>({});
-
   const [passengerName, setPassengerName] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
-  // 1. Realtime holds & SSE stream
-  useEffect(() => {
-    const fetchHolds = async () => {
-      try {
-        const res = await fetch(`/api/trips/${tripId}/holds`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.holds) {
-            const newHolds: Record<string, string> = {};
-            data.holds.forEach((h: { seatNumber: string; clientId: string }) => {
-              newHolds[h.seatNumber] = h.clientId;
-            });
-            setHeldSeats(newHolds);
-          }
-        }
-      } catch {
-        // ignore fetch error
-      }
-    };
-
-    fetchHolds();
-
-    const eventSource = new EventSource(`/api/trips/${tripId}/stream`);
-
-    eventSource.onopen = () => {
-      fetchHolds();
-    };
-
-    eventSource.onmessage = (e) => {
-      try {
-        const data = JSON.parse(e.data);
-        if (data.type === "SEAT_HELD") {
-          setHeldSeats((prev) => ({ ...prev, [data.payload.seatNumber]: data.payload.clientId }));
-        } else if (data.type === "SEAT_RELEASED") {
-          setHeldSeats((prev) => {
-            const next = { ...prev };
-            delete next[data.payload.seatNumber];
-            return next;
-          });
-        }
-      } catch {
-        // ignore parse error
-      }
-    };
-
-    return () => {
-      eventSource.close();
-    };
-  }, [tripId]);
-
-  // 2. Lưu trữ selectedSeats mới nhất để xử lý unmount cleanup
-  const selectedSeatsRef = useRef(selectedSeats);
-  useEffect(() => {
-    selectedSeatsRef.current = selectedSeats;
-  }, [selectedSeats]);
-
-  // 3. Tự động nhả ghế khi người dùng rời trang hoặc đóng trình duyệt
-  useEffect(() => {
-    const handleBeforeUnload = async () => {
-      const currentSelected = selectedSeatsRef.current;
-      if (currentSelected.length > 0 && clientId) {
-        for (const seat of currentSelected) {
-          await fetch("/api/seats/hold", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              tripId,
-              seatNumber: seat,
-              clientId,
-              action: "release",
-            }),
-            keepalive: true,
-          });
-        }
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      handleBeforeUnload();
-    };
-  }, [tripId, clientId]);
-
-  // 4. Xử lý logic chọn / bỏ chọn ghế
-  const toggleSeat = async (seatId: string, isBooked: boolean) => {
+  const toggleSeat = (seatId: string, isBooked: boolean) => {
     if (isBooked) return;
-    const holder = heldSeats[seatId];
-    if (holder && holder !== clientId) {
-      alert("Ghế này đang được người khác giữ, vui lòng chọn ghế khác.");
-      return;
-    }
-
     setErrorMessage("");
-    const isSelecting = !selectedSeats.includes(seatId);
 
-    if (isSelecting) {
-      if (selectedSeats.length >= 3) {
-        alert("Bạn chỉ được chọn tối đa 3 ghế trong một lượt đặt");
-        return;
-      }
-
-      setSelectedSeats((prev) => [...prev, seatId]);
-      setHeldSeats((prev) => ({ ...prev, [seatId]: clientId }));
-
-      try {
-        const res = await fetch("/api/seats/hold", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tripId,
-            seatNumber: seatId,
-            clientId,
-            action: "hold",
-          }),
-        });
-
-        const data = await res.json();
-        if (!res.ok || !data.success) {
-          setSelectedSeats((prev) => prev.filter((id) => id !== seatId));
-          if (data.conflict) {
-            alert(data.message || "Ghế này đã bị người khác chọn trước. Vui lòng chọn ghế khác.");
-          } else {
-            alert("Lỗi giữ ghế, vui lòng thử lại.");
-          }
-
-          const holdsRes = await fetch(`/api/trips/${tripId}/holds`);
-          if (holdsRes.ok) {
-            const hdata = await holdsRes.json();
-            if (hdata.success && hdata.holds) {
-              const newHolds: Record<string, string> = {};
-              hdata.holds.forEach((h: { seatNumber: string; clientId: string }) => {
-                newHolds[h.seatNumber] = h.clientId;
-              });
-              setHeldSeats(newHolds);
-            }
-          }
+    setSelectedSeats((prev) => {
+      if (prev.includes(seatId)) {
+        return prev.filter((id) => id !== seatId);
+      } else {
+        if (prev.length >= 5) {
+          alert("Bạn chỉ được chọn tối đa 5 ghế trong một lượt đặt");
+          return prev;
         }
-      } catch {
-        setSelectedSeats((prev) => prev.filter((id) => id !== seatId));
-        setHeldSeats((prev) => {
-          const next = { ...prev };
-          delete next[seatId];
-          return next;
-        });
-        alert("Lỗi kết nối. Không thể giữ ghế.");
+        return [...prev, seatId];
       }
-    } else {
-      // Optimistic Release
-      setSelectedSeats((prev) => prev.filter((id) => id !== seatId));
-      setHeldSeats((prev) => {
-        const next = { ...prev };
-        delete next[seatId];
-        return next;
-      });
-
-      try {
-        await fetch("/api/seats/hold", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            tripId,
-            seatNumber: seatId,
-            clientId,
-            action: "release",
-          }),
-        });
-      } catch {
-        // ignore error
-      }
-    }
+    });
   };
 
-  // 5. Xử lý đặt vé
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage("");
+
     if (selectedSeats.length === 0) {
       alert("Vui lòng chọn ít nhất 1 ghế!");
       return;
     }
-    if (!passengerName || !passengerPhone) {
-      alert("Vui lòng nhập đầy đủ thông tin hành khách!");
+    if (!passengerName.trim() || !passengerPhone.trim()) {
+      alert("Vui lòng nhập đầy đủ họ tên và số điện thoại hành khách!");
       return;
     }
 
@@ -230,13 +125,14 @@ export default function SeatSelector({
       });
 
       const data = await res.json();
+
       if (!res.ok || !data.success) {
         setErrorMessage(data.message || "Đặt vé không thành công, vui lòng thử lại.");
         setIsSubmitting(false);
         return;
       }
 
-      setSelectedSeats([]);
+      // Đặt vé thành công -> Chuyển đến trang xác nhận vé thật
       const pnr = data.data?.pnr || `NHAXE-${tripCode || tripId}`;
       router.push(
         `/success?tripId=${tripId}&tripCode=${tripCode || ""}&seats=${selectedSeats.join(",")}&pnr=${pnr}&name=${encodeURIComponent(passengerName)}&total=${totalPrice}`
@@ -250,34 +146,160 @@ export default function SeatSelector({
 
   const totalPrice = selectedSeats.length * pricePerSeatStr;
 
+  const renderFloor = (floorNum: number) => {
+    const floorSeats = seats.filter((s) => s.floor === floorNum);
+    return (
+      <div className="bg-white p-4 border border-gray-200 rounded-lg">
+        <h4 className="text-center font-bold text-gray-700 mb-4 pb-2 border-b">
+          Tầng {floorNum === 1 ? "1 (Dưới)" : "2 (Trên)"}
+        </h4>
+        <div className="grid grid-cols-3 gap-x-4 gap-y-3">
+          {["A", "B", "C"].map((row) => (
+            <div key={row} className="flex flex-col gap-3">
+              <span className="text-xs font-semibold text-center text-gray-400">
+                Dãy {row}
+              </span>
+              {floorSeats
+                .filter((s) => s.row === row)
+                .map((seat) => (
+                  <button
+                    key={seat.id}
+                    type="button"
+                    onClick={() => toggleSeat(seat.id, seat.isBooked)}
+                    disabled={seat.isBooked || isSubmitting}
+                    title={seat.isBooked ? `Ghế ${seat.id} đã có người đặt` : `Ghế ${seat.id}`}
+                    className={`w-full py-3 rounded text-sm font-bold border transition-colors ${
+                      seat.isBooked
+                        ? "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed line-through"
+                        : selectedSeats.includes(seat.id)
+                        ? "bg-[#1a9e09] text-white border-[#1a9e09] shadow-sm"
+                        : "bg-white text-gray-700 border-gray-300 hover:border-[#1a9e09] hover:text-[#1a9e09]"
+                    }`}
+                  >
+                    {seat.id}
+                  </button>
+                ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex flex-col md:flex-row gap-8">
+      {/* Cột trái: Sơ đồ chọn ghế */}
       <div className="w-full md:w-7/12">
-        <SeatMap
-          seats={seats}
-          selectedSeats={selectedSeats}
-          heldSeats={heldSeats}
-          clientId={clientId}
-          isSubmitting={isSubmitting}
-          onToggleSeat={toggleSeat}
-        />
+        <div className="bg-gray-50 p-6 border border-gray-200 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-lg font-bold text-gray-800">Chọn ghế ngồi</h3>
+            <div className="flex gap-4 text-sm font-medium">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-white border border-gray-300 rounded"></div>
+                <span className="text-gray-600">Trống</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-[#1a9e09] border border-[#1a9e09] rounded"></div>
+                <span className="text-gray-600">Đang chọn</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 bg-gray-200 border border-gray-300 rounded"></div>
+                <span className="text-gray-400">Đã đặt</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            {renderFloor(1)}
+            {renderFloor(2)}
+          </div>
+        </div>
       </div>
 
+      {/* Cột phải: Thông tin thanh toán và đặt vé */}
       <div className="w-full md:w-5/12">
-        <BookingForm
-          tripId={tripId}
-          tripCode={tripCode}
-          selectedSeats={selectedSeats}
-          pricePerSeatStr={pricePerSeatStr}
-          totalPrice={totalPrice}
-          passengerName={passengerName}
-          passengerPhone={passengerPhone}
-          isSubmitting={isSubmitting}
-          errorMessage={errorMessage}
-          onNameChange={setPassengerName}
-          onPhoneChange={setPassengerPhone}
-          onSubmit={handleCheckout}
-        />
+        <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6 sticky top-24">
+          <h3 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">
+            Thông tin đặt vé
+          </h3>
+
+          <div className="mb-6">
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Chuyến xe:</span>
+              <span className="font-bold text-gray-800">{tripCode || tripId}</span>
+            </div>
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Ghế đã chọn:</span>
+              <span className="font-bold text-[#1a9e09]">
+                {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}
+              </span>
+            </div>
+            <div className="flex justify-between mb-2 text-sm">
+              <span className="text-gray-600">Giá mỗi vé:</span>
+              <span className="font-semibold text-gray-700">
+                {pricePerSeatStr.toLocaleString("vi-VN")} đ
+              </span>
+            </div>
+            <div className="flex justify-between mt-4 pt-4 border-t border-gray-100">
+              <span className="text-gray-800 font-bold text-lg">Tổng tiền:</span>
+              <span className="font-extrabold text-2xl text-[#1a9e09]">
+                {totalPrice.toLocaleString("vi-VN")} đ
+              </span>
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md text-sm">
+              {errorMessage}
+            </div>
+          )}
+
+          <form onSubmit={handleCheckout}>
+            <h4 className="font-bold text-gray-800 mb-3 text-sm">
+              Thông tin hành khách
+            </h4>
+            <div className="space-y-4 mb-6">
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">Họ và tên *</label>
+                <input
+                  type="text"
+                  required
+                  value={passengerName}
+                  onChange={(e) => setPassengerName(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#1a9e09]"
+                  placeholder="Ví dụ: Nguyễn Văn A"
+                />
+              </div>
+              <div>
+                <label className="block text-sm text-gray-600 mb-1">
+                  Số điện thoại *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  value={passengerPhone}
+                  onChange={(e) => setPassengerPhone(e.target.value)}
+                  disabled={isSubmitting}
+                  className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#1a9e09]"
+                  placeholder="Ví dụ: 0901234567"
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={selectedSeats.length === 0 || isSubmitting}
+              className={`w-full font-bold py-3 px-4 rounded-md transition-colors ${
+                selectedSeats.length > 0 && !isSubmitting
+                  ? "bg-[#1a9e09] hover:bg-[#1db63e] text-white cursor-pointer"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+              }`}
+            >
+              {isSubmitting ? "Đang xử lý đặt vé..." : "Xác nhận đặt vé"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

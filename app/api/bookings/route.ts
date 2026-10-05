@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
+  } catch (error) {
     console.error("Lỗi khi xử lý đặt vé:", error);
 
     if (error instanceof TripNotFoundError) {

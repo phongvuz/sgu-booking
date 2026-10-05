@@ -26,7 +26,8 @@ SET time_zone = "+00:00";
 --
 -- Cấu trúc bảng cho bảng `booking`
 --
-
+CREATE DATABASE `sgu-booking`;
+USE `sgu-booking`;
 CREATE TABLE `booking` (
   `id` int(11) NOT NULL,
   `seatNumber` varchar(191) NOT NULL,
@@ -141,6 +142,39 @@ INSERT INTO `employee` (`id`, `name`, `email`, `phone`, `role`, `department`, `s
 --
 
 --
+-- Cấu trúc cho bảng `customer`
+--
+CREATE TABLE `customer` (
+  `id` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `email` varchar(191) NOT NULL,
+  `phone` varchar(191) NOT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Đang hoạt động',
+  `address` varchar(191) DEFAULT NULL,
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+--
+-- Đang đổ dữ liệu cho bảng `customer`
+--
+INSERT INTO `customer` (`id`, `name`, `email`, `phone`, `status`, `address`) VALUES
+('CUS-001', 'Nguyễn Minh Tuấn', 'tuannguyen@gmail.com', '0903456789', 'Đang hoạt động', 'Quận 10, TP. Hồ Chí Minh'),
+('CUS-002', 'Trần Ngọc Mai', 'maitran@gmail.com', '0914567890', 'Đang hoạt động', 'Quận Bình Thạnh, TP. Hồ Chí Minh'),
+('CUS-003', 'Lê Hoàng Nam', 'namle@gmail.com', '0935678901', 'Ngừng hoạt động', 'TP. Thủ Đức, TP. Hồ Chí Minh');
+
+
+--
+-- Chỉ mục cho bảng `customer`
+--
+ALTER TABLE `customer`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `customer_email_key` (`email`),
+  ADD UNIQUE KEY `customer_phone_key` (`phone`);
+
+
+
+--
 -- Chỉ mục cho bảng `employee`
 --
 ALTER TABLE `employee`
@@ -167,7 +201,8 @@ ALTER TABLE `trip`
 -- Chỉ mục cho bảng `user`
 --
 ALTER TABLE `user`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_phone_key` (`phone`);
 
 --
 -- AUTO_INCREMENT cho các bảng đã đổ

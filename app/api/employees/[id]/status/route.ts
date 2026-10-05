@@ -1,3 +1,4 @@
+import { getCurrentAdmin } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
 import { getEmployeeById, updateEmployeeStatus } from "@/lib/employee-store";
 
@@ -11,6 +12,9 @@ type ParamsContext = {
 // PATCH /api/employees/[id]/status - Cập nhật trạng thái làm việc của nhân viên
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const { id } = await params;
     const employee = await getEmployeeById(id);
 

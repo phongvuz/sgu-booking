@@ -1,35 +1,31 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import CustomerMenu from "@/components/auth/CustomerMenu";
 
-export default function ClientLayout({children} : {children: React.ReactNode}){
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="bg-gray-50 text-gray-800 min-h-screen font-sans">
-      <header className="bg-white shadow-sm border-b tracking-tight">
-        <div className="max-w-7xl mx-auto p-4 flex justify-between items-center ">
+    <div className="bg-gray-50 text-gray-800 flex flex-col min-h-screen font-sans">
+      <header className="bg-white border-b shadow-sm tracking-tight sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap gap-4 justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
             <span className="text-2xl">🚌</span>
             <span className="font-extrabold text-2xl text-[#1a9e09] ">NHAXESAIGON</span>
           </Link>
           <nav className="space-x-8 font-semibold hidden md:flex">
             <Link href="/" className="hover:text-[#1a9e09] transition-colors"> Trang chủ</Link>
-            <Link href="/trips " className="hover:text-[#1a9e09] transition-colors">Lịch trình</Link>
+            <Link href="/trips" className="hover:text-[#1a9e09] transition-colors">Lịch trình</Link>
             <Link href="/lookup" className="hover:text-[#1a9e09] transition-colors">Tra cứu vé</Link>
             <Link href="/" className="hover:text-[#1a9e09] transition-colors">Liên hệ</Link>
           </nav>
-          <div className="flex items-center gap-4">
-             <Link href="/login" className="hover:text-[#1a9e09] transition-colors font-medium">
-              Đăng nhập
-            </Link>
-            <Link href="/register"className="hover:text-[#1a9e09] transition-colors font-medium bg-[#1a9e09] px-5 py-2 rounded-md text-white">
-              Đăng ký
-            </Link>
-
+          <div className="flex flex-wrap items-center gap-4">
+            <Suspense fallback={<span>Đang tải...</span>}><CustomerMenu /></Suspense>
           </div>
         </div>
       </header>
 
       <main>{children}</main>
 
-      
+
       <footer className="bg-slate-900 text-slate-300 py-12 mt-12">
  <div className="max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
@@ -72,5 +68,5 @@ export default function ClientLayout({children} : {children: React.ReactNode}){
 
       </footer>
     </div>
-  )
+  );
 }
