@@ -37,11 +37,24 @@ model trip {
 model user {
   id        Int       @id @default(autoincrement())
   fullName  String
-  phone     String
+  phone     String    @unique
   password  String
-  role      String    @default("USER")
+  role      String    @default("USER") // USER, ADMIN, CUSTOMER
   createdAt DateTime  @default(now())
   booking   booking[]
+
+}
+
+model Customer {
+  id        String   @id @db.VarChar(191)
+  name      String   @db.VarChar(191)
+  email     String   @unique @db.VarChar(191)
+  phone     String   @unique @db.VarChar(191)
+  status    String   @default("Đang hoạt động") @db.VarChar(191)
+  address   String?  @db.VarChar(191)
+  createdAt DateTime @default(now()) @db.DateTime(3)
+
+  @@map("customer")
 }
 
 model employee {

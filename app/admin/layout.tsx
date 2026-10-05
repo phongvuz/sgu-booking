@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+<<<<<<< HEAD
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { ToastProvider } from "@/components/admin/Toast";
@@ -20,12 +21,18 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/employees", label: "Quản lý Nhân viên", icon: "👥" },
   { href: "/admin/users", label: "Quản lý Khách hàng", icon: "👤" },
 ];
+=======
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/session";
+import LogoutButton from "@/components/auth/LogoutButton";
+>>>>>>> 5a97c0b6fafd8c542ff5873f4311c31625221c88
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+<<<<<<< HEAD
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -36,6 +43,11 @@ export default function AdminLayout({
     return pathname.startsWith(item.href);
   };
 
+=======
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+  if (user.role !== "ADMIN") redirect("/");
+>>>>>>> 5a97c0b6fafd8c542ff5873f4311c31625221c88
   return (
     <ToastProvider>
       <div className="flex h-screen bg-gray-100 overflow-hidden font-sans">
@@ -87,10 +99,15 @@ export default function AdminLayout({
             <div className="w-8 h-8 rounded-full bg-[#1a9e09] text-white flex items-center justify-center font-bold text-sm">
               A
             </div>
+<<<<<<< HEAD
             <div className="min-w-0 flex-1">
               <p className="text-xs font-semibold text-white truncate">Ban Quản Trị</p>
               <p className="text-[10px] text-slate-400 truncate">admin@nhaxe.vn</p>
             </div>
+=======
+            <span className="font-medium text-gray-700 hidden sm:block">{user.fullName}</span>
+            <LogoutButton className="text-sm text-gray-600 hover:text-red-600" />
+>>>>>>> 5a97c0b6fafd8c542ff5873f4311c31625221c88
           </div>
         </aside>
 

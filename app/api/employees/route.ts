@@ -1,3 +1,4 @@
+import { getCurrentAdmin } from "@/lib/session";
 import { NextRequest, NextResponse } from "next/server";
 import {
   queryEmployees,
@@ -14,6 +15,9 @@ export const revalidate = 0;
 // GET /api/employees - Lấy danh sách nhân viên có phân trang, tìm kiếm và lọc
 export async function GET(request: NextRequest) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const { searchParams } = new URL(request.url);
 
     const params: EmployeeQueryParams = {
@@ -47,6 +51,9 @@ export async function GET(request: NextRequest) {
 // POST /api/employees - Tạo mới một nhân viên
 export async function POST(request: NextRequest) {
   try {
+    if (!(await getCurrentAdmin())) {
+      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
+    }
     const body = await request.json();
 
     // Validate payload with Zod

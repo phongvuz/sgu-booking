@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Employee, EmployeeQueryParams, PaginationMeta } from "@/types";
 
@@ -19,7 +20,7 @@ export async function queryEmployees(params: EmployeeQueryParams): Promise<{
     sortOrder = "desc",
   } = params;
 
-  const where: any = {};
+  const where: Prisma.employeeWhereInput = {};
 
   // 1. Tìm kiếm theo tên, email, sđt, mã nhân viên
   if (search.trim()) {
@@ -56,7 +57,7 @@ export async function queryEmployees(params: EmployeeQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   // 5. Sắp xếp
-  let orderBy: any = {};
+  let orderBy: Prisma.employeeOrderByWithRelationInput = {};
   if (sortBy === "name" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
@@ -203,7 +204,7 @@ export async function updateEmployee(
 
   if (!existing) return null;
 
-  const updateData: any = {};
+  const updateData: Prisma.employeeUpdateInput = {};
   if (data.name !== undefined) updateData.name = data.name.trim();
   if (data.email !== undefined) updateData.email = data.email.trim().toLowerCase();
   if (data.phone !== undefined) updateData.phone = data.phone.trim();
@@ -245,7 +246,7 @@ export async function deleteEmployee(id: string): Promise<boolean> {
       where: { id },
     });
     return true;
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -277,7 +278,7 @@ export async function updateEmployeeStatus(
       startDate: updated.startDate,
       createdAt: updated.createdAt.toISOString(),
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
