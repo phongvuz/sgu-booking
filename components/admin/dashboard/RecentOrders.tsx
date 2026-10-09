@@ -1,3 +1,4 @@
+import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import type { DashboardStats } from "@/types";
 import { formatPrice } from "@/lib/trip-display";
@@ -14,7 +15,7 @@ export function RecentOrders({ stats, loading }: { stats: DashboardStats | null;
           href="/admin/orders"
           className="text-xs font-semibold text-brand-primary hover:underline"
         >
-          Xem tất cả &rarr;
+          Xem tất cả <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </Link>
       </div>
 
@@ -54,7 +55,7 @@ export function RecentOrders({ stats, loading }: { stats: DashboardStats | null;
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-gray-800">
-                      {order.trip.from} &rarr; {order.trip.to}
+                      {order.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {order.trip.to}
                     </p>
                     <p className="text-[11px] text-emerald-600 font-semibold">
                       Ghế: {order.seatNumber}

@@ -1,5 +1,6 @@
 "use client";
 
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import React from "react";
 import { PaginationMeta } from "@/types";
 
@@ -72,7 +73,7 @@ export function EmployeePagination({
           className="px-2.5 py-1.5 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           title="Trang trước"
         >
-          &larr; Trước
+          <FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /> Trước
         </button>
 
         {getPageNumbers().map((p, idx) =>
@@ -103,7 +104,7 @@ export function EmployeePagination({
           className="px-2.5 py-1.5 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           title="Trang tiếp"
         >
-          Sau &rarr;
+          Sau <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </button>
       </div>
     </div>

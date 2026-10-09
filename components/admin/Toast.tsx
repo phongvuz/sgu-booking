@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle, FiCheck, FiInfo, FiX } from "react-icons/fi";
 import React, { createContext, useContext, useState, useCallback } from "react";
 
 export type ToastType = "success" | "error" | "info" | "warning";
@@ -101,22 +102,22 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             <div className="shrink-0 mt-0.5">
               {item.type === "success" && (
                 <div className="w-7 h-7 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-sm">
-                  ✓
+                  <FiCheck aria-hidden="true" className="inline-block shrink-0 align-middle" />
                 </div>
               )}
               {item.type === "error" && (
                 <div className="w-7 h-7 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center font-bold text-sm">
-                  ✕
+                  <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
                 </div>
               )}
               {item.type === "warning" && (
                 <div className="w-7 h-7 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-sm">
-                  !
+                  <FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" />
                 </div>
               )}
               {item.type === "info" && (
                 <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm">
-                  i
+                  <FiInfo aria-hidden="true" className="inline-block shrink-0 align-middle" />
                 </div>
               )}
             </div>
@@ -139,7 +140,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               className="shrink-0 text-gray-400 hover:text-gray-600 text-sm p-1 rounded transition-colors cursor-pointer"
               aria-label="Đóng"
             >
-              ✕
+              <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
             </button>
           </div>
         ))}

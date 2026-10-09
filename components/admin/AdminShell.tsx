@@ -1,5 +1,8 @@
 "use client";
 
+import { FaBus, FaRoad, FaTicketAlt } from "react-icons/fa";
+import { FiArrowLeft, FiBarChart2, FiMenu, FiUser, FiUsers, FiX } from "react-icons/fi";
+import type { IconType } from "react-icons";
 import Link from "next/link";
 import LogoutButton from "@/components/auth/LogoutButton";
 import { usePathname } from "next/navigation";
@@ -9,17 +12,17 @@ import { ToastProvider } from "@/components/admin/Toast";
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: IconType;
   exact?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { href: "/admin", label: "Bảng điều khiển", icon: "📊", exact: true },
-  { href: "/admin/trips", label: "Quản lý Chuyến xe", icon: "🛣️" },
-  { href: "/admin/orders", label: "Quản lý Đơn hàng", icon: "🎫" },
-  { href: "/admin/buses", label: "Quản lý Xe", icon: "🚐" },
-  { href: "/admin/employees", label: "Quản lý Nhân viên", icon: "👥" },
-  { href: "/admin/users", label: "Quản lý Tài khoản", icon: "👤" },
+  { href: "/admin", label: "Bảng điều khiển", icon: FiBarChart2, exact: true },
+  { href: "/admin/trips", label: "Quản lý Chuyến xe", icon: FaRoad },
+  { href: "/admin/orders", label: "Quản lý Đơn hàng", icon: FaTicketAlt },
+  { href: "/admin/buses", label: "Quản lý Xe", icon: FaBus },
+  { href: "/admin/employees", label: "Quản lý Nhân viên", icon: FiUsers },
+  { href: "/admin/users", label: "Quản lý Tài khoản", icon: FiUser },
 ];
 
 export default function AdminShell({
@@ -45,7 +48,7 @@ export default function AdminShell({
         <aside className="w-64 bg-slate-900 text-white flex flex-col hidden md:flex shrink-0 border-r border-slate-800">
           <div className="p-4 border-b border-slate-800 flex items-center justify-between">
             <Link href="/admin" className="flex items-center gap-2">
-              <span className="text-2xl">🚌</span>
+              <span className="text-2xl"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
               <span className="font-extrabold text-lg tracking-tight text-brand-primary">
                 ADMIN PORTAL
               </span>
@@ -68,7 +71,7 @@ export default function AdminShell({
                       : "text-slate-300 hover:text-white hover:bg-slate-800"
                   }`}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <item.icon aria-hidden="true" className="text-lg shrink-0" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -79,7 +82,7 @@ export default function AdminShell({
                 href="/"
                 className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
-                <span>&larr;</span>
+                <span><FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
                 <span>Về trang đặt vé</span>
               </Link>
             </div>
@@ -111,14 +114,15 @@ export default function AdminShell({
         >
           <div className="p-4 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🚌</span>
+              <span className="text-2xl"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
               <span className="font-bold text-lg text-brand-primary">ADMIN PORTAL</span>
             </div>
             <button
+              aria-label="Đóng"
               onClick={() => setMobileMenuOpen(false)}
               className="text-slate-400 hover:text-white p-1 rounded"
             >
-              ✕
+              <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
             </button>
           </div>
           <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
@@ -135,7 +139,7 @@ export default function AdminShell({
                       : "text-slate-300 hover:text-white hover:bg-slate-800"
                   }`}
                 >
-                  <span className="text-lg">{item.icon}</span>
+                  <item.icon aria-hidden="true" className="text-lg shrink-0" />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -145,7 +149,7 @@ export default function AdminShell({
                 href="/"
                 className="flex items-center gap-2 px-3.5 py-2.5 rounded-lg text-sm text-slate-400 hover:text-white hover:bg-slate-800"
               >
-                <span>&larr;</span>
+                <span><FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
                 <span>Về trang chủ</span>
               </Link>
             </div>
@@ -162,7 +166,7 @@ export default function AdminShell({
                 className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 cursor-pointer"
                 aria-label="Mở menu"
               >
-                ☰
+                <FiMenu aria-hidden="true" className="inline-block shrink-0 align-middle" />
               </button>
               <div className="font-bold text-brand-primary md:hidden">NHAXESAIGON</div>
               <div className="hidden md:flex items-center gap-2 text-sm text-gray-500 font-medium">

@@ -1,3 +1,4 @@
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -37,7 +38,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             href="/trips"
             className="text-blue-600 hover:underline inline-flex items-center gap-1 font-medium mb-4 md:mb-0"
           >
-            <span>&larr;</span> Quay lại danh sách
+            <span><FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /></span> Quay lại danh sách
           </Link>
           <h2 className="text-2xl font-bold text-gray-800">
             Chi tiết chuyến xe: <span className="text-brand-primary">{tripInfo.id}</span>
@@ -57,7 +58,7 @@ export default async function TripDetailPage({ params }: PageProps) {
             <div>
               <p className="text-gray-500 text-sm mb-1">Tuyến xe</p>
               <p className="font-bold text-gray-900">
-                {tripInfo.from} ➔ {tripInfo.to}
+                {tripInfo.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {tripInfo.to}
               </p>
             </div>
             <div>

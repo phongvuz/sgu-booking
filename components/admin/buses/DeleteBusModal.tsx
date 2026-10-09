@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle } from "react-icons/fi";
 import React from "react";
 import { Bus } from "@/types";
 
@@ -33,7 +34,7 @@ export function DeleteBusModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-sm overflow-hidden p-6 text-center">
         <div className="w-12 h-12 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-xl mx-auto mb-4 font-bold">
-          ⚠️
+          <FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </div>
         <h3 className="text-base font-bold text-gray-900 mb-1">
           Xác nhận xóa xe

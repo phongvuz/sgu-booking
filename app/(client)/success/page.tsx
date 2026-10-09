@@ -1,3 +1,4 @@
+import { FiCheckCircle } from "react-icons/fi";
 import Link from "next/link";
 import { tripIdSchema } from "@/lib/trip-id";
 
@@ -23,7 +24,7 @@ export default async function SuccessPage({
     <div className="bg-gray-100 min-h-screen py-16 px-4">
       <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
         <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-4xl">✅</span>
+          <span className="text-4xl"><FiCheckCircle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         </div>
         
         <h2 className="text-3xl font-bold text-gray-800 mb-4">Đặt vé thành công!</h2>

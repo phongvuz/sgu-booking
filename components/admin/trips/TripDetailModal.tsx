@@ -1,5 +1,7 @@
 "use client";
 
+import { FaRoad } from "react-icons/fa";
+import { FiArrowRight, FiX } from "react-icons/fi";
 import React from "react";
 import { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
@@ -27,21 +29,22 @@ export function TripDetailModal({
         {/* Header */}
         <div className="p-6 bg-slate-900 text-white relative">
           <button
+            aria-label="Đóng"
             onClick={onClose}
             className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center text-2xl font-bold shadow-sm">
-              🛣️
+              <FaRoad aria-hidden="true" className="inline-block shrink-0 align-middle" />
             </div>
             <div>
               <span className="text-[10px] font-bold uppercase tracking-wider text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">
                 Mã: {trip.id}
               </span>
               <h2 className="text-lg font-extrabold tracking-tight mt-1">
-                {trip.from} &rarr; {trip.to}
+                {trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {trip.to}
               </h2>
               <p className="text-xs text-slate-300 mt-0.5">
                 Xuất bến: {timeInfo.departureTime}, Ngày {timeInfo.dateFormatted}

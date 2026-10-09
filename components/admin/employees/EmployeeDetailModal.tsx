@@ -1,5 +1,6 @@
 "use client";
 
+import { FiEdit, FiX } from "react-icons/fi";
 import Image from "next/image";
 
 import React from "react";
@@ -30,11 +31,12 @@ export function EmployeeDetailModal({
         {/* Header Banner */}
         <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 p-6 text-white relative">
           <button
+            aria-label="Đóng"
             type="button"
             onClick={onClose}
             className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
 
           <div className="flex items-center gap-4">
@@ -141,7 +143,7 @@ export function EmployeeDetailModal({
               }}
               className="px-4 py-2 text-sm font-semibold bg-brand-primary hover:bg-brand-dark text-white rounded-lg transition-colors shadow-sm flex items-center gap-1.5 cursor-pointer"
             >
-              <span>✎</span> Chỉnh sửa thông tin
+              <span><FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" /></span> Chỉnh sửa thông tin
             </button>
           </div>
         </div>

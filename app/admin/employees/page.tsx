@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import React, { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useEmployees } from "@/hooks/useEmployees";
@@ -141,7 +142,7 @@ function AdminEmployeesContent() {
             className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg shadow-sm transition-colors text-sm font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Làm mới dữ liệu"
           >
-            <span className={loading ? "animate-spin" : ""}>🔄</span>
+            <span className={loading ? "animate-spin" : ""}><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span className="hidden sm:inline">Làm mới</span>
           </button>
 
@@ -150,7 +151,7 @@ function AdminEmployeesContent() {
             onClick={handleOpenCreate}
             className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer active:scale-98"
           >
-            <span className="text-base font-bold">+</span>
+            <span className="text-base font-bold"><FiPlus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span>Thêm nhân viên mới</span>
           </button>
         </div>
@@ -163,7 +164,7 @@ function AdminEmployeesContent() {
       {error && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-lg">⚠️</span>
+            <span className="text-lg"><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span>{error}</span>
           </div>
           <button

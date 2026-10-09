@@ -1,5 +1,6 @@
 "use client";
 
+import { FiUser } from "react-icons/fi";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import LogoutButton from "./LogoutButton";
@@ -48,7 +49,7 @@ export default function CustomerDropdown() {
       onClick={() => setOpen((value) => !value)}
       className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-orange-50 text-brand-primary hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
     >
-      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></svg>
+      <FiUser aria-hidden="true" width="22" height="22" />
     </button>
     <div id={panelId} hidden={!open} className="absolute right-0 top-full z-50 w-56 pt-2">
       <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-2 shadow-lg">

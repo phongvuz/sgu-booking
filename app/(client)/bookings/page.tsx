@@ -1,3 +1,4 @@
+import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/session";
@@ -43,7 +44,7 @@ export default async function BookingHistoryPage() {
             <h2 className="break-all text-lg font-bold text-brand-primary">Mã vé: {booking.pnr ?? `#${booking.id}`}</h2>
             <span className={`rounded-full px-3 py-1 text-sm font-semibold ${status.className}`}>{status.label}</span>
           </div>
-          <p className="mt-4 text-xl font-bold text-gray-900">{booking.trip.from} → {booking.trip.to}</p>
+          <p className="mt-4 text-xl font-bold text-gray-900">{booking.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {booking.trip.to}</p>
           <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div><dt className="text-gray-500">Mã chuyến xe</dt><dd className="mt-1 font-semibold">{booking.trip.id}</dd></div>
             <div><dt className="text-gray-500">Khởi hành</dt><dd className="mt-1 font-semibold"><time dateTime={booking.trip.time.toISOString()}>{dateFormat.format(booking.trip.time)}</time></dd></div>

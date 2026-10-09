@@ -1,5 +1,7 @@
 "use client";
 
+import { FaBus, FaCircle } from "react-icons/fa";
+import { FiEdit, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
 import React from "react";
 import { Bus } from "@/types";
 
@@ -23,7 +25,7 @@ export function BusTable({
   if (loading) {
     return (
       <div className="py-16 text-center text-gray-400">
-        <div className="inline-block animate-spin text-2xl mb-2">🔄</div>
+        <div className="inline-block animate-spin text-2xl mb-2"><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></div>
         <p className="text-xs">Đang tải danh sách phương tiện...</p>
       </div>
     );
@@ -32,7 +34,7 @@ export function BusTable({
   if (buses.length === 0) {
     return (
       <div className="py-16 text-center text-gray-500">
-        <span className="text-4xl block mb-2">🚐</span>
+        <span className="text-4xl block mb-2"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         <p className="text-sm font-semibold">Không tìm thấy xe nào</p>
         <p className="text-xs text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
       </div>
@@ -91,13 +93,14 @@ export function BusTable({
                       : "bg-rose-100 text-rose-800 hover:bg-rose-200"
                   }`}
                 >
-                  <span
-                    className={`w-1.5 h-1.5 rounded-full ${
+                  <FaCircle
+                    aria-hidden="true"
+                    className={`w-1.5 h-1.5 shrink-0 ${
                       bus.status === "Đang hoạt động"
-                        ? "bg-emerald-500"
+                        ? "text-emerald-500"
                         : bus.status === "Bảo dưỡng"
-                        ? "bg-amber-500"
-                        : "bg-rose-500"
+                        ? "text-amber-500"
+                        : "text-rose-500"
                     }`}
                   />
                   <span>{bus.status}</span>
@@ -106,25 +109,28 @@ export function BusTable({
               <td className="px-5 py-3.5 text-right">
                 <div className="flex items-center justify-end gap-2">
                   <button
+                    aria-label="Xem chi tiết"
                     onClick={() => onView(bus)}
                     className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
                     title="Xem chi tiết"
                   >
-                    👁️
+                    <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                   <button
+                    aria-label="Chỉnh sửa"
                     onClick={() => onEdit(bus)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     title="Chỉnh sửa"
                   >
-                    ✏️
+                    <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                   <button
+                    aria-label="Xóa xe"
                     onClick={() => onDelete(bus)}
                     className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
                     title="Xóa xe"
                   >
-                    🗑️
+                    <FiTrash2 aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                 </div>
               </td>

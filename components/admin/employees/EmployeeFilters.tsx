@@ -1,5 +1,7 @@
 "use client";
 
+import { FiRefreshCw, FiSearch, FiX } from "react-icons/fi";
+import { FaCircle } from "react-icons/fa";
 import React from "react";
 
 interface EmployeeFiltersProps {
@@ -30,19 +32,7 @@ export function EmployeeFilters({
         {/* Search input */}
         <div className="relative min-w-[240px] flex-1 max-w-sm">
           <span className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35m1.85-5.15a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <FiSearch aria-hidden="true" className="w-4 h-4" />
           </span>
           <input
             type="text"
@@ -53,11 +43,12 @@ export function EmployeeFilters({
           />
           {search && (
             <button
+              aria-label="Xóa tìm kiếm"
               onClick={() => onSearchChange("")}
               className="absolute inset-y-0 right-0 flex items-center pr-2.5 text-gray-400 hover:text-gray-600 text-xs"
               title="Xóa tìm kiếm"
             >
-              ✕
+              <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
             </button>
           )}
         </div>
@@ -77,16 +68,26 @@ export function EmployeeFilters({
         </select>
 
         {/* Status select */}
-        <select
-          value={status}
-          onChange={(e) => onStatusChange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors cursor-pointer"
-        >
-          <option value="">Tất cả trạng thái</option>
-          <option value="Đang làm việc">🟢 Đang làm việc</option>
-          <option value="Nghỉ phép">🟡 Nghỉ phép</option>
-          <option value="Đã nghỉ việc">🔴 Đã nghỉ việc</option>
-        </select>
+        <div className="relative">
+          {status && (
+            <FaCircle
+              aria-hidden="true"
+              className={`pointer-events-none absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 ${
+                status === "Đang làm việc" ? "text-emerald-500" : status === "Nghỉ phép" ? "text-amber-500" : "text-rose-500"
+              }`}
+            />
+          )}
+          <select
+            value={status}
+            onChange={(e) => onStatusChange(e.target.value)}
+            className={`border border-gray-300 rounded-lg pr-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors cursor-pointer ${status ? "pl-7" : "pl-3"}`}
+          >
+            <option value="">Tất cả trạng thái</option>
+            <option value="Đang làm việc">Đang làm việc</option>
+            <option value="Nghỉ phép">Nghỉ phép</option>
+            <option value="Đã nghỉ việc">Đã nghỉ việc</option>
+          </select>
+        </div>
 
         {/* Reset filters button */}
         {hasActiveFilters && (
@@ -95,7 +96,7 @@ export function EmployeeFilters({
             onClick={onReset}
             className="text-xs text-gray-500 hover:text-brand-primary font-medium flex items-center gap-1 px-2.5 py-2 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
           >
-            <span>🔄</span> Đặt lại
+            <span><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></span> Đặt lại
           </button>
         )}
       </div>

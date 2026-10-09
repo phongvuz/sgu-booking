@@ -1,5 +1,7 @@
 "use client";
 
+import { FaTicketAlt } from "react-icons/fa";
+import { FiArrowRight, FiEye, FiRefreshCw } from "react-icons/fi";
 import React from "react";
 import { OrderItem, BookingStatus } from "@/types";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
@@ -22,7 +24,7 @@ export function OrderTable({
   if (loading) {
     return (
       <div className="py-16 text-center text-gray-400">
-        <div className="inline-block animate-spin text-2xl mb-2">🔄</div>
+        <div className="inline-block animate-spin text-2xl mb-2"><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></div>
         <p className="text-xs">Đang tải danh sách đơn vé...</p>
       </div>
     );
@@ -31,7 +33,7 @@ export function OrderTable({
   if (orders.length === 0) {
     return (
       <div className="py-16 text-center text-gray-500">
-        <span className="text-4xl block mb-2">🎫</span>
+        <span className="text-4xl block mb-2"><FaTicketAlt aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         <p className="text-sm font-semibold">Không tìm thấy đơn vé nào</p>
         <p className="text-xs text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
       </div>
@@ -67,7 +69,7 @@ export function OrderTable({
                 </td>
                 <td className="px-5 py-3.5">
                   <p className="font-semibold text-gray-800">
-                    {order.trip.from} &rarr; {order.trip.to}
+                    {order.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {order.trip.to}
                   </p>
                   <p className="text-[11px] text-gray-400">
                     {timeInfo.departureTime} • {timeInfo.dateFormatted} ({order.trip.id})
@@ -112,11 +114,12 @@ export function OrderTable({
                 <td className="px-5 py-3.5 text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <button
+                      aria-label="Xem chi tiết vé"
                       onClick={() => onView(order)}
                       className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
                       title="Xem chi tiết vé"
                     >
-                      👁️
+                      <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
                     </button>
 
                     {order.status === "PENDING" && (

@@ -1,5 +1,6 @@
 "use client";
 
+import { FiArrowRight } from "react-icons/fi";
 import { useState } from "react";
 import { getErrorMessage, requestJson } from "@/lib/api-client";
 import Link from "next/link";
@@ -143,7 +144,7 @@ export default function Lookup() {
                       <p className="text-gray-400 text-xs mb-1">Tuyến xe</p>
                       <p className="font-bold text-blue-600 text-base">
                         {booking.trip
-                          ? `${booking.trip.from} ➔ ${booking.trip.to}`
+                          ? <>{booking.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {booking.trip.to}</>
                           : "—"}
                       </p>
                     </div>
@@ -176,7 +177,7 @@ export default function Lookup() {
                 href="/trips"
                 className="inline-block mt-4 text-brand-primary font-semibold hover:underline"
               >
-                Đặt vé chuyến mới ngay &rarr;
+                Đặt vé chuyến mới ngay <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />
               </Link>
             </div>
           )}

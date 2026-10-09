@@ -1,3 +1,4 @@
+import { FiChevronRight } from "react-icons/fi";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -58,9 +59,7 @@ export default function TravelGuides() {
 
               {/* Chevron arrow */}
               <div className="text-slate-400 group-hover:text-brand-primary group-hover:translate-x-1 transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
+                <FiChevronRight aria-hidden="true" className="w-4 h-4" />
               </div>
             </div>
           </Link>

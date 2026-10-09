@@ -1,3 +1,4 @@
+import { FiArrowRight, FiMapPin } from "react-icons/fi";
 import Image from "next/image";
 import Link from "next/link";
 import { DESTINATIONS } from "./content";
@@ -42,7 +43,7 @@ export default function FeaturedDestinations() {
                   {destination.title}
                 </h3>
                 <p className="mt-1.5 text-sm font-medium text-white/90">
-                  📍 {destination.location} • {destination.duration}
+                  <FiMapPin aria-hidden="true" className="inline-block shrink-0 align-middle" /> {destination.location} • {destination.duration}
                 </p>
               </div>
 
@@ -50,7 +51,7 @@ export default function FeaturedDestinations() {
                 aria-hidden="true"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-brand-text transition-colors group-hover:bg-brand-primary group-hover:text-white"
               >
-                →
+                <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />
               </span>
             </div>
           </Link>

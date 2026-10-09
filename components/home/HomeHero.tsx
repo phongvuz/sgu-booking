@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { FaAngleDoubleRight } from "react-icons/fa";
+import { FaAngleDoubleRight, FaPaperPlane } from "react-icons/fa";
 
 export default function HomeHero() {
   return (
@@ -62,11 +62,7 @@ export default function HomeHero() {
               />
      
               <g transform="translate(380, 85) rotate(-15)">
-                <path
-                  d="M10 0 L15 15 L2 12 L0 10 L8 8 L4 2 Z"
-                  fill="var(--color-brand-primary)"
-                  opacity="0.8"
-                />
+                <FaPaperPlane aria-hidden="true" width="18" height="18" fill="var(--color-brand-primary)" opacity="0.8" />
               </g>
             </svg>
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { FiEdit, FiEye, FiTrash2, FiUsers } from "react-icons/fi";
+import { FaCircle } from "react-icons/fa";
 import Image from "next/image";
 
 import React from "react";
@@ -81,7 +83,7 @@ export function EmployeeTable({
     return (
       <div className="py-16 text-center">
         <div className="w-16 h-16 bg-orange-50 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
-          👥
+          <FiUsers aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </div>
         <h4 className="text-base font-semibold text-gray-800 mb-1">
           Không tìm thấy nhân viên nào
@@ -175,13 +177,14 @@ export function EmployeeTable({
                         : "bg-rose-50 text-rose-700 ring-1 ring-rose-600/20"
                     }`}
                   >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${
+                    <FaCircle
+                      aria-hidden="true"
+                      className={`w-1.5 h-1.5 shrink-0 ${
                         isWorking
-                          ? "bg-emerald-500"
+                          ? "text-emerald-500"
                           : isOnLeave
-                          ? "bg-amber-500"
-                          : "bg-rose-500"
+                          ? "text-amber-500"
+                          : "text-rose-500"
                       }`}
                     />
                     {emp.status}
@@ -198,74 +201,35 @@ export function EmployeeTable({
                   <div className="inline-flex items-center gap-1.5">
                     {/* View Details */}
                     <button
+                      aria-label="Xem hồ sơ chi tiết"
                       type="button"
                       onClick={() => onView(emp)}
                       className="p-1.5 text-gray-500 hover:text-slate-900 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                       title="Xem hồ sơ chi tiết"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
+                      <FiEye aria-hidden="true" className="w-4 h-4" />
                     </button>
 
                     {/* Edit */}
                     <button
+                      aria-label="Chỉnh sửa nhân viên"
                       type="button"
                       onClick={() => onEdit(emp)}
                       className="p-1.5 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                       title="Chỉnh sửa nhân viên"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                        />
-                      </svg>
+                      <FiEdit aria-hidden="true" className="w-4 h-4" />
                     </button>
 
                     {/* Toggle status / Deactivate / Delete */}
                     <button
+                      aria-label="Xóa hoặc đổi trạng thái nghỉ việc"
                       type="button"
                       onClick={() => onDelete(emp)}
                       className="p-1.5 text-rose-600 hover:text-rose-800 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       title="Xóa hoặc đổi trạng thái nghỉ việc"
                     >
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
+                      <FiTrash2 aria-hidden="true" className="w-4 h-4" />
                     </button>
                   </div>
                 </td>

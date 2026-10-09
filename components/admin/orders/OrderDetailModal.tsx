@@ -1,5 +1,7 @@
 "use client";
 
+import { FaBus } from "react-icons/fa";
+import { FiArrowRight, FiPrinter, FiX } from "react-icons/fi";
 import React from "react";
 import { OrderItem } from "@/types";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
@@ -25,13 +27,14 @@ export function OrderDetailModal({
         {/* Ticket Header styled like an e-ticket */}
         <div className="bg-brand-primary text-white p-6 relative">
           <button
+            aria-label="Đóng"
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">🚌</span>
+            <span className="text-xl"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span className="text-xs uppercase font-extrabold tracking-widest text-emerald-200">
               Vé xe điện tử
             </span>
@@ -82,7 +85,7 @@ export function OrderDetailModal({
             </div>
             <div className="flex items-center justify-between font-bold text-gray-900 text-sm">
               <span>{order.trip.from}</span>
-              <span className="text-gray-400 font-normal">&rarr;</span>
+              <span className="text-gray-400 font-normal"><FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
               <span>{order.trip.to}</span>
             </div>
             <div className="text-[11px] text-brand-primary font-semibold pt-1 border-t border-gray-200/60">
@@ -132,7 +135,7 @@ export function OrderDetailModal({
             onClick={() => window.print()}
             className="px-3 py-1.5 text-xs font-semibold text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors flex items-center gap-1 cursor-pointer"
           >
-            <span>🖨️</span>
+            <span><FiPrinter aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span>In vé</span>
           </button>
           <button

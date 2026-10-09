@@ -1,3 +1,4 @@
+import { FaBus } from "react-icons/fa";
 import LoginForm from "@/components/auth/LoginForm";
 
 export const metadata = {
@@ -9,7 +10,7 @@ export default function LoginPage() {
   return (
     <>
       <div className="text-center">
-        <span className="text-4xl">🚌</span>
+        <span className="text-4xl"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         <h2 className="mt-2 text-2xl font-black text-gray-800 tracking-tight">
           ĐĂNG NHẬP
         </h2>

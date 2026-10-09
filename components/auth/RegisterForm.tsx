@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle } from "react-icons/fi";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { registerSchema } from "@/lib/validations/register";
@@ -71,7 +72,7 @@ export default function RegisterForm() {
     <form onSubmit={handleSubmit} className="mt-6 space-y-4">
       {error && (
         <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-3.5 py-2.5 rounded-xl flex items-center gap-2">
-          <span>⚠️</span>
+          <span><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
           <span>{error}</span>
         </div>
       )}

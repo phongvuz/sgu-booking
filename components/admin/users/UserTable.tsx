@@ -1,5 +1,7 @@
 "use client";
 
+import { FiEdit, FiEye, FiRefreshCw, FiTrash2, FiUser } from "react-icons/fi";
+import { FaCrown } from "react-icons/fa";
 import React from "react";
 import { UserAccount } from "@/types";
 import { formatPrice } from "@/lib/trip-display";
@@ -24,7 +26,7 @@ export function UserTable({
   if (loading) {
     return (
       <div className="py-16 text-center text-gray-400">
-        <div className="inline-block animate-spin text-2xl mb-2">🔄</div>
+        <div className="inline-block animate-spin text-2xl mb-2"><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></div>
         <p className="text-xs">Đang tải danh sách người dùng...</p>
       </div>
     );
@@ -33,7 +35,7 @@ export function UserTable({
   if (users.length === 0) {
     return (
       <div className="py-16 text-center text-gray-500">
-        <span className="text-4xl block mb-2">👤</span>
+        <span className="text-4xl block mb-2"><FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         <p className="text-sm font-semibold">Không tìm thấy tài khoản nào</p>
         <p className="text-xs text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
       </div>
@@ -80,7 +82,8 @@ export function UserTable({
                       : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                   }`}
                 >
-                  <span>{user.role === "ADMIN" ? "👑 ADMIN" : `👤 ${user.role}`}</span>
+                  {user.role === "ADMIN" ? <FaCrown aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" />}
+                  <span>{user.role}</span>
                 </button>
               </td>
               <td className="px-5 py-3.5">{user.isActive ? "Đang hoạt động" : "Đã khóa"}</td>
@@ -98,25 +101,28 @@ export function UserTable({
               <td className="px-5 py-3.5 text-right">
                 <div className="flex items-center justify-end gap-1.5">
                   <button
+                    aria-label="Xem lịch sử đặt vé"
                     onClick={() => onView(user)}
                     className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
                     title="Xem lịch sử đặt vé"
                   >
-                    👁️
+                    <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                   <button
+                    aria-label="Chỉnh sửa tài khoản"
                     onClick={() => onEdit(user)}
                     className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                     title="Chỉnh sửa tài khoản"
                   >
-                    ✏️
+                    <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                   <button
+                    aria-label="Xóa người dùng"
                     onClick={() => onDelete(user)}
                     className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
                     title="Xóa người dùng"
                   >
-                    🗑️
+                    <FiTrash2 aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>
                 </div>
               </td>

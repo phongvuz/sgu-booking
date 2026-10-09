@@ -1,5 +1,7 @@
 "use client";
 
+import { FiArrowRight, FiUser, FiX } from "react-icons/fi";
+import { FaCrown } from "react-icons/fa";
 import { useCallback } from "react";
 import type { UserAccount, UserDetailResponse } from "@/types";
 import { fetchUserById } from "@/services/clientUserService";
@@ -32,10 +34,11 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
         {/* Header */}
         <div className="p-6 bg-slate-900 text-white relative">
           <button
+            aria-label="Đóng"
             onClick={onClose}
             className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-brand-primary text-white flex items-center justify-center text-xl font-bold shadow-sm">
@@ -53,7 +56,8 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
                     : "bg-emerald-500/20 text-emerald-300"
                 }`}
               >
-                {user.role === "ADMIN" ? "👑 QUẢN TRỊ VIÊN" : "👤 KHÁCH HÀNG"}
+                {user.role === "ADMIN" ? <FaCrown aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" />}{" "}
+                {user.role === "ADMIN" ? "QUẢN TRỊ VIÊN" : "KHÁCH HÀNG"}
               </span>
             </div>
           </div>
@@ -110,7 +114,7 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
                   <div key={b.id} className="p-3 flex items-center justify-between bg-white hover:bg-gray-50">
                     <div>
                       <p className="font-bold text-gray-900">
-                        {b.trip?.from} &rarr; {b.trip?.to}
+                        {b.trip?.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {b.trip?.to}
                       </p>
                       <p className="text-[11px] text-gray-400">
                         Ghế: <strong className="text-emerald-700">{b.seatNumber}</strong> • Ngày đặt: {new Date(b.createdAt).toLocaleDateString("vi-VN")}

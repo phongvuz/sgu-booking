@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle, FiInfo } from "react-icons/fi";
 import React, { useState } from "react";
 import { Employee } from "@/types";
 
@@ -49,7 +50,7 @@ export function DeleteConfirmModal({
         <div className="p-6 text-center">
           {/* Warning Icon */}
           <div className="w-14 h-14 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mx-auto mb-4 text-2xl font-bold">
-            ⚠️
+            <FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </div>
 
           <h3 className="text-lg font-bold text-gray-900 mb-2">
@@ -66,7 +67,7 @@ export function DeleteConfirmModal({
           </p>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800 mb-6">
-            💡 <strong>Khuyên dùng:</strong> Chọn <em>&quot;Chuyển Đã nghỉ việc&quot;</em> để bảo toàn lịch sử dữ liệu chuyến xe và phân công đã thực hiện trong quá khứ.
+            <FiInfo aria-hidden="true" className="inline-block shrink-0 align-middle" /> <strong>Khuyên dùng:</strong> Chọn <em>&quot;Chuyển Đã nghỉ việc&quot;</em> để bảo toàn lịch sử dữ liệu chuyến xe và phân công đã thực hiện trong quá khứ.
           </div>
 
           {/* Action Buttons */}

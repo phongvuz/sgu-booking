@@ -1,5 +1,6 @@
 "use client";
 
+import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import React, { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useBuses } from "@/hooks/useBuses";
@@ -122,7 +123,7 @@ export default function AdminBusesPage() {
             className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg shadow-2xs transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
             title="Làm mới dữ liệu"
           >
-            <span className={loading ? "animate-spin" : ""}>🔄</span>
+            <span className={loading ? "animate-spin" : ""}><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span className="hidden sm:inline">Làm mới</span>
           </button>
 
@@ -131,7 +132,7 @@ export default function AdminBusesPage() {
             onClick={handleOpenCreate}
             className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
           >
-            <span className="text-base font-bold">+</span>
+            <span className="text-base font-bold"><FiPlus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span>Thêm xe mới</span>
           </button>
         </div>
@@ -144,7 +145,7 @@ export default function AdminBusesPage() {
       {error && (
         <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span>⚠️</span>
+            <span><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
             <span>{error}</span>
           </div>
           <button

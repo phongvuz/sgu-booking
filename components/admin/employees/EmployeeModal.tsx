@@ -1,5 +1,7 @@
 "use client";
 
+import { FaSpinner } from "react-icons/fa";
+import { FiEdit, FiPlus, FiX } from "react-icons/fi";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -36,6 +38,7 @@ export function EmployeeModal({
   mode,
 }: EmployeeModalProps) {
   const {
+    control,
     register,
     handleSubmit,
     reset,
@@ -97,7 +100,7 @@ export function EmployeeModal({
         <div className="px-6 py-4 bg-gradient-to-r from-slate-900 to-slate-800 text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             <span className="w-8 h-8 rounded-lg bg-brand-primary text-white flex items-center justify-center font-bold text-lg">
-              {mode === "create" ? "+" : "✎"}
+              {mode === "create" ? <FiPlus aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />}
             </span>
             <div>
               <h2 className="text-lg font-bold">
@@ -111,12 +114,13 @@ export function EmployeeModal({
             </div>
           </div>
           <button
+            aria-label="Đóng"
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
             className="text-slate-400 hover:text-white p-1 rounded-md transition-colors cursor-pointer"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
         </div>
 
@@ -124,7 +128,7 @@ export function EmployeeModal({
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <EmployeeContactFields register={register} errors={errors} />
-            <EmployeeWorkFields register={register} errors={errors} />
+            <EmployeeWorkFields register={register} errors={errors} control={control} />
           </div>
 
           {/* Địa chỉ */}
@@ -163,25 +167,7 @@ export function EmployeeModal({
             >
               {isSubmitting ? (
                 <>
-                  <svg
-                    className="animate-spin h-4 w-4 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
-                    />
-                  </svg>
+                  <FaSpinner aria-hidden="true" className="animate-spin h-4 w-4 text-white" />
                   <span>Đang lưu...</span>
                 </>
               ) : mode === "create" ? (

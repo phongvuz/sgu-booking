@@ -1,5 +1,6 @@
 "use client";
 
+import { FiX } from "react-icons/fi";
 import type { z } from "zod";
 
 import React, { useEffect } from "react";
@@ -99,10 +100,11 @@ export function BusModal({
             </p>
           </div>
           <button
+            aria-label="Đóng"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-lg p-1 rounded transition-colors"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
         </div>
 

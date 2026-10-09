@@ -1,3 +1,4 @@
+import { FaCircle } from "react-icons/fa";
 import type { DashboardStats } from "@/types";
 
 export function DashboardAlerts({ stats }: { stats: DashboardStats | null }) {
@@ -12,15 +13,16 @@ export function DashboardAlerts({ stats }: { stats: DashboardStats | null }) {
         <div className="space-y-4 mt-4">
           {stats?.systemAlerts?.map((alert) => (
             <div key={alert.id} className="flex items-start gap-3">
-              <div
-                className={`w-2.5 h-2.5 mt-1 rounded-full shrink-0 ${
+              <FaCircle
+                aria-hidden="true"
+                className={`w-2.5 h-2.5 mt-1 shrink-0 ${
                   alert.type === "warning"
-                    ? "bg-amber-500"
+                    ? "text-amber-500"
                     : alert.type === "success"
-                    ? "bg-emerald-500"
+                    ? "text-emerald-500"
                     : alert.type === "danger"
-                    ? "bg-rose-500"
-                    : "bg-blue-500"
+                    ? "text-rose-500"
+                    : "text-blue-500"
                 }`}
               />
               <div className="min-w-0 flex-1">

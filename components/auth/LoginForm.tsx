@@ -1,5 +1,7 @@
 "use client";
 
+import { FaSpinner } from "react-icons/fa";
+import { FiAlertTriangle } from "react-icons/fi";
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -48,7 +50,7 @@ export default function LoginForm() {
     <form onSubmit={handleSubmit} className="mt-8 space-y-5">
       {error && (
         <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
-          <span>⚠️</span>
+          <span><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
           <span>{error}</span>
         </div>
       )}
@@ -111,25 +113,7 @@ export default function LoginForm() {
       >
         {isPending ? (
           <>
-            <svg
-              className="animate-spin h-5 w-5 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8v8H4z"
-              />
-            </svg>
+            <FaSpinner aria-hidden="true" className="animate-spin h-5 w-5 text-white" />
             <span>Đang đăng nhập...</span>
           </>
         ) : (

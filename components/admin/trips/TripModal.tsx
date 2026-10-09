@@ -1,5 +1,6 @@
 "use client";
 
+import { FiX } from "react-icons/fi";
 import { formatVietnamDateTime } from "@/lib/trip-search";
 
 import type { z } from "zod";
@@ -89,10 +90,11 @@ export function TripModal({
             </p>
           </div>
           <button
+            aria-label="Đóng"
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-lg p-1 rounded"
           >
-            ✕
+            <FiX aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </button>
         </div>
 

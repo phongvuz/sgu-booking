@@ -1,3 +1,4 @@
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import type { TripSearchParams } from "@/types";
 import { resolveLocationName } from "@/lib/trip-display";
 import Link from "next/link";
@@ -35,7 +36,7 @@ export default async function TripsPage({
               <span className="font-bold text-brand-primary">
                 {fromCity || fromQuery || "Tất cả điểm đi"}
               </span>{" "}
-              ➔{" "}
+              <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />{" "}
               <span className="font-bold text-brand-primary">
                 {toCity || toQuery || "Tất cả điểm đến"}
               </span>
@@ -47,7 +48,7 @@ export default async function TripsPage({
             href="/"
             className="mt-4 md:mt-0 text-blue-600 font-medium hover:underline flex items-center gap-1"
           >
-            <span>&larr;</span> Thay đổi tìm kiếm
+            <span><FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /></span> Thay đổi tìm kiếm
           </Link>
         </div>
 

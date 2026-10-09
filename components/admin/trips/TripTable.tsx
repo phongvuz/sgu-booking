@@ -1,5 +1,7 @@
 "use client";
 
+import { FaRoad } from "react-icons/fa";
+import { FiArrowRight, FiEdit, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
 import React from "react";
 import { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
@@ -22,7 +24,7 @@ export function TripTable({
   if (loading) {
     return (
       <div className="py-16 text-center text-gray-400">
-        <div className="inline-block animate-spin text-2xl mb-2">🔄</div>
+        <div className="inline-block animate-spin text-2xl mb-2"><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></div>
         <p className="text-xs">Đang tải danh sách tuyến chuyến...</p>
       </div>
     );
@@ -31,7 +33,7 @@ export function TripTable({
   if (trips.length === 0) {
     return (
       <div className="py-16 text-center text-gray-500">
-        <span className="text-4xl block mb-2">🛣️</span>
+        <span className="text-4xl block mb-2"><FaRoad aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
         <p className="text-sm font-semibold">Không tìm thấy chuyến xe nào</p>
         <p className="text-xs text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc tạo chuyến mới</p>
       </div>
@@ -64,7 +66,7 @@ export function TripTable({
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-1.5 font-bold text-gray-900 text-sm">
                     <span>{trip.from}</span>
-                    <span className="text-gray-400 font-normal">&rarr;</span>
+                    <span className="text-gray-400 font-normal"><FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
                     <span>{trip.to}</span>
                   </div>
                 </td>
@@ -99,25 +101,28 @@ export function TripTable({
                 <td className="px-5 py-3.5 text-right">
                   <div className="flex items-center justify-end gap-1.5">
                     <button
+                      aria-label="Xem danh sách khách và ghế"
                       onClick={() => onView(trip)}
                       className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
                       title="Xem danh sách khách và ghế"
                     >
-                      👁️
+                      <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
                     </button>
                     <button
+                      aria-label="Chỉnh sửa chuyến xe"
                       onClick={() => onEdit(trip)}
                       className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                       title="Chỉnh sửa chuyến xe"
                     >
-                      ✏️
+                      <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
                     </button>
                     <button
+                      aria-label="Xóa chuyến xe"
                       onClick={() => onDelete(trip)}
                       className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
                       title="Xóa chuyến xe"
                     >
-                      🗑️
+                      <FiTrash2 aria-hidden="true" className="inline-block shrink-0 align-middle" />
                     </button>
                   </div>
                 </td>
