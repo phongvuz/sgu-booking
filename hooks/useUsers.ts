@@ -1,181 +1,86 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { UserAccount, UserQueryParams, PaginationMeta, UserStats } from "@/types";
-import { UserFormValues } from "@/lib/validations/user";
-import * as userService from "@/services/clientUserService";
+import { useCallback, useState } from "react";
+import type { UserQueryParams, UserListResponse } from "@/types";
+import type { UserFormValues } from "@/lib/validations/user";
+import * as service from "@/services/clientUserService";
+import { useDebouncedSearch } from "./useDebouncedSearch";
+import { useRemoteData } from "./useRemoteData";
+import { useAsyncAction } from "./useAsyncAction";
+
+const INITIAL_DATA: UserListResponse = {
+  success: true,
+  data: [],
+  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  stats: { total: 0, users: 0, admins: 0, newThisMonth: 0 },
+};
 
 export function useUsers(initialParams?: UserQueryParams) {
-  const [users, setUsers] = useState<UserAccount[]>([]);
-  const [stats, setStats] = useState<UserStats>({
-    total: 0,
-    users: 0,
-    admins: 0,
-    newThisMonth: 0,
-  });
-  const [pagination, setPagination] = useState<PaginationMeta>({
-    page: 1,
-    limit: 8,
-    total: 0,
-    totalPages: 1,
-  });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [actionLoading, setActionLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(initialParams?.page ?? 1);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [role, setRole] = useState(initialParams?.role ?? "");
+  const resetPage = useCallback(() => setPage(1), []);
+  const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
+  const { actionLoading, runAction } = useAsyncAction();
 
-  // Filters state
-  const [search, setSearch] = useState<string>(initialParams?.search || "");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
-  const [role, setRole] = useState<string>(initialParams?.role || "");
-  const [page, setPage] = useState<number>(initialParams?.page || 1);
-  const [limit, setLimit] = useState<number>(initialParams?.limit || 8);
+  const load = useCallback((signal: AbortSignal) => service.fetchAdminUsers({
+    search: appliedSearch, role, page, limit,
+  }, signal), [appliedSearch, role, page, limit]);
+  const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1);
-    }, 350);
-  };
-
-  const handleRoleChange = (val: string) => {
-    setRole(val);
-    setPage(1);
-  };
-
-  const resetFilters = () => {
-    setSearch("");
-    setDebouncedSearch("");
+  function resetFilters() {
+    resetSearch();
     setRole("");
     setPage(1);
-  };
+  }
 
-  const loadUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  function filterRole(value: string) {
+    setRole(value);
+    setPage(1);
+  }
 
-      const res = await userService.fetchAdminUsers({
-        search: debouncedSearch,
-        role,
-        page,
-        limit,
-      });
-
-      setUsers(res.data);
-      setPagination(res.pagination);
-      if (res.stats) setStats(res.stats);
-    } catch (err: any) {
-      console.error("Error in loadUsers:", err);
-      setError(err?.message || "Không thể tải danh sách tài khoản");
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, role, page, limit]);
-
-  useEffect(() => {
-    loadUsers();
-  }, [loadUsers]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, []);
-
-  const handleCreate = async (payload: UserFormValues) => {
-    setActionLoading(true);
-    try {
-      const res = await userService.createUser(payload);
+  function createUser(payload: UserFormValues) {
+    return runAction(async () => {
+      const response = await service.createUser(payload);
       resetFilters();
-      await loadUsers();
-      return { success: true, message: res.message || "Tạo người dùng thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi tạo người dùng",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      refresh();
+      return response.message || "Tạo người dùng thành công!";
+    });
+  }
 
-  const handleUpdate = async (id: number | string, payload: Partial<UserFormValues>) => {
-    setActionLoading(true);
-    try {
-      const res = await userService.updateUser(id, payload);
-      await loadUsers();
-      return { success: true, message: res.message || "Cập nhật người dùng thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi cập nhật",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function updateUser(id: number | string, payload: Partial<UserFormValues>) {
+    return runAction(async () => {
+      const response = await service.updateUser(id, payload);
+      refresh();
+      return response.message || "Cập nhật người dùng thành công!";
+    });
+  }
 
-  const handleDelete = async (id: number | string) => {
-    setActionLoading(true);
-    try {
-      const res = await userService.deleteUser(id);
-      await loadUsers();
-      return { success: true, message: res.message || "Xóa người dùng thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi xóa người dùng",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function deleteUser(id: number | string) {
+    return runAction(async () => {
+      const response = await service.deleteUser(id);
+      refresh();
+      return response.message || "Xóa người dùng thành công!";
+    });
+  }
 
-  const handleChangeRole = async (id: number | string, newRole: "USER" | "ADMIN") => {
-    setActionLoading(true);
-    try {
-      const res = await userService.changeUserRole(id, newRole);
-      await loadUsers();
-      return {
-        success: true,
-        message: res.message || `Đã chuyển vai trò người dùng sang "${newRole}"!`,
-      };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Không thể cập nhật quyền",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function changeRole(id: number | string, role: "USER" | "ADMIN") {
+    return runAction(async () => {
+      const response = await service.changeUserRole(id, role);
+      refresh();
+      return response.message || "Cập nhật quyền thành công!";
+    });
+  }
 
   return {
-    users,
-    stats,
-    pagination,
-    loading,
-    actionLoading,
-    error,
-    filters: {
-      search,
-      role,
-      page,
-      limit,
-    },
-    setSearch: handleSearchChange,
-    setRole: handleRoleChange,
-    setPage,
-    setLimit,
-    resetFilters,
-    refresh: loadUsers,
-    createUser: handleCreate,
-    updateUser: handleUpdate,
-    deleteUser: handleDelete,
-    changeRole: handleChangeRole,
+    users: data.data,
+    stats: data.stats,
+    pagination: data.pagination,
+    loading, error, actionLoading,
+    filters: { search, role, page, limit },
+    setSearch: changeSearch,
+    setRole: filterRole,
+    setPage, setLimit, resetFilters, refresh,
+    createUser, updateUser, deleteUser, changeRole,
   };
 }

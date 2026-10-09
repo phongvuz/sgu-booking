@@ -2,7 +2,7 @@
 
 import React from "react";
 import { OrderItem } from "@/types";
-import { formatPrice, formatTripTime } from "@/types/trip";
+import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface OrderDetailModalProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ export function OrderDetailModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden flex flex-col">
         {/* Ticket Header styled like an e-ticket */}
-        <div className="bg-[#1a9e09] text-white p-6 relative">
+        <div className="bg-brand-primary text-white p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-white/80 hover:text-white p-1 rounded"
@@ -38,9 +38,9 @@ export function OrderDetailModal({
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-2xl font-black tracking-tight">{order.pnr}</p>
+              <p className="text-lg font-black tracking-tight break-all">{order.pnr}</p>
               <p className="text-xs text-white/80 mt-0.5">
-                Chuyến: {order.trip.code} • Ngày đặt: {new Date(order.createdAt).toLocaleDateString("vi-VN")}
+                Chuyến: {order.trip.id} • Ngày đặt: {new Date(order.createdAt).toLocaleDateString("vi-VN")}
               </p>
             </div>
             <div className="text-right">
@@ -85,7 +85,7 @@ export function OrderDetailModal({
               <span className="text-gray-400 font-normal">&rarr;</span>
               <span>{order.trip.to}</span>
             </div>
-            <div className="text-[11px] text-[#1a9e09] font-semibold pt-1 border-t border-gray-200/60">
+            <div className="text-[11px] text-brand-primary font-semibold pt-1 border-t border-gray-200/60">
               Xuất bến lúc: {timeInfo.departureTime}, Ngày {timeInfo.dateFormatted}
             </div>
           </div>
@@ -115,13 +115,13 @@ export function OrderDetailModal({
           <div className="flex items-center justify-between pt-1">
             <div>
               <span className="text-gray-400 block text-[11px]">Tổng cước thanh toán:</span>
-              <span className="text-xl font-black text-[#1a9e09]">
+              <span className="text-xl font-black text-brand-primary">
                 {formatPrice(order.totalPrice)}
               </span>
             </div>
             <div className="text-right">
               <span className="text-gray-400 block text-[11px]">Loại thanh toán:</span>
-              <span className="font-semibold text-gray-800">Tiền mặt / Chuyển khoản</span>
+              <span className="font-semibold text-gray-800">Thu tại quầy</span>
             </div>
           </div>
         </div>
@@ -137,7 +137,7 @@ export function OrderDetailModal({
           </button>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 text-xs font-bold text-white bg-[#1a9e09] hover:bg-[#1db63e] rounded-lg transition-colors cursor-pointer"
+            className="px-4 py-1.5 text-xs font-bold text-white bg-brand-primary hover:bg-brand-dark rounded-lg transition-colors cursor-pointer"
           >
             Đóng
           </button>

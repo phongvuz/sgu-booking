@@ -1,5 +1,7 @@
 "use client";
 
+import type { z } from "zod";
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,13 +28,14 @@ export function UserModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<UserFormValues>({
-    resolver: zodResolver(userSchema) as any,
+  } = useForm<z.input<typeof userSchema>, unknown, UserFormValues>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       fullName: "",
       phone: "",
       password: "",
       role: "USER",
+      isActive: true,
     },
   });
 
@@ -42,14 +45,16 @@ export function UserModal({
         fullName: initialData.fullName,
         phone: initialData.phone,
         password: "",
-        role: initialData.role as any,
+        role: initialData.role as UserFormValues["role"],
+        isActive: initialData.isActive,
       });
     } else {
       reset({
         fullName: "",
         phone: "",
-        password: "password123",
+        password: "",
         role: "USER",
+        isActive: true,
       });
     }
   }, [initialData, mode, reset, isOpen]);
@@ -94,7 +99,7 @@ export function UserModal({
               type="text"
               placeholder="VD: Nguyễn Văn An"
               {...register("fullName")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
             {errors.fullName && (
               <p className="text-[11px] text-rose-500 mt-1">{errors.fullName.message}</p>
@@ -109,7 +114,7 @@ export function UserModal({
               type="text"
               placeholder="VD: 0901234567"
               {...register("phone")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
             {errors.phone && (
               <p className="text-[11px] text-rose-500 mt-1">{errors.phone.message}</p>
@@ -123,8 +128,10 @@ export function UserModal({
             <input
               type="password"
               placeholder={mode === "edit" ? "••••••••" : "Nhập mật khẩu..."}
+              required={mode === "create"}
+              autoComplete="new-password"
               {...register("password")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
             {errors.password && (
               <p className="text-[11px] text-rose-500 mt-1">{errors.password.message}</p>
@@ -137,13 +144,21 @@ export function UserModal({
             </label>
             <select
               {...register("role")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+              aria-readonly={initialData?.role === "CUSTOMER"}
+              onChange={(event) => { if (initialData?.role === "CUSTOMER") event.target.value = "CUSTOMER"; else register("role").onChange(event); }}
             >
-              <option value="USER">Khách hàng thông thường (USER)</option>
+              {initialData?.role === "CUSTOMER" && <option value="CUSTOMER">Khách hàng đã đăng ký (CUSTOMER)</option>}
+              <option value="USER">Hồ sơ khách mua vé (USER)</option>
               <option value="ADMIN">Quản trị viên hệ thống (ADMIN)</option>
             </select>
           </div>
 
+          <label className="flex items-center gap-2 text-sm text-gray-700">
+            <input type="checkbox" {...register("isActive")} />
+            Tài khoản đang hoạt động
+          </label>
+          <p className="text-xs text-gray-500">Bỏ chọn để khóa đăng nhập và giữ lại lịch sử vé.</p>
           {/* Footer Actions */}
           <div className="pt-4 border-t border-gray-200 flex items-center justify-end gap-3">
             <button
@@ -156,7 +171,7 @@ export function UserModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Đang lưu..." : mode === "create" ? "Tạo tài khoản" : "Cập nhật tài khoản"}
             </button>

@@ -1,10 +1,14 @@
 "use client";
 
+import { formatVietnamDateTime } from "@/lib/trip-search";
+
+import type { z } from "zod";
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { tripSchema, TripFormValues } from "@/lib/validations/trip";
-import { TripAdminItem } from "@/services/tripService";
+import { TripAdminItem } from "@/types/trip";
 
 interface TripModalProps {
   isOpen: boolean;
@@ -26,40 +30,37 @@ export function TripModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<TripFormValues>({
-    resolver: zodResolver(tripSchema) as any,
+  } = useForm<z.input<typeof tripSchema>, unknown, TripFormValues>({
+    resolver: zodResolver(tripSchema),
     defaultValues: {
-      code: "",
-      from: "Hồ Chí Minh",
-      to: "Đà Lạt",
+      from: "",
+      to: "",
       time: "",
       price: 300000,
-      availableSeats: 30,
+      capacity: 30,
     },
   });
 
   useEffect(() => {
     if (initialData && mode === "edit") {
-      const isoTime = initialData.time ? new Date(initialData.time).toISOString().slice(0, 16) : "";
+      const isoTime = initialData.time ? formatVietnamDateTime(initialData.time) : "";
       reset({
-        code: initialData.code,
         from: initialData.from,
         to: initialData.to,
         time: isoTime,
         price: initialData.price,
-        availableSeats: initialData.availableSeats,
+        capacity: initialData.totalSeats,
       });
     } else {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       tomorrow.setHours(8, 0, 0, 0);
       reset({
-        code: "",
-        from: "Hồ Chí Minh",
-        to: "Đà Lạt",
-        time: tomorrow.toISOString().slice(0, 16),
+        from: "",
+        to: "",
+        time: formatVietnamDateTime(tomorrow),
         price: 300000,
-        availableSeats: 30,
+        capacity: 30,
       });
     }
   }, [initialData, mode, reset, isOpen]);
@@ -67,7 +68,8 @@ export function TripModal({
   if (!isOpen) return null;
 
   const handleFormSubmit = async (data: TripFormValues) => {
-    const res = await onSubmit(data);
+    const time = initialData && data.time === formatVietnamDateTime(initialData.time) ? initialData.time : data.time;
+    const res = await onSubmit({ ...data, time });
     if (res.success) {
       onClose();
     }
@@ -80,7 +82,7 @@ export function TripModal({
         <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
           <div>
             <h3 className="font-bold text-gray-900 text-base">
-              {mode === "create" ? "Thêm chuyến xe mới" : `Cập nhật chuyến ${initialData?.code}`}
+              {mode === "create" ? "Thêm chuyến xe mới" : `Cập nhật chuyến ${initialData?.id}`}
             </h3>
             <p className="text-xs text-gray-500">
               Thiết lập lộ trình điểm đi, điểm đến, giờ xuất bến và giá vé
@@ -96,23 +98,6 @@ export function TripModal({
 
         {/* Form Body */}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 overflow-y-auto space-y-4 flex-1">
-          {/* Mã chuyến xe */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">
-              Mã chuyến xe (Tùy chọn - để trống hệ thống sẽ tự sinh)
-            </label>
-            <input
-              type="text"
-              placeholder="VD: SG-DL-03"
-              disabled={mode === "edit"}
-              {...register("code")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold uppercase focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09] disabled:bg-gray-100"
-            />
-            {errors.code && (
-              <p className="text-[11px] text-rose-500 mt-1">{errors.code.message}</p>
-            )}
-          </div>
-
           {/* Lộ trình Điểm đi & Điểm đến */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -123,7 +108,7 @@ export function TripModal({
                 type="text"
                 placeholder="VD: Hồ Chí Minh"
                 {...register("from")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.from && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.from.message}</p>
@@ -138,7 +123,7 @@ export function TripModal({
                 type="text"
                 placeholder="VD: Đà Lạt"
                 {...register("to")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.to && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.to.message}</p>
@@ -154,14 +139,14 @@ export function TripModal({
             <input
               type="datetime-local"
               {...register("time")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
             {errors.time && (
               <p className="text-[11px] text-rose-500 mt-1">{errors.time.message}</p>
             )}
           </div>
 
-          {/* Giá vé & Số ghế trống */}
+          {/* Giá vé & Sức chứa chuyến xe */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -172,7 +157,7 @@ export function TripModal({
                 step="10000"
                 placeholder="300000"
                 {...register("price")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold text-gray-900 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-bold text-gray-900 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.price && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.price.message}</p>
@@ -181,15 +166,15 @@ export function TripModal({
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Số ghế trống <span className="text-rose-500">*</span>
+                Sức chứa chuyến xe <span className="text-rose-500">*</span>
               </label>
               <input
                 type="number"
-                {...register("availableSeats")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                {...register("capacity")}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
-              {errors.availableSeats && (
-                <p className="text-[11px] text-rose-500 mt-1">{errors.availableSeats.message}</p>
+              {errors.capacity && (
+                <p className="text-[11px] text-rose-500 mt-1">{errors.capacity.message}</p>
               )}
             </div>
           </div>
@@ -206,7 +191,7 @@ export function TripModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Đang lưu..." : mode === "create" ? "Tạo chuyến xe" : "Cập nhật chuyến xe"}
             </button>

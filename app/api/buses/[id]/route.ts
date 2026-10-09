@@ -1,3 +1,4 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import { getBusById, updateBus, deleteBus, checkBusPlateConflict } from "@/services/busService";
 import { busSchema } from "@/lib/validations/bus";
@@ -12,6 +13,7 @@ type ParamsContext = {
 // GET /api/buses/[id] - Xem chi tiết xe
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const bus = await getBusById(id);
 
@@ -27,17 +29,14 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
       data: bus,
     });
   } catch (error) {
-    console.error("Lỗi khi truy vấn thông tin xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tìm xe." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // PUT /api/buses/[id] - Cập nhật thông tin xe
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const bus = await getBusById(id);
 
@@ -48,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
+    const body = await readJson(request);
 
     const validationResult = busSchema.safeParse(body);
     if (!validationResult.success) {
@@ -87,17 +86,14 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật thông tin xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật xe." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // DELETE /api/buses/[id] - Xóa xe
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const bus = await getBusById(id);
 
@@ -121,10 +117,6 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       message: `Đã xóa xe biển số ${bus.plate} (${bus.id}) thành công!`,
     });
   } catch (error) {
-    console.error("Lỗi khi xóa xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi xóa xe." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

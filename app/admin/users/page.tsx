@@ -99,6 +99,11 @@ export default function AdminUsersPage() {
   };
 
   const handleToggleRole = async (user: UserAccount) => {
+    if (user.role === "USER") {
+      handleOpenEdit(user);
+      info("Chọn quyền ADMIN và nhập mật khẩu mới để cấp quyền quản trị.", "Phân quyền");
+      return;
+    }
     const nextRole = user.role === "ADMIN" ? "USER" : "ADMIN";
     const res = await changeRole(user.id, nextRole);
     if (res.success) {
@@ -138,7 +143,7 @@ export default function AdminUsersPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+            className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span className="text-base font-bold">+</span>
             <span>Thêm tài khoản mới</span>

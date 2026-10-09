@@ -40,7 +40,7 @@ export function DeleteUserModal({
         </h3>
         <p className="text-xs text-gray-500 mb-4 leading-relaxed">
           Bạn có chắc chắn muốn xóa tài khoản của{" "}
-          <strong className="text-gray-900">{user.fullName}</strong> ({user.phone}) khỏi hệ thống? Thao tác này sẽ xóa vĩnh viễn các dữ liệu liên quan.
+          <strong className="text-gray-900">{user.fullName}</strong> ({user.phone}) khỏi hệ thống? Chỉ xóa được tài khoản chưa có lịch sử vé. Với tài khoản đã có vé, hãy khóa đăng nhập tại màn hình chỉnh sửa.
         </p>
 
         <div className="flex items-center justify-center gap-3">

@@ -39,13 +39,13 @@ test("history uses the session user ID and renders only their tickets", async ()
   const booking = {
     id: 5, userId: 7, seatNumber: "A01", status: "CONFIRMED", totalPrice: 300000,
     createdAt: new Date("2026-09-21T08:31:45Z"),
-    trip: { code: "SG-DL-01", from: "Hồ Chí Minh", to: "Đà Lạt", time: new Date("2026-10-01T21:00:00Z") },
+    trip: { id: 12345, from: "Hồ Chí Minh", to: "Đà Lạt", time: new Date("2026-10-01T21:00:00Z") },
   };
   const { page, queries } = setup({ userId: 7, customerId: "CUS-001" }, [booking, { ...booking, id: 6, userId: 8, seatNumber: "B05" }]);
   const html = renderToStaticMarkup(await page());
   assert.deepEqual(queries[0].where, { userId: 7 });
   assert.deepEqual(queries[0].orderBy, [{ createdAt: "desc" }, { id: "desc" }]);
-  for (const text of ["A01", "SG-DL-01", "Đã xác nhận", "300.000", "Đà Lạt"]) assert.ok(html.includes(text));
+  for (const text of ["A01", "12345", "Đã xác nhận", "300.000", "Đà Lạt"]) assert.ok(html.includes(text));
   assert.ok(!html.includes("B05"));
 });
 

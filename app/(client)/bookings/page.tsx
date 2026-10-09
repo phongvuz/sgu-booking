@@ -23,8 +23,8 @@ export default async function BookingHistoryPage() {
     where: { userId: customer.userId },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     select: {
-      id: true, seatNumber: true, status: true, totalPrice: true, createdAt: true,
-      trip: { select: { code: true, from: true, to: true, time: true } },
+      id: true, pnr: true, seatNumber: true, status: true, totalPrice: true, createdAt: true,
+      trip: { select: { id: true, from: true, to: true, time: true } },
     },
   });
 
@@ -34,25 +34,25 @@ export default async function BookingHistoryPage() {
     {bookings.length === 0 ? <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
       <h2 className="text-xl font-semibold">Bạn chưa có vé nào</h2>
       <p className="mt-2 text-gray-500">Các vé đã đặt bằng tài khoản này sẽ xuất hiện tại đây.</p>
-      <Link href="/trips" className="mt-6 inline-block rounded-lg bg-[#ef5222] px-6 py-3 font-semibold text-white hover:bg-[#d94a1d]">Tìm chuyến xe</Link>
+      <Link href="/trips" className="mt-6 inline-block rounded-lg bg-brand-primary px-6 py-3 font-semibold text-white hover:bg-brand-dark">Tìm chuyến xe</Link>
     </div> : <ul className="space-y-5" aria-label="Danh sách vé đã đặt">
       {bookings.map((booking) => {
         const status = statuses[booking.status] ?? { label: "Chưa xác định", className: "bg-gray-100 text-gray-700" };
         return <li key={booking.id} className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm sm:p-6">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4">
-            <h2 className="text-lg font-bold text-[#ef5222]">Mã vé: #{booking.id}</h2>
+            <h2 className="break-all text-lg font-bold text-brand-primary">Mã vé: {booking.pnr ?? `#${booking.id}`}</h2>
             <span className={`rounded-full px-3 py-1 text-sm font-semibold ${status.className}`}>{status.label}</span>
           </div>
           <p className="mt-4 text-xl font-bold text-gray-900">{booking.trip.from} → {booking.trip.to}</p>
           <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
-            <div><dt className="text-gray-500">Mã chuyến xe</dt><dd className="mt-1 font-semibold">{booking.trip.code}</dd></div>
+            <div><dt className="text-gray-500">Mã chuyến xe</dt><dd className="mt-1 font-semibold">{booking.trip.id}</dd></div>
             <div><dt className="text-gray-500">Khởi hành</dt><dd className="mt-1 font-semibold"><time dateTime={booking.trip.time.toISOString()}>{dateFormat.format(booking.trip.time)}</time></dd></div>
             <div><dt className="text-gray-500">Ghế đã đặt</dt><dd className="mt-1 font-semibold">{booking.seatNumber}</dd></div>
             <div><dt className="text-gray-500">Ngày đặt vé</dt><dd className="mt-1 font-semibold"><time dateTime={booking.createdAt.toISOString()}>{dateFormat.format(booking.createdAt)}</time></dd></div>
           </dl>
           <div className="mt-5 flex flex-wrap items-center justify-between gap-2 border-t border-gray-100 pt-4">
             <span className="text-sm text-gray-500">Tổng tiền</span>
-            <span className="text-xl font-bold text-[#ef5222]">{moneyFormat.format(booking.totalPrice)}</span>
+            <span className="text-xl font-bold text-brand-primary">{moneyFormat.format(booking.totalPrice)}</span>
           </div>
         </li>;
       })}

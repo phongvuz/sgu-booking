@@ -1,3 +1,4 @@
+import { requireAdmin, apiError } from "@/lib/admin-api";
 import { NextResponse } from "next/server";
 import { getDashboardStats } from "@/services/dashboardService";
 
@@ -7,6 +8,7 @@ export const revalidate = 0;
 // GET /api/admin/stats - Thống kê tổng hợp cho Admin Dashboard
 export async function GET() {
   try {
+    await requireAdmin();
     const stats = await getDashboardStats();
 
     return NextResponse.json({
@@ -15,10 +17,6 @@ export async function GET() {
       message: "Lấy thống kê hệ thống thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi tổng hợp thống kê dashboard:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tải dữ liệu thống kê" },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

@@ -4,9 +4,28 @@ import CustomerDropdown from "./CustomerDropdown";
 
 export default async function CustomerMenu() {
   const customer = await getCurrentCustomer();
-  if (customer) return <><span className="font-medium">Xin chào, {customer.name}</span><CustomerDropdown /></>;
-  return <>
-    <Link href="/login" className="font-medium text-gray-600 hover:text-[#1a9e09]">Đăng nhập</Link>
-    <Link href="/register" className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-medium py-2 px-5 rounded-md">Đăng ký</Link>
-  </>;
+  if (customer) {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-slate-700">Xin chào, {customer.name}</span>
+        <CustomerDropdown />
+      </div>
+    );
+  }
+  return (
+    <div className="flex items-center gap-3">
+      <Link
+        href="/login"
+        className="text-sm font-medium text-slate-600 hover:text-brand-primary transition-colors"
+      >
+        Đăng nhập
+      </Link>
+      <Link
+        href="/register"
+        className="bg-brand-primary hover:bg-brand-dark text-white text-sm font-medium py-2 px-5 rounded-full transition-all shadow-sm hover:shadow"
+      >
+        Đăng ký
+      </Link>
+    </div>
+  );
 }

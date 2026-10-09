@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { tripIdSchema } from "@/lib/trip-id";
 
 export const offlineOrderSchema = z.object({
-  tripId: z.coerce.number().min(1, "Vui lòng chọn chuyến xe"),
-  seats: z.array(z.string().min(1)).min(1, "Vui lòng chọn ít nhất 1 ghế"),
+  tripId: tripIdSchema,
+  seats: z.array(z.string().trim().min(1).max(5)).min(1, "Vui lòng chọn ít nhất 1 ghế").max(5, "Mỗi lượt đặt tối đa 5 ghế"),
   fullName: z
     .string()
     .trim()
@@ -15,7 +16,11 @@ export const offlineOrderSchema = z.object({
       /^(0|\+84)(3[2-9]|5[2689]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$/,
       "Số điện thoại không hợp lệ (VD: 0901234567)"
     ),
-  status: z.enum(["CONFIRMED", "PENDING", "CANCELLED"]).default("CONFIRMED"),
+  status: z.enum(["CONFIRMED", "PENDING"]).default("CONFIRMED"),
+});
+
+export const onlineOrderSchema = offlineOrderSchema.omit({ status: true }).extend({
+  clientId: z.string().min(1).max(191).optional(),
 });
 
 export type OfflineOrderFormValues = z.infer<typeof offlineOrderSchema>;

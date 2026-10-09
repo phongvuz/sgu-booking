@@ -1,4 +1,4 @@
-import { getCurrentAdmin } from "@/lib/session";
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import {
   getEmployeeById,
@@ -6,7 +6,7 @@ import {
   deleteEmployee,
   checkEmployeeEmailConflict,
   checkEmployeePhoneConflict,
-} from "@/lib/employee-store";
+} from "@/services/employeeService";
 import { employeeSchema } from "@/lib/validations/employee";
 
 export const dynamic = "force-dynamic";
@@ -19,9 +19,7 @@ type ParamsContext = {
 // GET /api/employees/[id] - Xem chi tiết nhân viên
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
     const employee = await getEmployeeById(id);
 
@@ -37,20 +35,14 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
       data: employee,
     });
   } catch (error) {
-    console.error("Lỗi khi truy vấn thông tin nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tìm nhân viên." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // PUT /api/employees/[id] - Cập nhật thông tin nhân viên
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
     const employee = await getEmployeeById(id);
 
@@ -61,7 +53,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
+    const body = await readJson(request);
 
     // Validate with Zod
     const validationResult = employeeSchema.safeParse(body);
@@ -122,20 +114,14 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật nhân viên." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // DELETE /api/employees/[id] - Xóa nhân viên
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
     const employee = await getEmployeeById(id);
 
@@ -159,10 +145,6 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       message: `Đã xóa nhân viên ${employee.name} (${id}) thành công!`,
     });
   } catch (error) {
-    console.error("Lỗi khi xóa nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi xóa nhân viên." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

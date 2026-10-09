@@ -1,3 +1,4 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUser, deleteUser, checkUserPhoneConflict } from "@/services/userService";
 import { userSchema } from "@/lib/validations/user";
@@ -12,6 +13,7 @@ type ParamsContext = {
 // GET /api/users/[id] - Lấy chi tiết tài khoản kèm lịch sử vé
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const user = await getUserById(id);
 
@@ -27,17 +29,14 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
       data: user,
     });
   } catch (error) {
-    console.error("Lỗi khi tìm người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tìm người dùng." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // PUT /api/users/[id] - Cập nhật thông tin người dùng
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
+    const admin = await requireAdmin(request);
     const { id } = await params;
     const user = await getUserById(id);
 
@@ -48,7 +47,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
+    const body = await readJson(request);
 
     const validationResult = userSchema.safeParse(body);
     if (!validationResult.success) {
@@ -79,7 +78,7 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const updated = await updateUser(user.id, validData);
+    const updated = await updateUser(user.id, validData, admin.id);
 
     return NextResponse.json({
       success: true,
@@ -87,17 +86,14 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật người dùng." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // DELETE /api/users/[id] - Xóa tài khoản người dùng
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
+    const admin = await requireAdmin(request);
     const { id } = await params;
     const user = await getUserById(id);
 
@@ -108,7 +104,7 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const deleted = await deleteUser(user.id);
+    const deleted = await deleteUser(user.id, admin.id);
     if (!deleted) {
       return NextResponse.json(
         { success: false, message: `Không thể xóa người dùng mã ${id}.` },
@@ -121,10 +117,6 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       message: `Đã xóa tài khoản "${user.fullName}" thành công!`,
     });
   } catch (error) {
-    console.error("Lỗi khi xóa người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi xóa người dùng." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

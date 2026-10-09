@@ -129,7 +129,7 @@ export default function AdminBusesPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+            className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span className="text-base font-bold">+</span>
             <span>Thêm xe mới</span>

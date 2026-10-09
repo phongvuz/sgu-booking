@@ -1,191 +1,94 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Bus, PaginationMeta, BusQueryParams, BusStats } from "@/types";
-import { BusFormValues } from "@/lib/validations/bus";
-import * as busService from "@/services/clientBusService";
+import { useCallback, useState } from "react";
+import type { BusQueryParams, BusListResponse } from "@/types";
+import type { BusFormValues } from "@/lib/validations/bus";
+import * as service from "@/services/clientBusService";
+import { useDebouncedSearch } from "./useDebouncedSearch";
+import { useRemoteData } from "./useRemoteData";
+import { useAsyncAction } from "./useAsyncAction";
+
+const INITIAL_DATA: BusListResponse = {
+  success: true,
+  data: [],
+  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  stats: { total: 0, active: 0, maintenance: 0, inactive: 0 },
+};
 
 export function useBuses(initialParams?: BusQueryParams) {
-  const [buses, setBuses] = useState<Bus[]>([]);
-  const [stats, setStats] = useState<BusStats>({
-    total: 0,
-    active: 0,
-    maintenance: 0,
-    inactive: 0,
-  });
-  const [pagination, setPagination] = useState<PaginationMeta>({
-    page: 1,
-    limit: 8,
-    total: 0,
-    totalPages: 1,
-  });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [actionLoading, setActionLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(initialParams?.page ?? 1);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [type, setType] = useState(initialParams?.type ?? "");
+  const [status, setStatus] = useState(initialParams?.status ?? "");
+  const resetPage = useCallback(() => setPage(1), []);
+  const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
+  const { actionLoading, runAction } = useAsyncAction();
 
-  // Filters state
-  const [search, setSearch] = useState<string>(initialParams?.search || "");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
-  const [type, setType] = useState<string>(initialParams?.type || "");
-  const [status, setStatus] = useState<string>(initialParams?.status || "");
-  const [page, setPage] = useState<number>(initialParams?.page || 1);
-  const [limit, setLimit] = useState<number>(initialParams?.limit || 8);
+  const load = useCallback((signal: AbortSignal) => service.fetchBuses({
+    search: appliedSearch, type, status, page, limit,
+  }, signal), [appliedSearch, type, status, page, limit]);
+  const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1);
-    }, 350);
-  };
-
-  const handleTypeChange = (val: string) => {
-    setType(val);
-    setPage(1);
-  };
-
-  const handleStatusChange = (val: string) => {
-    setStatus(val);
-    setPage(1);
-  };
-
-  const resetFilters = () => {
-    setSearch("");
-    setDebouncedSearch("");
+  function resetFilters() {
+    resetSearch();
     setType("");
     setStatus("");
     setPage(1);
-  };
+  }
 
-  const loadBuses = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  function filterType(value: string) {
+    setType(value);
+    setPage(1);
+  }
 
-      const res = await busService.fetchBuses({
-        search: debouncedSearch,
-        type,
-        status,
-        page,
-        limit,
-      });
+  function filterStatus(value: string) {
+    setStatus(value);
+    setPage(1);
+  }
 
-      setBuses(res.data);
-      setPagination(res.pagination);
-      if (res.stats) setStats(res.stats);
-    } catch (err: any) {
-      console.error("Error in loadBuses:", err);
-      setError(err?.message || "Không thể tải danh sách xe");
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, type, status, page, limit]);
-
-  useEffect(() => {
-    loadBuses();
-  }, [loadBuses]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, []);
-
-  const handleCreate = async (payload: BusFormValues) => {
-    setActionLoading(true);
-    try {
-      const res = await busService.createBus(payload);
+  function createBus(payload: BusFormValues) {
+    return runAction(async () => {
+      const response = await service.createBus(payload);
       resetFilters();
-      await loadBuses();
-      return { success: true, message: res.message || "Thêm xe mới thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi thêm xe",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      refresh();
+      return response.message || "Thêm xe mới thành công!";
+    });
+  }
 
-  const handleUpdate = async (id: string, payload: BusFormValues) => {
-    setActionLoading(true);
-    try {
-      const res = await busService.updateBus(id, payload);
-      await loadBuses();
-      return { success: true, message: res.message || "Cập nhật xe thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi cập nhật",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function updateBus(id: string, payload: BusFormValues) {
+    return runAction(async () => {
+      const response = await service.updateBus(id, payload);
+      refresh();
+      return response.message || "Cập nhật xe thành công!";
+    });
+  }
 
-  const handleDelete = async (id: string) => {
-    setActionLoading(true);
-    try {
-      const res = await busService.deleteBus(id);
-      await loadBuses();
-      return { success: true, message: res.message || "Xóa xe thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi xóa xe",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function deleteBus(id: string) {
+    return runAction(async () => {
+      const response = await service.deleteBus(id);
+      refresh();
+      return response.message || "Xóa xe thành công!";
+    });
+  }
 
-  const handleChangeStatus = async (id: string, newStatus: string) => {
-    setActionLoading(true);
-    try {
-      const res = await busService.changeBusStatus(id, newStatus);
-      await loadBuses();
-      return {
-        success: true,
-        message: res.message || `Đã chuyển trạng thái xe sang "${newStatus}"!`,
-      };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Không thể cập nhật trạng thái",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function changeStatus(id: string, status: string) {
+    return runAction(async () => {
+      const response = await service.changeBusStatus(id, status);
+      refresh();
+      return response.message || "Cập nhật trạng thái xe thành công!";
+    });
+  }
 
   return {
-    buses,
-    stats,
-    pagination,
-    loading,
-    actionLoading,
-    error,
-    filters: {
-      search,
-      type,
-      status,
-      page,
-      limit,
-    },
-    setSearch: handleSearchChange,
-    setType: handleTypeChange,
-    setStatus: handleStatusChange,
-    setPage,
-    setLimit,
-    resetFilters,
-    refresh: loadBuses,
-    createBus: handleCreate,
-    updateBus: handleUpdate,
-    deleteBus: handleDelete,
-    changeStatus: handleChangeStatus,
+    buses: data.data,
+    stats: data.stats,
+    pagination: data.pagination,
+    loading, error, actionLoading,
+    filters: { search, type, status, page, limit },
+    setSearch: changeSearch,
+    setType: filterType,
+    setStatus: filterStatus,
+    setPage, setLimit, resetFilters, refresh,
+    createBus, updateBus, deleteBus, changeStatus,
   };
 }

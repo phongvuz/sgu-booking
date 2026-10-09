@@ -1,3 +1,4 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserById, updateUserRole } from "@/services/userService";
 
@@ -8,9 +9,9 @@ type ParamsContext = {
   params: Promise<{ id: string }>;
 };
 
-// PATCH /api/users/[id]/role - Chuyển đổi vai trò người dùng (USER <-> ADMIN)
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
+    const admin = await requireAdmin(request);
     const { id } = await params;
     const user = await getUserById(id);
 
@@ -21,8 +22,8 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
-    const { role } = body;
+    const body = await readJson(request);
+    const { role } = (body ?? {}) as { role?: string };
 
     if (role !== "USER" && role !== "ADMIN") {
       return NextResponse.json(
@@ -31,7 +32,7 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const updated = await updateUserRole(user.id, role);
+    const updated = await updateUserRole(user.id, role, admin.id);
 
     return NextResponse.json({
       success: true,
@@ -39,10 +40,6 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi đổi quyền người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật quyền." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

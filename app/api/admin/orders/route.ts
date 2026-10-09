@@ -1,5 +1,9 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { readOption } from "@/lib/query-params";
+import { parseTripId } from "@/lib/trip-id";
 import { NextRequest, NextResponse } from "next/server";
-import { queryOrdersAdmin, createBooking } from "@/services/bookingService";
+import { queryOrdersAdmin } from "@/services/orderService";
+import { createBooking } from "@/services/bookingService";
 import { offlineOrderSchema } from "@/lib/validations/order";
 import { OrderQueryParams } from "@/types";
 
@@ -9,17 +13,18 @@ export const revalidate = 0;
 // GET /api/admin/orders - Danh sách đơn hàng / vé xe phân trang cho admin
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin(request);
     const { searchParams } = new URL(request.url);
 
     const params: OrderQueryParams = {
       search: searchParams.get("search") || "",
       status: searchParams.get("status") || "",
       date: searchParams.get("date") || "",
-      tripId: searchParams.get("tripId") || "",
+      tripId: searchParams.has("tripId") ? parseTripId(searchParams.get("tripId")!) : undefined,
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 8,
-      sortBy: (searchParams.get("sortBy") as any) || "id",
-      sortOrder: (searchParams.get("sortOrder") as any) || "desc",
+      sortBy: readOption(searchParams.get("sortBy"), ["createdAt", "totalPrice", "id"] as const, "id"),
+      sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };
 
     const result = await queryOrdersAdmin(params);
@@ -32,18 +37,15 @@ export async function GET(request: NextRequest) {
       message: "Lấy danh sách đơn hàng thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi tải danh sách đơn vé:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tải danh sách đơn vé" },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // POST /api/admin/orders - Tạo đơn vé mới trực tiếp tại quầy (Offline)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    await requireAdmin(request);
+    const body = await readJson(request);
 
     const validationResult = offlineOrderSchema.safeParse(body);
     if (!validationResult.success) {
@@ -66,7 +68,7 @@ export async function POST(request: NextRequest) {
       seats,
       fullName,
       phone,
-      status: status as any,
+      status,
     });
 
     return NextResponse.json(
@@ -77,17 +79,7 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 }
     );
-  } catch (error: any) {
-    console.error("Lỗi khi tạo vé offline:", error);
-    const isConflict = error.name === "BookingConflictError";
-    const isNotFound = error.name === "TripNotFoundError";
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: error.message || "Lỗi máy chủ khi tạo đơn vé.",
-      },
-      { status: isConflict ? 409 : isNotFound ? 404 : 500 }
-    );
+  } catch (error) {
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

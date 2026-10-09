@@ -1,18 +1,18 @@
-const globalForSse = global as unknown as { sseClients: Map<string, Set<ReadableStreamDefaultController>> };
-export const clients = globalForSse.sseClients || new Map<string, Set<ReadableStreamDefaultController>>();
+const globalForSse = global as unknown as { sseClients: Map<number, Set<ReadableStreamDefaultController>> };
+export const clients = globalForSse.sseClients || new Map<number, Set<ReadableStreamDefaultController>>();
 
 if (process.env.NODE_ENV !== "production") {
   globalForSse.sseClients = clients;
 }
 
-export function addClient(tripId: string, controller: ReadableStreamDefaultController) {
+export function addClient(tripId: number, controller: ReadableStreamDefaultController) {
   if (!clients.has(tripId)) {
     clients.set(tripId, new Set<ReadableStreamDefaultController>());
   }
   clients.get(tripId)!.add(controller);
 }
 
-export function removeClient(tripId: string, controller: ReadableStreamDefaultController) {
+export function removeClient(tripId: number, controller: ReadableStreamDefaultController) {
   const tripClients = clients.get(tripId);
   if (tripClients) {
     tripClients.delete(controller);
@@ -22,7 +22,7 @@ export function removeClient(tripId: string, controller: ReadableStreamDefaultCo
   }
 }
 
-export function broadcast(tripId: string, data: unknown) {
+export function broadcast(tripId: number, data: unknown) {
   const tripClients = clients.get(tripId);
   if (tripClients) {
     const message = `data: ${JSON.stringify(data)}\n\n`;

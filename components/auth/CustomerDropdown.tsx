@@ -46,16 +46,16 @@ export default function CustomerDropdown() {
       aria-expanded={open}
       aria-controls={panelId}
       onClick={() => setOpen((value) => !value)}
-      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-orange-50 text-[#ef5222] hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ef5222]"
+      className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full bg-orange-50 text-brand-primary hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-primary"
     >
       <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="8" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2" /></svg>
     </button>
     <div id={panelId} hidden={!open} className="absolute right-0 top-full z-50 w-56 pt-2">
       <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-2 shadow-lg">
-        <Link href="/profile" onClick={() => setOpen(false)} className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-[#ef5222] focus-visible:bg-orange-50">Hồ sơ người dùng</Link>
-        <Link href="/bookings" onClick={() => setOpen(false)} className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-[#ef5222] focus-visible:bg-orange-50">Lịch sử đặt vé</Link>
+        <Link href="/profile" onClick={() => setOpen(false)} className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-brand-primary focus-visible:bg-orange-50">Hồ sơ người dùng</Link>
+        <Link href="/bookings" onClick={() => setOpen(false)} className="block rounded-lg px-4 py-3 text-sm font-medium text-gray-700 hover:bg-orange-50 hover:text-brand-primary focus-visible:bg-orange-50">Lịch sử đặt vé</Link>
         <div className="mt-1 border-t border-gray-100 pt-1">
-          <LogoutButton className="w-full cursor-pointer rounded-lg px-4 py-3 text-left text-sm font-medium text-[#ef5222] hover:bg-orange-50 focus-visible:bg-orange-50 disabled:opacity-50" />
+          <LogoutButton className="w-full cursor-pointer rounded-lg px-4 py-3 text-left text-sm font-medium text-brand-primary hover:bg-orange-50 focus-visible:bg-orange-50 disabled:opacity-50" />
         </div>
       </div>
     </div>

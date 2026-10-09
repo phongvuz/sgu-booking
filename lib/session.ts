@@ -34,7 +34,8 @@ export async function getCurrentUser() {
   if (!token) return null;
   const id = verifySessionToken(token);
   if (!id) return null;
-  return prisma.user.findUnique({ where: { id }, select: { id: true, fullName: true, phone: true, role: true } });
+  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, fullName: true, phone: true, role: true, isActive: true } });
+  return user?.isActive === false ? null : user;
 }
 
 export async function getCurrentAdmin() {

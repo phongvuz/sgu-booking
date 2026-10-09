@@ -2,7 +2,7 @@
 
 import React from "react";
 import { OrderStats as OrderStatsType } from "@/types";
-import { formatPrice } from "@/types/trip";
+import { formatPrice } from "@/lib/trip-display";
 
 interface OrderStatsProps {
   stats: OrderStatsType;

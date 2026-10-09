@@ -1,8 +1,10 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { UserAccount } from "@/types";
-import { formatPrice } from "@/types/trip";
+import { useCallback } from "react";
+import type { UserAccount, UserDetailResponse } from "@/types";
+import { fetchUserById } from "@/services/clientUserService";
+import { useRemoteData } from "@/hooks/useRemoteData";
+import { formatPrice } from "@/lib/trip-display";
 
 interface UserDetailModalProps {
   isOpen: boolean;
@@ -11,33 +13,18 @@ interface UserDetailModalProps {
   onEdit: (user: UserAccount) => void;
 }
 
-export function UserDetailModal({
-  isOpen,
-  onClose,
-  user,
-  onEdit,
-}: UserDetailModalProps) {
-  const [detailedData, setDetailedData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+export function UserDetailModal(props: UserDetailModalProps) {
+  if (!props.isOpen || !props.user) return null;
+  return <UserDetailContent key={props.user.id} {...props} user={props.user} />;
+}
 
-  useEffect(() => {
-    if (isOpen && user) {
-      setLoading(true);
-      fetch(`/api/users/${user.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.success) {
-            setDetailedData(data.data);
-          }
-        })
-        .catch(console.error)
-        .finally(() => setLoading(false));
-    } else {
-      setDetailedData(null);
-    }
-  }, [isOpen, user]);
-
-  if (!isOpen || !user) return null;
+function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { user: UserAccount }) {
+  const load = useCallback(async (signal: AbortSignal) => {
+    const response = await fetchUserById(user.id, signal);
+    if (!response.data) throw new Error("Không thể tải thông tin tài khoản.");
+    return response.data;
+  }, [user.id]);
+  const { data: detailedData, loading, error, refresh } = useRemoteData<NonNullable<UserDetailResponse["data"]> | null>(load, null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -51,7 +38,7 @@ export function UserDetailModal({
             ✕
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#1a9e09] text-white flex items-center justify-center text-xl font-bold shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-brand-primary text-white flex items-center justify-center text-xl font-bold shadow-sm">
               {user.fullName.charAt(0).toUpperCase()}
             </div>
             <div>
@@ -94,7 +81,7 @@ export function UserDetailModal({
             </div>
             <div>
               <span className="text-gray-400 block text-[11px]">Tổng tiền tích lũy</span>
-              <span className="font-black text-[#1a9e09]">
+              <span className="font-black text-brand-primary">
                 {formatPrice(user.totalSpent || 0)}
               </span>
             </div>
@@ -106,7 +93,12 @@ export function UserDetailModal({
               Lịch sử vé đã đặt ({detailedData?.bookings?.length || 0})
             </span>
 
-            {loading ? (
+            {error ? (
+              <div role="alert" className="rounded-lg bg-red-50 p-3 text-red-700">
+                <p>{error}</p>
+                <button type="button" onClick={refresh} className="mt-2 underline">Thử lại</button>
+              </div>
+            ) : loading ? (
               <div className="text-center py-6 text-gray-400">Đang tải lịch sử vé...</div>
             ) : !detailedData?.bookings || detailedData.bookings.length === 0 ? (
               <div className="text-center py-6 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-400">
@@ -114,7 +106,7 @@ export function UserDetailModal({
               </div>
             ) : (
               <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                {detailedData.bookings.map((b: any) => (
+                {detailedData.bookings.map((b) => (
                   <div key={b.id} className="p-3 flex items-center justify-between bg-white hover:bg-gray-50">
                     <div>
                       <p className="font-bold text-gray-900">
@@ -160,7 +152,7 @@ export function UserDetailModal({
               onClose();
               onEdit(user);
             }}
-            className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             Chỉnh sửa tài khoản
           </button>

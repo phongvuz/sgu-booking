@@ -44,6 +44,7 @@ export function CancelOrderModal({
           <span className="text-emerald-600 font-semibold block mt-1">
             Ghế này sẽ tự động được hoàn trả vào số ghế trống của chuyến xe.
           </span>
+          {order.status === "CONFIRMED" && <span className="block mt-2">Việc hoàn tiền cho khách cần được xử lý tại quầy; thao tác này chỉ hủy vé trong hệ thống.</span>}
         </p>
 
         <div className="flex items-center justify-center gap-3">

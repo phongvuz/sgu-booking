@@ -66,7 +66,7 @@ export default function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Nhập email hoặc số điện thoại"
-          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] focus:border-transparent outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
+          className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
@@ -77,7 +77,7 @@ export default function LoginForm() {
           </label>
           <Link
             href="#"
-            className="text-xs font-medium text-[#1a9e09] hover:underline"
+            className="text-xs font-medium text-brand-primary hover:underline"
           >
             Quên mật khẩu?
           </Link>
@@ -92,7 +92,7 @@ export default function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Nhập mật khẩu"
-            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#1a9e09] focus:border-transparent outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 pr-12 text-sm"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 pr-12 text-sm"
           />
           <button
             type="button"
@@ -107,7 +107,7 @@ export default function LoginForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full bg-[#1a9e09] hover:bg-[#1db63e] disabled:bg-orange-300 text-white font-bold py-3.5 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:cursor-not-allowed text-sm"
+        className="w-full bg-brand-primary hover:bg-brand-dark disabled:bg-orange-300 text-white font-bold py-3.5 px-4 rounded-xl transition duration-200 flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:cursor-not-allowed text-sm"
       >
         {isPending ? (
           <>
@@ -141,7 +141,7 @@ export default function LoginForm() {
         Chưa có tài khoản?{" "}
         <Link
           href="/register"
-          className="font-bold text-[#1a9e09] hover:underline"
+          className="font-bold text-brand-primary hover:underline"
         >
           Đăng ký ngay
         </Link>

@@ -1,11 +1,12 @@
-import { getCurrentAdmin } from "@/lib/session";
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { readOption } from "@/lib/query-params";
 import { NextRequest, NextResponse } from "next/server";
 import {
   queryEmployees,
   createEmployee,
   checkEmployeeEmailConflict,
   checkEmployeePhoneConflict,
-} from "@/lib/employee-store";
+} from "@/services/employeeService";
 import { employeeSchema } from "@/lib/validations/employee";
 import { EmployeeQueryParams } from "@/types";
 
@@ -15,9 +16,7 @@ export const revalidate = 0;
 // GET /api/employees - Lấy danh sách nhân viên có phân trang, tìm kiếm và lọc
 export async function GET(request: NextRequest) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { searchParams } = new URL(request.url);
 
     const params: EmployeeQueryParams = {
@@ -27,8 +26,8 @@ export async function GET(request: NextRequest) {
       status: searchParams.get("status") || "",
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 10,
-      sortBy: (searchParams.get("sortBy") as any) || "id",
-      sortOrder: (searchParams.get("sortOrder") as any) || "desc",
+      sortBy: readOption(searchParams.get("sortBy"), ["name", "createdAt", "id"] as const, "createdAt"),
+      sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };
 
     const result = await queryEmployees(params);
@@ -37,24 +36,19 @@ export async function GET(request: NextRequest) {
       success: true,
       data: result.data,
       pagination: result.pagination,
+      stats: result.stats,
       message: "Lấy danh sách nhân viên thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi lấy danh sách nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tải danh sách nhân viên" },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // POST /api/employees - Tạo mới một nhân viên
 export async function POST(request: NextRequest) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
-    const body = await request.json();
+    await requireAdmin(request);
+    const body = await readJson(request);
 
     // Validate payload with Zod
     const validationResult = employeeSchema.safeParse(body);
@@ -111,10 +105,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Lỗi khi thêm nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi máy chủ khi thêm nhân viên." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

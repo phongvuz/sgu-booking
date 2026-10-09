@@ -1,3 +1,9 @@
+import { hashPassword } from "@/lib/password";
+import { BusinessError } from "@/lib/business-error";
+import { runTransaction } from "@/lib/transaction";
+import { positiveInteger } from "@/lib/query-params";
+import { getVietnamMonthStart } from "@/lib/trip-search";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { UserAccount, UserQueryParams, PaginationMeta, UserStats } from "@/types";
 import { UserFormValues } from "@/lib/validations/user";
@@ -19,7 +25,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     sortOrder = "desc",
   } = params;
 
-  const where: any = {};
+  const where: Prisma.userWhereInput = {};
 
   if (search.trim()) {
     const s = search.trim();
@@ -33,35 +39,27 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     where.role = role;
   }
 
-  const numLimit = Math.max(1, Number(limit) || 8);
-  const numPage = Math.max(1, Number(page) || 1);
+  const numLimit = positiveInteger(limit, 8, 100);
+  const numPage = positiveInteger(page, 1);
 
-  const [total, allUsers] = await Promise.all([
+  const startOfMonth = getVietnamMonthStart(new Date());
+  const [total, roleCounts, newThisMonth] = await Promise.all([
     prisma.user.count({ where }),
-    prisma.user.findMany({
-      select: {
-        role: true,
-        createdAt: true,
-      },
-    }),
+    prisma.user.groupBy({ by: ["role"], where, _count: { _all: true } }),
+    prisma.user.count({ where: { AND: [where, { createdAt: { gte: startOfMonth } }] } }),
   ]);
-
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
   const stats: UserStats = {
-    total: allUsers.length,
-    users: allUsers.filter((u) => u.role === "USER").length,
-    admins: allUsers.filter((u) => u.role === "ADMIN").length,
-    newThisMonth: allUsers.filter((u) => new Date(u.createdAt) >= startOfMonth).length,
+    total: roleCounts.reduce((sum, group) => sum + group._count._all, 0),
+    users: roleCounts.filter((group) => group.role !== "ADMIN").reduce((sum, group) => sum + group._count._all, 0),
+    admins: roleCounts.find((group) => group.role === "ADMIN")?._count._all ?? 0,
+    newThisMonth,
   };
 
   const totalPages = Math.ceil(total / numLimit) || 1;
   const validPage = Math.min(numPage, totalPages);
   const skip = (validPage - 1) * numLimit;
 
-  let orderBy: any = {};
+  let orderBy: Prisma.userOrderByWithRelationInput = {};
   if (sortBy === "fullName" || sortBy === "createdAt") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
@@ -91,6 +89,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
       fullName: u.fullName,
       phone: u.phone,
       role: u.role,
+      isActive: u.isActive,
       createdAt: u.createdAt.toISOString(),
       _count: {
         booking: u._count.booking,
@@ -141,6 +140,7 @@ export async function getUserById(id: number | string) {
     fullName: user.fullName,
     phone: user.phone,
     role: user.role,
+    isActive: user.isActive,
     createdAt: user.createdAt.toISOString(),
     totalSpent,
     _count: {
@@ -154,7 +154,6 @@ export async function getUserById(id: number | string) {
       createdAt: b.createdAt.toISOString(),
       trip: {
         id: b.trip.id,
-        code: b.trip.code,
         from: b.trip.from,
         to: b.trip.to,
         time: b.trip.time.toISOString(),
@@ -176,66 +175,61 @@ export async function checkUserPhoneConflict(phone: string, excludeId?: number):
   return !!existing;
 }
 
-/**
- * Tạo người dùng mới
- */
+const safeUserSelect = { id: true, fullName: true, phone: true, role: true, isActive: true, createdAt: true } as const;
+
 export async function createUser(data: UserFormValues) {
-  return await prisma.user.create({
-    data: {
-      fullName: data.fullName.trim(),
-      phone: data.phone.trim(),
-      password: data.password?.trim() || "password123",
-      role: data.role || "USER",
-    },
+  if (!data.password) throw new BusinessError("Vui lòng nhập mật khẩu cho tài khoản mới.");
+  if (data.role === "CUSTOMER") throw new BusinessError("Tài khoản CUSTOMER được tạo qua trang đăng ký khách hàng.");
+  return prisma.user.create({
+    data: { fullName: data.fullName, phone: data.phone, role: data.role, isActive: data.isActive, password: await hashPassword(data.password) },
+    select: safeUserSelect,
   });
 }
 
-/**
- * Cập nhật thông tin người dùng
- */
-export async function updateUser(id: number | string, data: Partial<UserFormValues>) {
-  const numId = Number(id);
-  if (isNaN(numId)) return null;
+// Mỗi thao tác đều kiểm tra lại quyền trong transaction, kể cả khi hai admin cùng sửa.
+async function checkRoleChange(tx: Prisma.TransactionClient, id: number, role: string, newRole: string, actorId: number, isActive: boolean) {
+  if (role === "CUSTOMER" && newRole !== role) throw new BusinessError("Giữ vai trò CUSTOMER để hồ sơ và quyền đăng nhập khách hàng được đồng bộ.", 409);
+  if (role !== "CUSTOMER" && newRole === "CUSTOMER") throw new BusinessError("Không thể chuyển vai trò khi chưa có hồ sơ khách hàng.", 409);
+  if (role !== "ADMIN" || newRole === "ADMIN" || !isActive) return;
+  if (id === actorId) throw new BusinessError("Bạn không thể tự bỏ quyền quản trị đang sử dụng.", 409);
+  if (await tx.user.count({ where: { role: "ADMIN", isActive: true } }) <= 1) throw new BusinessError("Phải giữ ít nhất một quản trị viên.", 409);
+}
 
-  const updateData: any = {};
-  if (data.fullName !== undefined) updateData.fullName = data.fullName.trim();
-  if (data.phone !== undefined) updateData.phone = data.phone.trim();
-  if (data.role !== undefined) updateData.role = data.role;
-  if (data.password && data.password.trim()) updateData.password = data.password.trim();
-
-  return await prisma.user.update({
-    where: { id: numId },
-    data: updateData,
+export async function updateUser(id: number | string, data: Partial<UserFormValues>, actorId: number) {
+  const password = data.password ? await hashPassword(data.password) : undefined;
+  return runTransaction(async (tx) => {
+    const current = await tx.user.findUnique({ where: { id: Number(id) }, select: safeUserSelect });
+    if (!current) return null;
+    await checkRoleChange(tx, current.id, current.role, data.role ?? current.role, actorId, current.isActive);
+    if (current.role === "USER" && data.role === "ADMIN" && !data.password) {
+      throw new BusinessError("Nhập mật khẩu mới khi cấp quyền quản trị cho hồ sơ khách mua vé.");
+    }
+    if (data.isActive === false && current.isActive) {
+      if (current.id === actorId) throw new BusinessError("Bạn không thể khóa tài khoản đang đăng nhập.", 409);
+      if (current.role === "ADMIN" && await tx.user.count({ where: { role: "ADMIN", isActive: true } }) <= 1) throw new BusinessError("Phải giữ ít nhất một quản trị viên đang hoạt động.", 409);
+    }
+    if (current.role === "CUSTOMER") {
+      const customer = await tx.customer.findUnique({ where: { phone: current.phone } });
+      if (!customer) throw new BusinessError("Tài khoản đang thiếu hồ sơ khách hàng. Cần kiểm tra dữ liệu trước khi cập nhật.", 409);
+      await tx.customer.update({ where: { id: customer.id }, data: { name: data.fullName, phone: data.phone, status: data.isActive === undefined ? undefined : data.isActive ? "Đang hoạt động" : "Ngừng hoạt động" } });
+    }
+    return tx.user.update({ where: { id: current.id }, data: { fullName: data.fullName, phone: data.phone, role: data.role, isActive: data.isActive, password }, select: safeUserSelect });
   });
 }
 
-/**
- * Xóa người dùng
- */
-export async function deleteUser(id: number | string): Promise<boolean> {
-  const numId = Number(id);
-  if (isNaN(numId)) return false;
-
-  try {
-    await prisma.user.delete({
-      where: { id: numId },
-    });
+export async function deleteUser(id: number | string, actorId: number): Promise<boolean> {
+  return runTransaction(async (tx) => {
+    const current = await tx.user.findUnique({ where: { id: Number(id) }, select: safeUserSelect });
+    if (!current) return false;
+    if (current.id === actorId) throw new BusinessError("Bạn không thể xóa tài khoản đang đăng nhập.", 409);
+    await checkRoleChange(tx, current.id, current.role, current.role === "CUSTOMER" ? "CUSTOMER" : "USER", actorId, current.isActive);
+    if (await tx.booking.count({ where: { userId: current.id } })) throw new BusinessError("Tài khoản có lịch sử vé, không thể xóa.", 409);
+    if (current.role === "CUSTOMER") await tx.customer.deleteMany({ where: { phone: current.phone } });
+    await tx.user.delete({ where: { id: current.id } });
     return true;
-  } catch (err) {
-    console.error("Error deleting user:", err);
-    return false;
-  }
+  });
 }
 
-/**
- * Cập nhật quyền người dùng (USER <-> ADMIN)
- */
-export async function updateUserRole(id: number | string, newRole: "USER" | "ADMIN") {
-  const numId = Number(id);
-  if (isNaN(numId)) return null;
-
-  return await prisma.user.update({
-    where: { id: numId },
-    data: { role: newRole },
-  });
+export async function updateUserRole(id: number | string, newRole: "USER" | "ADMIN", actorId: number) {
+  return updateUser(id, { role: newRole }, actorId);
 }

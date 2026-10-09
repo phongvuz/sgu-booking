@@ -1,8 +1,8 @@
 import Link from "next/link";
+import { tripIdSchema } from "@/lib/trip-id";
 
-interface SearchParams {
+interface SuccessSearchParams {
   tripId?: string;
-  tripCode?: string;
   seats?: string;
   pnr?: string;
   name?: string;
@@ -12,10 +12,12 @@ interface SearchParams {
 export default async function SuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams>;
+  searchParams: Promise<SuccessSearchParams>;
 }) {
   const params = await searchParams;
-  const pnrCode = params.pnr || `NHAXE-${params.tripCode || params.tripId || "BOOKING"}`;
+  const parsedTripId = tripIdSchema.safeParse(params.tripId && /^\d+$/.test(params.tripId) ? Number(params.tripId) : undefined);
+  const tripId = parsedTripId.success ? parsedTripId.data : undefined;
+  const pnrCode = params.pnr || `NHAXE-${tripId ?? "BOOKING"}`;
 
   return (
     <div className="bg-gray-100 min-h-screen py-16 px-4">
@@ -35,12 +37,12 @@ export default async function SuccessPage({
             {params.name && (
               <div className="flex justify-between">
                 <span>Hành khách:</span>
-                <span className="font-bold">{decodeURIComponent(params.name)}</span>
+                <span className="font-bold">{params.name}</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>Mã chuyến xe:</span>
-              <span className="font-bold text-[#1a9e09]">{params.tripCode || params.tripId || "—"}</span>
+              <span className="font-bold text-brand-primary">{tripId ?? "—"}</span>
             </div>
             <div className="flex justify-between">
               <span>Ghế đã đặt:</span>
@@ -49,7 +51,7 @@ export default async function SuccessPage({
             {params.total && (
               <div className="flex justify-between">
                 <span>Tổng tiền:</span>
-                <span className="font-bold text-[#1a9e09]">
+                <span className="font-bold text-brand-primary">
                   {Number(params.total).toLocaleString("vi-VN")} đ
                 </span>
               </div>
@@ -62,28 +64,17 @@ export default async function SuccessPage({
         </div>
 
   
-        {params.total && (
-          <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8 flex flex-col items-center">
-            <h3 className="font-bold text-lg mb-4 text-center">Quét mã để thanh toán</h3>
-            <img 
-              src={`https://img.vietqr.io/image/970436-0987654321-compact2.png?amount=${params.total}&addInfo=Thanh toan ve xe ${pnrCode}&accountName=NHA XE SAI GON`}
-              alt="Mã QR Thanh Toán VietQR"
-              className="w-64 h-64 object-contain mb-4 border rounded-md p-2 shadow-sm"
-            />
-            <p className="text-sm text-gray-500 text-center px-4">
-              Mở ứng dụng ngân hàng và quét mã QR này để thanh toán. 
-              <br/> (Ghi chú: Số tài khoản trong mã QR đang là ví dụ minh họa)
-            </p>
-          </div>
-        )}
+        <p className="mb-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
+          Đặt chỗ đang chờ thanh toán. Vui lòng thanh toán tại quầy; nhân viên sẽ xác nhận sau khi thu tiền.
+        </p>
 
         <p className="text-sm text-gray-500 mb-8">
-          Chúng tôi đã gửi email xác nhận cùng vé điện tử. Vui lòng xuất trình mã đặt chỗ khi ra bến xe.
+          Vui lòng lưu thông tin vé và xuất trình mã đặt chỗ khi ra bến xe.
         </p>
 
         <Link 
           href="/" 
-          className="inline-block bg-[#1a9e09] hover:bg-[#1db63e] text-white font-bold py-3 px-8 rounded-md transition-colors"
+          className="inline-block bg-brand-primary hover:bg-brand-dark text-white font-bold py-3 px-8 rounded-md transition-colors"
         >
           Trở về trang chủ
         </Link>

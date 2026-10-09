@@ -1,109 +1,82 @@
+import type { PaginationMeta } from "./common";
+
 export interface Trip {
-  id: number | string;
-  code?: string;
+  id: number;
   from: string;
   to: string;
   time: Date | string;
   price: number;
   availableSeats?: number;
+  capacity?: number;
   emptySeats?: number;
   type?: string;
   date?: string;
 }
 
 export interface TripQueryParams {
+  bookable?: boolean;
   search?: string;
   from?: string;
   to?: string;
   date?: string;
   page?: number;
   limit?: number;
-  sortBy?: "time" | "price" | "availableSeats" | "code" | "id";
+  sortBy?: "time" | "price" | "availableSeats" | "id";
   sortOrder?: "asc" | "desc";
+}
+
+export interface TripAdminItem {
+  id: number;
+  from: string;
+  to: string;
+  time: string;
+  price: number;
+  availableSeats: number;
+  totalSeats: number;
+  bookedSeatsCount: number;
+  occupancyRate: number;
+  createdAt: string;
+  bookings: Array<{
+    id: number;
+    seatNumber: string;
+    status: string;
+    totalPrice: number;
+    userName: string;
+    userPhone: string;
+  }>;
+}
+
+export interface TripStats {
+  total: number;
+  departingToday: number;
+  totalBookings: number;
+  avgOccupancy: number;
 }
 
 export interface Seat {
   id: string;
+  row: string;
+  num: number;
+  floor: 1 | 2;
   isBooked: boolean;
 }
 
-export interface SearchParams {
+export interface TripSearchParams {
   from?: string;
   to?: string;
   date?: string;
 }
 
-export const STATION_NAMES: Record<string, string> = {
-  SGN: "Hồ Chí Minh",
-  HCM: "Hồ Chí Minh",
-  TPHCM: "Hồ Chí Minh",
-  "TP.HCM": "Hồ Chí Minh",
-  "SÀI GÒN": "Hồ Chí Minh",
-  "SAI GON": "Hồ Chí Minh",
-  DLT: "Đà Lạt",
-  "ĐÀ LẠT": "Đà Lạt",
-  "DA LAT": "Đà Lạt",
-  NHA: "Nha Trang",
-  "NHA TRANG": "Nha Trang",
-  HAN: "Hà Nội",
-  "HÀ NỘI": "Hà Nội",
-  "HA NOI": "Hà Nội",
-  DAD: "Đà Nẵng",
-  "ĐÀ NẴNG": "Đà Nẵng",
-  "DA NANG": "Đà Nẵng",
-  VT: "Vũng Tàu",
-  "VŨNG TÀU": "Vũng Tàu",
-  "VUNG TAU": "Vũng Tàu",
-  CTH: "Cần Thơ",
-  "CẦN THƠ": "Cần Thơ",
-  "CAN THO": "Cần Thơ",
-};
-
-export function resolveLocationName(codeOrName?: string): string {
-  if (!codeOrName) return "";
-  const upper = codeOrName.trim().toUpperCase();
-  return STATION_NAMES[upper] || codeOrName.trim();
+export interface TripSearchOption {
+  from: string;
+  to: string;
+  date: string;
 }
 
-export function formatPrice(price: number): string {
-  return price.toLocaleString("vi-VN") + "đ";
-}
-
-export function formatTripTime(time: Date | string): {
-  departureTime: string;
-  arrivalTime: string;
-  timeRange: string;
-  dateFormatted: string;
-} {
-  const d = new Date(time);
-  if (isNaN(d.getTime())) {
-    const timeStr = String(time);
-    return {
-      departureTime: timeStr.split(" - ")[0] || timeStr,
-      arrivalTime: timeStr.split(" - ")[1] || "",
-      timeRange: timeStr,
-      dateFormatted: "",
-    };
-  }
-
-  const depHours = String(d.getHours()).padStart(2, "0");
-  const depMinutes = String(d.getMinutes()).padStart(2, "0");
-  const departureTime = `${depHours}:${depMinutes}`;
-
-  const arrDate = new Date(d.getTime() + 7 * 60 * 60 * 1000);
-  const arrHours = String(arrDate.getHours()).padStart(2, "0");
-  const arrMinutes = String(arrDate.getMinutes()).padStart(2, "0");
-  const arrivalTime = `${arrHours}:${arrMinutes}`;
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-  const dateFormatted = `${day}/${month}/${year}`;
-
-  return {
-    departureTime,
-    arrivalTime,
-    timeRange: `${departureTime} - ${arrivalTime}`,
-    dateFormatted,
-  };
+export interface TripListAdminResponse {
+  success: boolean;
+  data: TripAdminItem[];
+  pagination: PaginationMeta;
+  stats: TripStats;
+  message?: string;
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { TripAdminItem } from "@/services/tripService";
-import { formatPrice, formatTripTime } from "@/types/trip";
+import { TripAdminItem } from "@/types/trip";
+import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface TripTableProps {
   trips: TripAdminItem[];
@@ -57,8 +57,8 @@ export function TripTable({
             return (
               <tr key={trip.id} className="hover:bg-gray-50/80 transition-colors">
                 <td className="px-5 py-3.5 font-bold text-gray-900">
-                  <span className="px-2 py-0.5 bg-gray-100 border border-gray-200 rounded font-extrabold text-[#1a9e09]">
-                    {trip.code}
+                  <span className="px-2 py-0.5 bg-gray-100 border border-gray-200 rounded font-extrabold text-brand-primary">
+                    {trip.id}
                   </span>
                 </td>
                 <td className="px-5 py-3.5">

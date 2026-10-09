@@ -2,7 +2,7 @@
 
 import React from "react";
 import { OrderItem, BookingStatus } from "@/types";
-import { formatPrice, formatTripTime } from "@/types/trip";
+import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface OrderTableProps {
   orders: OrderItem[];
@@ -70,7 +70,7 @@ export function OrderTable({
                     {order.trip.from} &rarr; {order.trip.to}
                   </p>
                   <p className="text-[11px] text-gray-400">
-                    {timeInfo.departureTime} • {timeInfo.dateFormatted} ({order.trip.code})
+                    {timeInfo.departureTime} • {timeInfo.dateFormatted} ({order.trip.id})
                   </p>
                 </td>
                 <td className="px-5 py-3.5">
@@ -129,7 +129,12 @@ export function OrderTable({
                       </button>
                     )}
 
-                    {order.status !== "CANCELLED" && (
+                    {order.status === "CANCELLED" && new Date(order.trip.time) > new Date() && (
+                      <button onClick={() => onUpdateStatus(order, "PENDING")} className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded text-[11px]">
+                        Khôi phục
+                      </button>
+                    )}
+                    {order.status !== "CANCELLED" && new Date(order.trip.time) > new Date() && (
                       <button
                         onClick={() => onCancel(order)}
                         className="px-2 py-1 text-rose-600 hover:bg-rose-50 font-semibold rounded text-[11px] transition-colors"

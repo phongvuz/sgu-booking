@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { ToastProvider, useToast } from "@/components/admin/employees/Toast";
+import { useToast } from "@/components/admin/Toast";
 import { useEmployees } from "@/hooks/useEmployees";
 import { EmployeeTable } from "@/components/admin/employees/EmployeeTable";
 import { EmployeeFilters } from "@/components/admin/employees/EmployeeFilters";
@@ -16,6 +16,7 @@ import { EmployeeFormValues } from "@/lib/validations/employee";
 function AdminEmployeesContent() {
   const {
     employees,
+    stats,
     pagination,
     loading,
     error,
@@ -124,7 +125,7 @@ function AdminEmployeesContent() {
         <div>
           <h1 className="text-2xl font-bold text-gray-800 tracking-tight flex items-center gap-2">
             <span>Quản lý Nhân sự</span>
-            <span className="text-xs bg-orange-100 text-[#1a9e09] font-semibold px-2.5 py-0.5 rounded-full">
+            <span className="text-xs bg-orange-100 text-brand-primary font-semibold px-2.5 py-0.5 rounded-full">
               {pagination.total} nhân viên
             </span>
           </h1>
@@ -147,7 +148,7 @@ function AdminEmployeesContent() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer active:scale-98"
+            className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-sm hover:shadow flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span className="text-base font-bold">+</span>
             <span>Thêm nhân viên mới</span>
@@ -156,7 +157,7 @@ function AdminEmployeesContent() {
       </div>
 
       {/* Stats Cards Overview */}
-      <EmployeeStats employees={employees} total={pagination.total} />
+      <EmployeeStats stats={stats} />
 
       {/* Error Banner if any */}
       {error && (
@@ -194,15 +195,7 @@ function AdminEmployeesContent() {
           onEdit={handleOpenEdit}
           onDelete={handleOpenDelete}
           onView={handleOpenDetail}
-          onToggleStatus={(emp) => {
-            const nextStatus =
-              emp.status === "Đang làm việc"
-                ? "Nghỉ phép"
-                : emp.status === "Nghỉ phép"
-                ? "Đã nghỉ việc"
-                : "Đang làm việc";
-            changeStatus(emp.id, nextStatus);
-          }}
+
         />
 
         {/* Pagination Toolbar */}
@@ -243,9 +236,5 @@ function AdminEmployeesContent() {
 }
 
 export default function AdminEmployeesPage() {
-  return (
-    <ToastProvider>
-      <AdminEmployeesContent />
-    </ToastProvider>
-  );
+  return <AdminEmployeesContent />;
 }

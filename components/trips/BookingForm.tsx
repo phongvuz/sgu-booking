@@ -3,10 +3,9 @@
 import React from "react";
 
 interface BookingFormProps {
-  tripId: string;
-  tripCode?: string;
+  tripId: number;
   selectedSeats: string[];
-  pricePerSeatStr: number;
+  pricePerSeat: number;
   totalPrice: number;
   passengerName: string;
   passengerPhone: string;
@@ -19,9 +18,8 @@ interface BookingFormProps {
 
 export default function BookingForm({
   tripId,
-  tripCode,
   selectedSeats,
-  pricePerSeatStr,
+  pricePerSeat,
   totalPrice,
   passengerName,
   passengerPhone,
@@ -40,23 +38,23 @@ export default function BookingForm({
       <div className="mb-6">
         <div className="flex justify-between mb-2 text-sm">
           <span className="text-gray-600">Chuyến xe:</span>
-          <span className="font-bold text-gray-800">{tripCode || tripId}</span>
+          <span className="font-bold text-gray-800">{tripId}</span>
         </div>
         <div className="flex justify-between mb-2 text-sm">
           <span className="text-gray-600">Ghế đã chọn:</span>
-          <span className="font-bold text-[#1a9e09]">
+          <span className="font-bold text-brand-primary">
             {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}
           </span>
         </div>
         <div className="flex justify-between mb-2 text-sm">
           <span className="text-gray-600">Giá mỗi vé:</span>
           <span className="font-semibold text-gray-700">
-            {pricePerSeatStr.toLocaleString("vi-VN")} đ
+            {pricePerSeat.toLocaleString("vi-VN")} đ
           </span>
         </div>
         <div className="flex justify-between mt-4 pt-4 border-t border-gray-100">
           <span className="text-gray-800 font-bold text-lg">Tổng tiền:</span>
-          <span className="font-extrabold text-2xl text-[#1a9e09]">
+          <span className="font-extrabold text-2xl text-brand-primary">
             {totalPrice.toLocaleString("vi-VN")} đ
           </span>
         </div>
@@ -84,7 +82,7 @@ export default function BookingForm({
               value={passengerName}
               onChange={(e) => onNameChange(e.target.value)}
               disabled={isSubmitting}
-              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#1a9e09]"
+              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-brand-primary"
               placeholder="Ví dụ: Nguyễn Văn A"
             />
           </div>
@@ -98,7 +96,7 @@ export default function BookingForm({
               value={passengerPhone}
               onChange={(e) => onPhoneChange(e.target.value)}
               disabled={isSubmitting}
-              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-[#1a9e09]"
+              className="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-brand-primary"
               placeholder="Ví dụ: 0901234567"
             />
           </div>
@@ -109,7 +107,7 @@ export default function BookingForm({
           disabled={selectedSeats.length === 0 || isSubmitting}
           className={`w-full font-bold py-3 px-4 rounded-md transition-colors ${
             selectedSeats.length > 0 && !isSubmitting
-              ? "bg-[#1a9e09] hover:bg-[#1db63e] text-white cursor-pointer"
+              ? "bg-brand-primary hover:bg-brand-dark text-white cursor-pointer"
               : "bg-gray-300 text-gray-500 cursor-not-allowed"
           }`}
         >

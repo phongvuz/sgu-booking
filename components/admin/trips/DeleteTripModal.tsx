@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TripAdminItem } from "@/services/tripService";
+import { TripAdminItem } from "@/types/trip";
 
 interface DeleteTripModalProps {
   isOpen: boolean;
@@ -39,7 +39,7 @@ export function DeleteTripModal({
           Xác nhận xóa chuyến xe
         </h3>
         <p className="text-xs text-gray-500 mb-4 leading-relaxed">
-          Bạn có chắc chắn muốn xóa chuyến xe <strong className="text-gray-900">{trip.code}</strong> ({trip.from} &rarr; {trip.to})?
+          Bạn có chắc chắn muốn xóa chuyến xe <strong className="text-gray-900">{trip.id}</strong> ({trip.from} &rarr; {trip.to})?
           {trip.bookedSeatsCount > 0 && (
             <span className="text-rose-600 font-bold block mt-1">
               Cảnh báo: Đang có {trip.bookedSeatsCount} vé đã đặt cho chuyến này!

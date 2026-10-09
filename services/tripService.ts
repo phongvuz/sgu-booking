@@ -1,5 +1,13 @@
+import { assertTripId } from "@/lib/trip-id";
+import { BusinessError } from "@/lib/business-error";
+import { runTransaction } from "@/lib/transaction";
+import { getSeatCodes } from "@/lib/seats";
+import { parseVietnamDateTime } from "@/lib/trip-search";
+import { positiveInteger } from "@/lib/query-params";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { PaginationMeta } from "@/types";
+import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
+import { formatDepartureDate, getDepartureDayRange } from "@/lib/trip-search";
 
 export interface GetTripsFilter {
   fromCity?: string;
@@ -13,8 +21,7 @@ export interface CreateTripInput {
   to: string;
   time: Date | string;
   price: number;
-  availableSeats?: number;
-  code?: string;
+  capacity: number;
 }
 
 export interface UpdateTripInput {
@@ -22,47 +29,7 @@ export interface UpdateTripInput {
   to?: string;
   time?: Date | string;
   price?: number;
-  availableSeats?: number;
-}
-
-export interface TripQueryParams {
-  search?: string;
-  from?: string;
-  to?: string;
-  date?: string;
-  page?: number;
-  limit?: number;
-  sortBy?: "time" | "price" | "availableSeats" | "code" | "id";
-  sortOrder?: "asc" | "desc";
-}
-
-export interface TripAdminItem {
-  id: number;
-  code: string;
-  from: string;
-  to: string;
-  time: string;
-  price: number;
-  availableSeats: number;
-  totalSeats: number;
-  bookedSeatsCount: number;
-  occupancyRate: number;
-  createdAt: string;
-  bookings: Array<{
-    id: number;
-    seatNumber: string;
-    status: string;
-    totalPrice: number;
-    userName: string;
-    userPhone: string;
-  }>;
-}
-
-export interface TripStats {
-  total: number;
-  departingToday: number;
-  totalBookings: number;
-  avgOccupancy: number;
+  capacity?: number;
 }
 
 /**
@@ -74,6 +41,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   stats: TripStats;
 }> {
   const {
+    bookable = false,
     search = "",
     from = "",
     to = "",
@@ -84,12 +52,15 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     sortOrder = "asc",
   } = params;
 
-  const where: any = {};
+  const where: Prisma.tripWhereInput = {};
+
+  if (bookable) { where.time = { gt: new Date() }; where.availableSeats = { gt: 0 }; }
 
   if (search.trim()) {
     const s = search.trim();
+    const id = Number(s);
     where.OR = [
-      { code: { contains: s } },
+      ...(Number.isInteger(id) && id > 0 && id <= 2147483647 ? [{ id }] : []),
       { from: { contains: s } },
       { to: { contains: s } },
     ];
@@ -104,35 +75,28 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   }
 
   if (date) {
-    const parsedDate = new Date(date);
-    if (!isNaN(parsedDate.getTime())) {
-      const startOfDay = new Date(parsedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(parsedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      where.time = {
-        gte: startOfDay,
-        lte: endOfDay,
-      };
-    }
+    const range = getDepartureDayRange(date);
+    if (!range) throw new BusinessError("Ngày lọc không hợp lệ.");
+    where.time = bookable ? { ...range, gt: new Date() } : range;
   }
 
-  const numLimit = Math.max(1, Number(limit) || 8);
-  const numPage = Math.max(1, Number(page) || 1);
+  const numLimit = positiveInteger(limit, 8, 100);
+  const numPage = positiveInteger(page, 1);
 
   const total = await prisma.trip.count({ where });
   const totalPages = Math.ceil(total / numLimit) || 1;
   const validPage = Math.min(numPage, totalPages);
   const skip = (validPage - 1) * numLimit;
 
-  let orderBy: any = {};
-  if (sortBy === "price" || sortBy === "availableSeats" || sortBy === "code" || sortBy === "time") {
+  let orderBy: Prisma.tripOrderByWithRelationInput = {};
+  if (sortBy === "price" || sortBy === "availableSeats" || sortBy === "id" || sortBy === "time") {
     orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
   } else {
     orderBy = { time: "asc" };
   }
 
-  const [trips, allTripsWithBookings] = await Promise.all([
+  const { gte: startToday, lt: endToday } = getDepartureDayRange(formatDepartureDate(new Date()))!;
+  const [trips, capacities, totalTrips, totalActiveBookings, departingToday] = await Promise.all([
     prisma.trip.findMany({
       where,
       orderBy,
@@ -151,45 +115,17 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
         },
       },
     }),
-    prisma.trip.findMany({
-      select: {
-        id: true,
-        time: true,
-        availableSeats: true,
-        booking: {
-          where: { status: { not: "CANCELLED" } },
-          select: { id: true },
-        },
-      },
-    }),
+    prisma.trip.aggregate({ where, _sum: { capacity: true } }),
+    prisma.trip.count({ where }),
+    prisma.booking.count({ where: { status: { not: "CANCELLED" }, trip: where } }),
+    prisma.trip.count({ where: { AND: [where, { time: { gte: startToday, lt: endToday } }] } }),
   ]);
 
-  // Tính toán thống kê
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const endToday = new Date(today);
-  endToday.setHours(23, 59, 59, 999);
-
-  const departingToday = allTripsWithBookings.filter((t) => {
-    const d = new Date(t.time);
-    return d >= today && d <= endToday;
-  }).length;
-
-  let totalActiveBookings = 0;
-  let totalCapacities = 0;
-  allTripsWithBookings.forEach((t) => {
-    const booked = t.booking.length;
-    totalActiveBookings += booked;
-    totalCapacities += t.availableSeats + booked;
-  });
-
-  const avgOccupancy =
-    totalCapacities > 0
-      ? Math.round((totalActiveBookings / totalCapacities) * 100)
-      : 0;
+  const totalCapacities = capacities._sum.capacity ?? 0;
+  const avgOccupancy = totalCapacities > 0 ? Math.round(totalActiveBookings / totalCapacities * 100) : 0;
 
   const stats: TripStats = {
-    total: allTripsWithBookings.length,
+    total: totalTrips,
     departingToday,
     totalBookings: totalActiveBookings,
     avgOccupancy,
@@ -198,13 +134,12 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   const data: TripAdminItem[] = trips.map((t) => {
     const validBookings = t.booking.filter((b) => b.status !== "CANCELLED");
     const bookedCount = validBookings.length;
-    const totalSeats = t.availableSeats + bookedCount;
+    const totalSeats = t.capacity;
     const occupancyRate =
       totalSeats > 0 ? Math.round((bookedCount / totalSeats) * 100) : 0;
 
     return {
       id: t.id,
-      code: t.code,
       from: t.from,
       to: t.to,
       time: t.time.toISOString(),
@@ -219,8 +154,8 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
         seatNumber: b.seatNumber,
         status: b.status,
         totalPrice: b.totalPrice,
-        userName: b.user?.fullName || "Khách vãng lai",
-        userPhone: b.user?.phone || "",
+        userName: b.passengerName || b.user?.fullName || "Khách vãng lai",
+        userPhone: b.passengerPhone || b.user?.phone || "",
       })),
     };
   });
@@ -243,20 +178,7 @@ export async function getTrips({
   date,
   includeBookings = false,
 }: GetTripsFilter) {
-  let timeFilter = undefined;
-  if (date) {
-    const parsedDate = new Date(date);
-    if (!isNaN(parsedDate.getTime())) {
-      const startOfDay = new Date(parsedDate);
-      startOfDay.setHours(0, 0, 0, 0);
-      const endOfDay = new Date(parsedDate);
-      endOfDay.setHours(23, 59, 59, 999);
-      timeFilter = {
-        gte: startOfDay,
-        lte: endOfDay,
-      };
-    }
-  }
+  const timeFilter = date ? getDepartureDayRange(date) : null;
 
   return await prisma.trip.findMany({
     where: {
@@ -280,17 +202,12 @@ export async function getTrips({
 }
 
 /**
- * Lấy chi tiết chuyến xe theo ID (số) hoặc mã code chuyến xe (VD: SG-DL-01)
+ * Lấy chi tiết chuyến xe theo ID số.
  */
-export async function getTripByIdOrCode(idOrCode: string | number, includeBookings = false) {
-  const numId = Number(idOrCode);
-  return await prisma.trip.findFirst({
-    where: {
-      OR: [
-        ...(!isNaN(numId) ? [{ id: numId }] : []),
-        { code: String(idOrCode) },
-      ],
-    },
+export async function getTripById(tripId: number, includeBookings = false) {
+  const id = assertTripId(tripId);
+  return await prisma.trip.findUnique({
+    where: { id },
     include: includeBookings
       ? {
           booking: {
@@ -306,19 +223,11 @@ export async function getTripByIdOrCode(idOrCode: string | number, includeBookin
   });
 }
 
-/**
- * Lấy danh sách các mã ghế đã đặt của một chuyến xe từ database (loại trừ vé đã hủy)
- */
-export async function getBookedSeats(tripId: string | number): Promise<string[]> {
-  const numId = Number(tripId);
+export async function getBookedSeats(tripId: number): Promise<string[]> {
+  assertTripId(tripId);
   const bookings = await prisma.booking.findMany({
     where: {
-      trip: {
-        OR: [
-          ...(!isNaN(numId) ? [{ id: numId }] : []),
-          { code: String(tripId) },
-        ],
-      },
+      tripId,
       status: { not: "CANCELLED" },
     },
     select: {
@@ -329,67 +238,71 @@ export async function getBookedSeats(tripId: string | number): Promise<string[]>
   return bookings.map((b) => b.seatNumber.trim());
 }
 
-/**
- * Tạo tuyến xe mới vào cơ sở dữ liệu
- */
 export async function createTrip(data: CreateTripInput) {
-  let tripCode = data.code?.trim().toUpperCase();
-  if (!tripCode) {
-    const count = await prisma.trip.count();
-    tripCode = `VN${String(count + 1).padStart(2, "0")}`;
-  }
+  const time = parseVietnamDateTime(data.time);
+  if (!Number.isFinite(time.getTime()) || time <= new Date()) throw new BusinessError("Chọn thời gian xuất bến trong tương lai.");
+  return prisma.trip.create({ data: {
+    from: data.from.trim(), to: data.to.trim(), time, price: data.price,
+    capacity: data.capacity, availableSeats: data.capacity,
+  } });
+}
 
-  const existing = await prisma.trip.findUnique({
-    where: { code: tripCode },
-  });
-
-  if (existing) {
-    throw new Error(`Mã chuyến xe ${tripCode} đã tồn tại trong database.`);
-  }
-
-  return await prisma.trip.create({
-    data: {
-      code: tripCode,
-      from: data.from.trim(),
-      to: data.to.trim(),
-      time: new Date(data.time),
-      price: data.price,
-      availableSeats: data.availableSeats ?? 30,
-    },
+export async function updateTrip(tripId: number, data: UpdateTripInput) {
+  const id = assertTripId(tripId);
+  return runTransaction(async (tx) => {
+    const trip = await tx.trip.findUnique({ where: { id }, include: { booking: { where: { status: { not: "CANCELLED" } } } } });
+    if (!trip) return null;
+    const time = data.time ? parseVietnamDateTime(data.time) : trip.time;
+    if (!Number.isFinite(time.getTime())) throw new BusinessError("Thời gian xuất bến không hợp lệ.");
+    if (time.getTime() !== trip.time.getTime() && time <= new Date()) throw new BusinessError("Chọn thời gian xuất bến trong tương lai.");
+    const from = data.from ?? trip.from;
+    const to = data.to ?? trip.to;
+    if (trip.booking.length && (from !== trip.from || to !== trip.to || time.getTime() !== trip.time.getTime())) {
+      throw new BusinessError("Chuyến có vé đang hiệu lực. Không thể đổi hành trình hoặc giờ xuất bến.", 409);
+    }
+    const capacity = data.capacity ?? trip.capacity;
+    const validSeats = getSeatCodes(capacity);
+    if (trip.booking.some((booking) => !validSeats.includes(booking.seatNumber))) {
+      throw new BusinessError("Sức chứa mới loại bỏ ghế đã bán. Vui lòng chọn sức chứa lớn hơn.", 409);
+    }
+    // Số ghế trống được tính từ sức chứa và vé hiệu lực, admin không sửa trực tiếp.
+    if (await tx.seatHold.count({ where: { tripId: trip.id, seatNumber: { notIn: validSeats }, expiresAt: { gt: new Date() } } })) {
+      throw new BusinessError("Có ghế đang được giữ nằm ngoài sức chứa mới. Vui lòng chờ hết thời gian giữ ghế.", 409);
+    }
+    await tx.seatHold.deleteMany({ where: { tripId: trip.id, seatNumber: { notIn: validSeats } } });
+    return tx.trip.update({ where: { id: trip.id }, data: { from, to, time, price: data.price, capacity, availableSeats: capacity - trip.booking.length } });
   });
 }
 
-/**
- * Cập nhật thông tin tuyến xe
- */
-export async function updateTrip(idOrCode: string | number, data: UpdateTripInput) {
-  const trip = await getTripByIdOrCode(idOrCode);
-  if (!trip) {
-    return null;
-  }
-
-  return await prisma.trip.update({
-    where: { id: trip.id },
-    data: {
-      from: data.from !== undefined ? data.from.trim() : undefined,
-      to: data.to !== undefined ? data.to.trim() : undefined,
-      time: data.time ? new Date(data.time) : undefined,
-      price: data.price !== undefined ? Number(data.price) : undefined,
-      availableSeats: data.availableSeats !== undefined ? Number(data.availableSeats) : undefined,
-    },
+export async function deleteTrip(tripId: number) {
+  const id = assertTripId(tripId);
+  return runTransaction(async (tx) => {
+    const trip = await tx.trip.findUnique({ where: { id } });
+    if (!trip) return null;
+    if (await tx.booking.count({ where: { tripId: trip.id } })) throw new BusinessError("Chuyến có lịch sử vé, không thể xóa.", 409);
+    return tx.trip.delete({ where: { id: trip.id } });
   });
 }
 
-/**
- * Xóa một tuyến xe khỏi cơ sở dữ liệu
- */
-export async function deleteTrip(idOrCode: string | number) {
-  const trip = await getTripByIdOrCode(idOrCode);
-  if (!trip) {
-    return null;
-  }
+export async function getTripSearchOptions(): Promise<TripSearchOption[]> {
+  const trips = await prisma.trip.findMany({
+    select: { from: true, to: true, time: true },
+    distinct: ["from", "to", "time"],
+    orderBy: { time: "asc" },
+  });
+  return trips.map((trip) => ({
+    from: trip.from,
+    to: trip.to,
+    date: formatDepartureDate(trip.time),
+  }));
+}
 
-  return await prisma.trip.delete({
-    where: { id: trip.id },
+export function getFeaturedRoutes() {
+  return prisma.trip.groupBy({
+    by: ["from", "to"],
+    where: { time: { gte: new Date() }, availableSeats: { gt: 0 } },
+    _min: { price: true },
+    orderBy: { _min: { price: "asc" } },
+    take: 3,
   });
 }

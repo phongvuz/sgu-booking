@@ -59,14 +59,14 @@ export function DeleteConfirmModal({
           <p className="text-sm text-gray-600 mb-4 leading-relaxed">
             Bạn đang thao tác với nhân sự{" "}
             <span className="font-bold text-gray-900">{employee.name}</span> (Mã:{" "}
-            <span className="font-semibold text-[#1a9e09]">{employee.id}</span>).
+            <span className="font-semibold text-brand-primary">{employee.id}</span>).
             <br />
-            Bạn có thể chuyển trạng thái sang <span className="font-semibold text-amber-700">"Đã nghỉ việc"</span> hoặc{" "}
+            Bạn có thể chuyển trạng thái sang <span className="font-semibold text-amber-700">&quot;Đã nghỉ việc&quot;</span> hoặc{" "}
             <span className="font-semibold text-rose-700">xóa vĩnh viễn</span> khỏi hệ thống.
           </p>
 
           <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-left text-xs text-amber-800 mb-6">
-            💡 <strong>Khuyên dùng:</strong> Chọn <em>"Chuyển Đã nghỉ việc"</em> để bảo toàn lịch sử dữ liệu chuyến xe và phân công đã thực hiện trong quá khứ.
+            💡 <strong>Khuyên dùng:</strong> Chọn <em>&quot;Chuyển Đã nghỉ việc&quot;</em> để bảo toàn lịch sử dữ liệu chuyến xe và phân công đã thực hiện trong quá khứ.
           </div>
 
           {/* Action Buttons */}

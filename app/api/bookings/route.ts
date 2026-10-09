@@ -1,99 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  createBooking,
-  getBookings,
-  BookingConflictError,
-  TripNotFoundError,
-} from "@/services/bookingService";
+import { createBooking, getBookings } from "@/services/bookingService";
+import { onlineOrderSchema } from "@/lib/validations/order";
+import { apiError, readJson } from "@/lib/admin-api";
+import { getCurrentCustomer } from "@/lib/session";
 
-// POST /api/bookings - Controller tiếp nhận yêu cầu đặt vé
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { tripId, seats, fullName, phone } = body;
-
-    // 1. Validation tầng Controller
-    if (!tripId) {
-      return NextResponse.json(
-        { success: false, message: "Thiếu mã chuyến xe (tripId)." },
-        { status: 400 }
-      );
-    }
-
-    if (!Array.isArray(seats) || seats.length === 0) {
-      return NextResponse.json(
-        { success: false, message: "Vui lòng chọn ít nhất 1 ghế." },
-        { status: 400 }
-      );
-    }
-
-    if (!fullName?.trim() || !phone?.trim()) {
-      return NextResponse.json(
-        { success: false, message: "Vui lòng nhập đầy đủ họ tên và số điện thoại." },
-        { status: 400 }
-      );
-    }
-
-    // 2. Gọi tầng Service xử lý nghiệp vụ đặt vé
-    const bookingResult = await createBooking({
-      tripId,
-      seats,
-      fullName,
-      phone,
-    });
-
-    // 3. Đóng gói kết quả trả về HTTP 201 Created
-    return NextResponse.json(
-      {
-        success: true,
-        message: "Đặt vé thành công và đã lưu vào cơ sở dữ liệu!",
-        data: bookingResult,
-      },
-      { status: 201 }
-    );
+    const parsed = onlineOrderSchema.safeParse(await readJson(request));
+    if (!parsed.success) return NextResponse.json({ success: false, message: parsed.error.issues.map((issue) => issue.message).join(", ") }, { status: 400 });
+    const customer = await getCurrentCustomer();
+    const result = await createBooking({ ...parsed.data, ownerId: customer?.userId, status: "PENDING" });
+    return NextResponse.json({ success: true, message: "Đã ghi nhận đặt chỗ, chờ thanh toán.", data: result }, { status: 201 });
   } catch (error) {
-    console.error("Lỗi khi xử lý đặt vé:", error);
-
-    if (error instanceof TripNotFoundError) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 404 }
-      );
-    }
-
-    if (error instanceof BookingConflictError) {
-      return NextResponse.json(
-        { success: false, message: error.message },
-        { status: 409 }
-      );
-    }
-
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi xử lý đặt vé." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể đặt vé lúc này. Vui lòng thử lại.");
   }
 }
 
-// GET /api/bookings - Controller tra cứu danh sách vé
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const query = searchParams.get("query")?.trim() || "";
-    const phone = searchParams.get("phone")?.trim() || "";
-
-    const bookings = await getBookings({ query, phone });
-
-    return NextResponse.json({
-      success: true,
-      count: bookings.length,
-      data: bookings,
-    });
+    const bookings = await getBookings({ query: searchParams.get("query") ?? "", phone: searchParams.get("phone") ?? "" });
+    return NextResponse.json({ success: true, count: bookings.length, data: bookings }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    console.error("Lỗi khi tra cứu đặt vé:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tra cứu vé." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể tra cứu vé lúc này. Vui lòng thử lại.");
   }
 }

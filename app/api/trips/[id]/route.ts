@@ -1,6 +1,8 @@
-import { getCurrentAdmin } from "@/lib/session";
+import { tripSchema } from "@/lib/validations/trip";
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
-import { getTripByIdOrCode, updateTrip, deleteTrip } from "@/services/tripService";
+import { getTripById, updateTrip, deleteTrip } from "@/services/tripService";
+import { parseTripId } from "@/lib/trip-id";
 
 type ParamsContext = {
   params: Promise<{ id: string }>;
@@ -10,7 +12,7 @@ type ParamsContext = {
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
-    const trip = await getTripByIdOrCode(id);
+    const trip = await getTripById(parseTripId(id));
 
     if (!trip) {
       return NextResponse.json(
@@ -24,35 +26,20 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
       data: trip,
     });
   } catch (error) {
-    console.error("Lỗi khi truy vấn tuyến xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tìm tuyến xe." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // PUT /api/trips/[id] - Cập nhật thông tin tuyến xe
 export async function PUT(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJson(request);
 
-    const updatedTrip = await updateTrip(id, {
-      from: body.from !== undefined ? String(body.from).trim() : undefined,
-      to: body.to !== undefined ? String(body.to).trim() : undefined,
-      time: body.time ? new Date(body.time) : undefined,
-      price: body.price !== undefined ? Number(body.price) : undefined,
-      availableSeats:
-        body.availableSeats !== undefined
-          ? Number(body.availableSeats)
-          : body.emptySeats !== undefined
-          ? Number(body.emptySeats)
-          : undefined,
-    });
+    const parsed = tripSchema.safeParse(body);
+    if (!parsed.success) return NextResponse.json({ success: false, message: parsed.error.issues.map((issue) => issue.message).join(", ") }, { status: 400 });
+    const updatedTrip = await updateTrip(parseTripId(id), parsed.data);
 
     if (!updatedTrip) {
       return NextResponse.json(
@@ -67,22 +54,16 @@ export async function PUT(request: NextRequest, { params }: ParamsContext) {
       data: updatedTrip,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật tuyến xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Dữ liệu cập nhật không hợp lệ." },
-      { status: 400 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // DELETE /api/trips/[id] - Xóa một tuyến xe
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
-    const deletedTrip = await deleteTrip(id);
+    const deletedTrip = await deleteTrip(parseTripId(id));
 
     if (!deletedTrip) {
       return NextResponse.json(
@@ -97,10 +78,6 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       data: deletedTrip,
     });
   } catch (error) {
-    console.error("Lỗi khi xóa tuyến xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Không thể xóa tuyến xe khỏi cơ sở dữ liệu." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

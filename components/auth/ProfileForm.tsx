@@ -4,8 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 type Customer = { name: string; email: string; phone: string; address: string | null };
-const inputClass = "w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-[#ef5222] focus:ring-2 focus:ring-orange-100";
-const buttonClass = "rounded-xl bg-[#ef5222] px-6 py-3 font-semibold text-white hover:bg-[#d94a1d] disabled:opacity-50 disabled:cursor-not-allowed";
+const inputClass = "w-full rounded-xl border border-gray-200 px-4 py-3 outline-none focus:border-brand-primary focus:ring-2 focus:ring-orange-100";
+const buttonClass = "rounded-xl bg-brand-primary px-6 py-3 font-semibold text-white hover:bg-brand-dark disabled:opacity-50 disabled:cursor-not-allowed";
 
 function AccountForm({ customer }: { customer?: Customer }) {
   const router = useRouter();

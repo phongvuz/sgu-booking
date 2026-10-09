@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { TripAdminItem } from "@/services/tripService";
-import { formatPrice, formatTripTime } from "@/types/trip";
+import { TripAdminItem } from "@/types/trip";
+import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface TripDetailModalProps {
   isOpen: boolean;
@@ -33,12 +33,12 @@ export function TripDetailModal({
             ✕
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#1a9e09] text-white flex items-center justify-center text-2xl font-bold shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center text-2xl font-bold shadow-sm">
               🛣️
             </div>
             <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#1a9e09] bg-[#1a9e09]/10 px-2 py-0.5 rounded">
-                Mã: {trip.code}
+              <span className="text-[10px] font-bold uppercase tracking-wider text-brand-primary bg-brand-primary/10 px-2 py-0.5 rounded">
+                Mã: {trip.id}
               </span>
               <h2 className="text-lg font-extrabold tracking-tight mt-1">
                 {trip.from} &rarr; {trip.to}
@@ -56,7 +56,7 @@ export function TripDetailModal({
           <div className="grid grid-cols-3 gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200 text-center">
             <div>
               <span className="text-[11px] text-gray-500 block">Giá vé</span>
-              <span className="font-extrabold text-sm text-[#1a9e09]">
+              <span className="font-extrabold text-sm text-brand-primary">
                 {formatPrice(trip.price)}
               </span>
             </div>
@@ -78,17 +78,17 @@ export function TripDetailModal({
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-bold text-gray-900 text-xs uppercase tracking-wider">
-                Danh sách hành khách đã đặt chỗ ({trip.bookings.length} vé)
+                Danh sách hành khách đã đặt chỗ ({trip.bookings.filter((booking) => booking.status !== "CANCELLED").length} vé)
               </span>
             </div>
 
-            {trip.bookings.length === 0 ? (
+            {trip.bookings.filter((booking) => booking.status !== "CANCELLED").length === 0 ? (
               <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-400">
                 Chưa có khách đặt vé cho chuyến xe này
               </div>
             ) : (
               <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                {trip.bookings.map((b) => (
+                {trip.bookings.filter((booking) => booking.status !== "CANCELLED").map((b) => (
                   <div key={b.id} className="p-3 flex items-center justify-between bg-white hover:bg-gray-50">
                     <div className="flex items-center gap-3">
                       <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold flex items-center justify-center text-xs">
@@ -133,7 +133,7 @@ export function TripDetailModal({
               onClose();
               onEdit(trip);
             }}
-            className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             Chỉnh sửa chuyến xe
           </button>

@@ -1,3 +1,4 @@
+import { getDepartureDayRange } from "@/lib/trip-search";
 import { z } from "zod";
 
 export const busSchema = z.object({
@@ -13,6 +14,7 @@ export const busSchema = z.object({
     .min(2, "Vui lòng chọn hoặc nhập loại xe"),
   seats: z.coerce
     .number()
+    .int("Số ghế phải là số nguyên")
     .min(10, "Số lượng ghế phải từ 10 trở lên")
     .max(60, "Số lượng ghế không vượt quá 60"),
   status: z.enum(["Đang hoạt động", "Bảo dưỡng", "Ngừng hoạt động"], {
@@ -24,12 +26,12 @@ export const busSchema = z.object({
     .max(100, "Tên hãng xe không quá 100 ký tự")
     .optional()
     .or(z.literal("")),
-  year: z.coerce
-    .number()
+  year: z.union([z.literal("").transform(() => null), z.coerce
+    .number().int()
     .min(2000, "Năm sản xuất từ năm 2000 trở đi")
     .max(new Date().getFullYear() + 1, "Năm sản xuất không hợp lệ")
     .optional()
-    .nullable(),
+    .nullable()]),
   driverName: z
     .string()
     .trim()
@@ -47,6 +49,7 @@ export const busSchema = z.object({
     .or(z.literal("")),
   lastMaintenance: z
     .string()
+    .refine((value) => !value || !!getDepartureDayRange(value), "Ngày bảo dưỡng không hợp lệ")
     .optional()
     .or(z.literal("")),
   notes: z

@@ -1,172 +1,86 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
-import { OrderItem, OrderQueryParams, PaginationMeta, OrderStats, BookingStatus } from "@/types";
-import { OfflineOrderFormValues } from "@/lib/validations/order";
-import * as orderService from "@/services/clientOrderService";
+import { useCallback, useState } from "react";
+import type { OrderQueryParams, OrderListResponse, BookingStatus } from "@/types";
+import type { OfflineOrderFormValues } from "@/lib/validations/order";
+import * as service from "@/services/clientOrderService";
+import { useDebouncedSearch } from "./useDebouncedSearch";
+import { useRemoteData } from "./useRemoteData";
+import { useAsyncAction } from "./useAsyncAction";
+
+const INITIAL_DATA: OrderListResponse = {
+  success: true,
+  data: [],
+  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  stats: { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 },
+};
 
 export function useOrders(initialParams?: OrderQueryParams) {
-  const [orders, setOrders] = useState<OrderItem[]>([]);
-  const [stats, setStats] = useState<OrderStats>({
-    total: 0,
-    confirmed: 0,
-    pending: 0,
-    cancelled: 0,
-    totalRevenue: 0,
-  });
-  const [pagination, setPagination] = useState<PaginationMeta>({
-    page: 1,
-    limit: 8,
-    total: 0,
-    totalPages: 1,
-  });
-  const [loading, setLoading] = useState<boolean>(true);
-  const [actionLoading, setActionLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [page, setPage] = useState(initialParams?.page ?? 1);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [status, setStatus] = useState(initialParams?.status ?? "");
+  const [date, setDate] = useState(initialParams?.date ?? "");
+  const resetPage = useCallback(() => setPage(1), []);
+  const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
+  const { actionLoading, runAction } = useAsyncAction();
 
-  // Filters state
-  const [search, setSearch] = useState<string>(initialParams?.search || "");
-  const [debouncedSearch, setDebouncedSearch] = useState<string>(search);
-  const [status, setStatus] = useState<string>(initialParams?.status || "");
-  const [date, setDate] = useState<string>(initialParams?.date || "");
-  const [page, setPage] = useState<number>(initialParams?.page || 1);
-  const [limit, setLimit] = useState<number>(initialParams?.limit || 8);
+  const load = useCallback((signal: AbortSignal) => service.fetchAdminOrders({
+    search: appliedSearch, status, date, page, limit,
+  }, signal), [appliedSearch, status, date, page, limit]);
+  const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = setTimeout(() => {
-      setDebouncedSearch(value);
-      setPage(1);
-    }, 350);
-  };
-
-  const handleStatusChange = (val: string) => {
-    setStatus(val);
-    setPage(1);
-  };
-
-  const handleDateChange = (val: string) => {
-    setDate(val);
-    setPage(1);
-  };
-
-  const resetFilters = () => {
-    setSearch("");
-    setDebouncedSearch("");
+  function resetFilters() {
+    resetSearch();
     setStatus("");
     setDate("");
     setPage(1);
-  };
+  }
 
-  const loadOrders = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  function filterStatus(value: string) {
+    setStatus(value);
+    setPage(1);
+  }
 
-      const res = await orderService.fetchAdminOrders({
-        search: debouncedSearch,
-        status,
-        date,
-        page,
-        limit,
-      });
+  function filterDate(value: string) {
+    setDate(value);
+    setPage(1);
+  }
 
-      setOrders(res.data);
-      setPagination(res.pagination);
-      if (res.stats) setStats(res.stats);
-    } catch (err: any) {
-      console.error("Error in loadOrders:", err);
-      setError(err?.message || "Không thể tải danh sách đơn vé");
-    } finally {
-      setLoading(false);
-    }
-  }, [debouncedSearch, status, date, page, limit]);
-
-  useEffect(() => {
-    loadOrders();
-  }, [loadOrders]);
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-    };
-  }, []);
-
-  const handleCreateOffline = async (payload: OfflineOrderFormValues) => {
-    setActionLoading(true);
-    try {
-      const res = await orderService.createOfflineOrder(payload);
+  function createOfflineOrder(payload: OfflineOrderFormValues) {
+    return runAction(async () => {
+      const response = await service.createOfflineOrder(payload);
       resetFilters();
-      await loadOrders();
-      return { success: true, message: res.message || "Tạo vé offline thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi tạo vé",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      refresh();
+      return response.message || "Tạo vé tại quầy thành công!";
+    });
+  }
 
-  const handleChangeStatus = async (id: number | string, newStatus: BookingStatus) => {
-    setActionLoading(true);
-    try {
-      const res = await orderService.updateOrderStatus(id, newStatus);
-      await loadOrders();
-      return { success: true, message: res.message || "Cập nhật trạng thái vé thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Không thể cập nhật trạng thái",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function changeStatus(id: number | string, status: BookingStatus) {
+    return runAction(async () => {
+      const response = await service.updateOrderStatus(id, status);
+      refresh();
+      return response.message || "Cập nhật trạng thái vé thành công!";
+    });
+  }
 
-  const handleDelete = async (id: number | string) => {
-    setActionLoading(true);
-    try {
-      const res = await orderService.deleteOrder(id);
-      await loadOrders();
-      return { success: true, message: res.message || "Xóa đơn vé thành công!" };
-    } catch (err: any) {
-      return {
-        success: false,
-        message: err?.message || "Có lỗi xảy ra khi xóa đơn vé",
-      };
-    } finally {
-      setActionLoading(false);
-    }
-  };
+  function deleteOrder(id: number | string) {
+    return runAction(async () => {
+      const response = await service.deleteOrder(id);
+      refresh();
+      return response.message || "Xóa đơn vé thành công!";
+    });
+  }
 
   return {
-    orders,
-    stats,
-    pagination,
-    loading,
-    actionLoading,
-    error,
-    filters: {
-      search,
-      status,
-      date,
-      page,
-      limit,
-    },
-    setSearch: handleSearchChange,
-    setStatus: handleStatusChange,
-    setDate: handleDateChange,
-    setPage,
-    setLimit,
-    resetFilters,
-    refresh: loadOrders,
-    createOfflineOrder: handleCreateOffline,
-    changeStatus: handleChangeStatus,
-    deleteOrder: handleDelete,
+    orders: data.data,
+    stats: data.stats,
+    pagination: data.pagination,
+    loading, error, actionLoading,
+    filters: { search, status, date, page, limit },
+    setSearch: changeSearch,
+    setStatus: filterStatus,
+    setDate: filterDate,
+    setPage, setLimit, resetFilters, refresh,
+    createOfflineOrder, changeStatus, deleteOrder,
   };
 }

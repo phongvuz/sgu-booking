@@ -2,11 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatTripTime, formatPrice } from "@/types";
+import { formatTripTime, formatPrice } from "@/lib/trip-display";
 
 interface TripItem {
-  id: number | string;
-  code: string;
+  id: number;
   from: string;
   to: string;
   time: Date | string;
@@ -87,7 +86,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("early")}
                   onChange={() => toggleTimeFilter("early")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Sáng sớm (00:00 - 06:00)
               </label>
@@ -96,7 +95,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("morning")}
                   onChange={() => toggleTimeFilter("morning")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Sáng (06:00 - 12:00)
               </label>
@@ -105,7 +104,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("afternoon")}
                   onChange={() => toggleTimeFilter("afternoon")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Chiều (12:00 - 18:00)
               </label>
@@ -114,7 +113,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedTimes.includes("night")}
                   onChange={() => toggleTimeFilter("night")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Tối (18:00 - 24:00)
               </label>
@@ -129,7 +128,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("sleeper")}
                   onChange={() => toggleVehicleFilter("sleeper")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Giường nằm
               </label>
@@ -138,7 +137,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                   type="checkbox"
                   checked={selectedVehicles.includes("limousine")}
                   onChange={() => toggleVehicleFilter("limousine")}
-                  className="rounded text-[#1a9e09] focus:ring-[#1a9e09]"
+                  className="rounded text-brand-primary focus:ring-brand-primary"
                 />
                 Limousine
               </label>
@@ -170,7 +169,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                     <div className="flex-1 flex items-center justify-center relative px-4">
                       <div className="w-full h-[2px] bg-gray-200 absolute"></div>
                       <span className="bg-white px-2 text-xs text-gray-500 relative z-10 border border-gray-200 rounded-full">
-                        {trip.code}
+                        {trip.id}
                       </span>
                     </div>
                     <div className="text-center min-w-[70px]">
@@ -195,12 +194,12 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
 
                 {/* Giá và nút chọn */}
                 <div className="mt-6 md:mt-0 md:ml-8 flex flex-col items-start md:items-end justify-center md:border-l md:border-gray-100 md:pl-8">
-                  <p className="text-2xl font-extrabold text-[#1a9e09] mb-3">
+                  <p className="text-2xl font-extrabold text-brand-primary mb-3">
                     {formatPrice(trip.price)}
                   </p>
                   <Link
                     href={`/trips/${trip.id}`}
-                    className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
+                    className="bg-brand-primary hover:bg-brand-dark text-white font-bold py-2 px-6 rounded-md transition-colors text-center w-full md:w-auto"
                   >
                     Chọn chuyến
                   </Link>
@@ -218,7 +217,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
-                className="mt-3 text-sm text-[#1a9e09] font-semibold hover:underline"
+                className="mt-3 text-sm text-brand-primary font-semibold hover:underline"
               >
                 Đặt lại bộ lọc
               </button>

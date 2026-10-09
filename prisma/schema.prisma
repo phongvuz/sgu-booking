@@ -8,30 +8,41 @@ datasource db {
 }
 
 model booking {
-  id         Int      @id @default(autoincrement())
-  seatNumber String
-  status     String   @default("CONFIRMED")
-  totalPrice Float
-  userId     Int
-  tripId     Int
-  createdAt  DateTime @default(now())
-  trip       trip     @relation(fields: [tripId], references: [id], onDelete: Cascade, map: "Booking_tripId_fkey")
-  user       user     @relation(fields: [userId], references: [id], onDelete: Cascade, map: "Booking_userId_fkey")
+  id             Int       @id @default(autoincrement())
+  pnr            String?
+  passengerName  String?
+  passengerPhone String?
+  activeSeat     String?   @unique
+  seatNumber     String
+  status         String    @default("CONFIRMED")
+  totalPrice     Float
+  userId         Int
+  tripId         Int
+  createdAt      DateTime  @default(now())
+  confirmedAt    DateTime?
+  trip           trip      @relation(fields: [tripId], references: [id], onDelete: Restrict, map: "Booking_tripId_fkey")
+  user           user      @relation(fields: [userId], references: [id], onDelete: Restrict, map: "Booking_userId_fkey")
 
+  @@index([pnr])
+  @@index([status, createdAt])
+  @@index([status, confirmedAt])
   @@index([tripId], map: "Booking_tripId_fkey")
   @@index([userId], map: "Booking_userId_fkey")
 }
 
 model trip {
-  id             Int       @id @default(autoincrement())
-  code           String    @unique(map: "Trip_code_key")
+  id             Int        @id @default(autoincrement())
   from           String
   to             String
   time           DateTime
   price          Float
+  capacity       Int
   availableSeats Int
-  createdAt      DateTime  @default(now())
+  createdAt      DateTime   @default(now())
   booking        booking[]
+  seatHolds      SeatHold[]
+
+  @@index([time])
 }
 
 model user {
@@ -40,9 +51,9 @@ model user {
   phone     String    @unique
   password  String
   role      String    @default("USER") // USER, ADMIN, CUSTOMER
+  isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   booking   booking[]
-
 }
 
 model Customer {
@@ -80,7 +91,10 @@ model SeatHold {
   expiresAt  DateTime
   createdAt  DateTime @default(now())
 
+  trip trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
   @@unique([tripId, seatNumber])
+  @@index([expiresAt])
 }
 
 model bus {
@@ -97,4 +111,3 @@ model bus {
   notes           String?  @db.Text
   createdAt       DateTime @default(now())
 }
-

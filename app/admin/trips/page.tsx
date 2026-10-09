@@ -10,7 +10,7 @@ import { TripModal } from "@/components/admin/trips/TripModal";
 import { TripDetailModal } from "@/components/admin/trips/TripDetailModal";
 import { DeleteTripModal } from "@/components/admin/trips/DeleteTripModal";
 import { EmployeePagination } from "@/components/admin/employees/EmployeePagination";
-import { TripAdminItem } from "@/services/tripService";
+import { TripAdminItem } from "@/types/trip";
 import { TripFormValues } from "@/lib/validations/trip";
 
 export default function AdminTripsPage() {
@@ -129,7 +129,7 @@ export default function AdminTripsPage() {
           <button
             type="button"
             onClick={handleOpenCreate}
-            className="bg-[#1a9e09] hover:bg-[#1db63e] text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
+            className="bg-brand-primary hover:bg-brand-dark text-white px-4 py-2.5 rounded-lg font-bold text-xs transition-all shadow-xs flex items-center gap-2 cursor-pointer active:scale-98"
           >
             <span className="text-base font-bold">+</span>
             <span>Thêm chuyến xe mới</span>

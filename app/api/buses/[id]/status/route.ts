@@ -1,3 +1,4 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import { getBusById, updateBusStatus } from "@/services/busService";
 
@@ -11,6 +12,7 @@ type ParamsContext = {
 // PATCH /api/buses/[id]/status - Cập nhật trạng thái hoạt động của xe
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const bus = await getBusById(id);
 
@@ -21,8 +23,8 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
-    const { status } = body;
+    const body = await readJson(request);
+    const { status } = (body ?? {}) as { status?: string };
 
     const allowedStatuses = ["Đang hoạt động", "Bảo dưỡng", "Ngừng hoạt động"];
     if (!status || !allowedStatuses.includes(status)) {
@@ -43,10 +45,6 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật trạng thái xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật trạng thái xe." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

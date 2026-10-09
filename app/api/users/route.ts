@@ -1,3 +1,5 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { readOption } from "@/lib/query-params";
 import { NextRequest, NextResponse } from "next/server";
 import { queryUsers, createUser, checkUserPhoneConflict } from "@/services/userService";
 import { userSchema } from "@/lib/validations/user";
@@ -9,6 +11,7 @@ export const revalidate = 0;
 // GET /api/users - Lấy danh sách người dùng phân trang
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin(request);
     const { searchParams } = new URL(request.url);
 
     const params: UserQueryParams = {
@@ -16,8 +19,8 @@ export async function GET(request: NextRequest) {
       role: searchParams.get("role") || "",
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 8,
-      sortBy: (searchParams.get("sortBy") as any) || "id",
-      sortOrder: (searchParams.get("sortOrder") as any) || "desc",
+      sortBy: readOption(searchParams.get("sortBy"), ["createdAt", "fullName", "id"] as const, "id"),
+      sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };
 
     const result = await queryUsers(params);
@@ -30,18 +33,15 @@ export async function GET(request: NextRequest) {
       message: "Lấy danh sách người dùng thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi tải danh sách người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tải danh sách người dùng" },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // POST /api/users - Tạo tài khoản người dùng mới
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    await requireAdmin(request);
+    const body = await readJson(request);
 
     const validationResult = userSchema.safeParse(body);
     if (!validationResult.success) {
@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
           fullName: newUser.fullName,
           phone: newUser.phone,
           role: newUser.role,
+          isActive: newUser.isActive,
           createdAt: newUser.createdAt.toISOString(),
         },
         message: `Đã tạo người dùng "${newUser.fullName}" thành công!`,
@@ -85,10 +86,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Lỗi khi tạo người dùng:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi máy chủ khi tạo người dùng." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

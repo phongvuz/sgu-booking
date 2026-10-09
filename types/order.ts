@@ -1,4 +1,4 @@
-import { PaginationMeta } from "./employee";
+import { PaginationMeta } from "./common";
 
 export type BookingStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
 
@@ -17,7 +17,6 @@ export interface OrderItem {
   };
   trip: {
     id: number;
-    code: string;
     from: string;
     to: string;
     time: string;
@@ -30,7 +29,7 @@ export interface OrderQueryParams {
   search?: string;
   status?: string;
   date?: string;
-  tripId?: string;
+  tripId?: number;
   page?: number;
   limit?: number;
   sortBy?: "createdAt" | "totalPrice" | "id";
@@ -42,14 +41,14 @@ export interface OrderListResponse {
   data: OrderItem[];
   pagination: PaginationMeta;
   message?: string;
-  stats?: OrderStats;
+  stats: OrderStats;
 }
 
 export interface OrderDetailResponse {
   success: boolean;
   data?: OrderItem;
   message?: string;
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export interface OrderStats {

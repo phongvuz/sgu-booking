@@ -1,10 +1,11 @@
 import Link from "next/link";
+import { TbError404Off } from "react-icons/tb";
 
 export default function NotFound() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-center">
-      <div className="w-24 h-24 bg-orange-100 text-[#1a9e09] rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm">
-        🚌
+      <div className="w-40 h-40 bg-orange-100 text-brand-primary rounded-full flex items-center justify-center text-5xl mb-6 shadow-sm">
+        <TbError404Off className="size-60"/>
       </div>
       <h1 className="text-4xl font-extrabold text-gray-900 mb-2">404 - Không tìm thấy trang</h1>
       <p className="text-gray-600 max-w-md mb-8">
@@ -13,7 +14,7 @@ export default function NotFound() {
       <div className="flex gap-4">
         <Link
           href="/"
-          className="bg-[#1a9e09] hover:bg-[#1db63e] text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+          className="bg-brand-primary hover:bg-brand-dark text-white font-semibold py-3 px-6 rounded-lg transition-colors"
         >
           Về Trang Chủ
         </Link>

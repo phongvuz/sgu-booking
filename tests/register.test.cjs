@@ -1,25 +1,9 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const Module = require("node:module");
-const ts = require("typescript");
+const { load } = require("./load-ts.cjs");
 const { scryptSync } = require("node:crypto");
 const { Prisma } = require("@prisma/client");
 
-function load(relative, mocks = {}) {
-  const filename = path.resolve(__dirname, "..", relative);
-  const compiled = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText;
-  const mod = new Module(filename, module);
-  mod.filename = filename;
-  mod.paths = Module._nodeModulePaths(path.dirname(filename));
-  const original = mod.require.bind(mod);
-  mod.require = (id) => Object.hasOwn(mocks, id) ? mocks[id] : original(id);
-  mod._compile(compiled, filename);
-  return mod.exports;
-}
 
 const validation = load("lib/validations/register.ts");
 const password = load("lib/password.ts");
@@ -104,7 +88,7 @@ test("rejects an existing customer email or phone before writing", async () => {
 
 test("accepts registration without an optional address", async () => {
   const { post, writes } = setup();
-  const { address, ...withoutAddress } = valid;
+  const { address: _address, ...withoutAddress } = valid;
   assert.equal((await post(withoutAddress)).status, 201);
   assert.equal(writes[1][1].address, null);
 });

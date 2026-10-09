@@ -49,7 +49,7 @@ export function EmployeeFilters({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm theo tên, email, SĐT, mã NV..."
-            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#1a9e09]/30 focus:border-[#1a9e09] transition-colors bg-gray-50/50 hover:bg-white focus:bg-white text-gray-800"
+            className="w-full pl-9 pr-8 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors bg-gray-50/50 hover:bg-white focus:bg-white text-gray-800"
           />
           {search && (
             <button
@@ -66,7 +66,7 @@ export function EmployeeFilters({
         <select
           value={role}
           onChange={(e) => onRoleChange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a9e09]/30 focus:border-[#1a9e09] transition-colors cursor-pointer"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors cursor-pointer"
         >
           <option value="">Tất cả vai trò</option>
           <option value="Tài xế">Tài xế</option>
@@ -80,7 +80,7 @@ export function EmployeeFilters({
         <select
           value={status}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-[#1a9e09]/30 focus:border-[#1a9e09] transition-colors cursor-pointer"
+          className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-brand-primary/30 focus:border-brand-primary transition-colors cursor-pointer"
         >
           <option value="">Tất cả trạng thái</option>
           <option value="Đang làm việc">🟢 Đang làm việc</option>
@@ -93,7 +93,7 @@ export function EmployeeFilters({
           <button
             type="button"
             onClick={onReset}
-            className="text-xs text-gray-500 hover:text-[#1a9e09] font-medium flex items-center gap-1 px-2.5 py-2 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
+            className="text-xs text-gray-500 hover:text-brand-primary font-medium flex items-center gap-1 px-2.5 py-2 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
           >
             <span>🔄</span> Đặt lại
           </button>

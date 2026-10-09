@@ -16,9 +16,11 @@ export const userSchema = z.object({
   password: z
     .string()
     .min(6, "Mật khẩu tối thiểu 6 ký tự")
+    .max(128, "Mật khẩu tối đa 128 ký tự")
     .optional()
     .or(z.literal("")),
-  role: z.enum(["USER", "ADMIN"]).default("USER"),
+  role: z.enum(["USER", "ADMIN", "CUSTOMER"]).default("USER"),
+  isActive: z.boolean().default(true),
 });
 
 export type UserFormValues = z.infer<typeof userSchema>;

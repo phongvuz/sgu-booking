@@ -1,5 +1,6 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
-import { getOrderById, updateOrderStatus, deleteOrder } from "@/services/bookingService";
+import { getOrderById, updateOrderStatus, deleteOrder } from "@/services/orderService";
 import { BookingStatus } from "@/types";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ type ParamsContext = {
 // GET /api/admin/orders/[id] - Lấy chi tiết đơn vé
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const order = await getOrderById(id);
 
@@ -27,17 +29,14 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
       data: order,
     });
   } catch (error) {
-    console.error("Lỗi khi tìm đơn vé:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tìm đơn vé." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // PATCH /api/admin/orders/[id] - Cập nhật trạng thái vé (CONFIRMED, PENDING, CANCELLED)
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const order = await getOrderById(id);
 
@@ -48,11 +47,11 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
-    const { status } = body;
+    const body = await readJson(request);
+    const { status } = (body ?? {}) as { status?: string };
 
     const allowedStatuses: BookingStatus[] = ["CONFIRMED", "PENDING", "CANCELLED"];
-    if (!status || !allowedStatuses.includes(status)) {
+    if (!status || !allowedStatuses.includes(status as BookingStatus)) {
       return NextResponse.json(
         {
           success: false,
@@ -62,7 +61,7 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const updated = await updateOrderStatus(id, status);
+    const updated = await updateOrderStatus(id, status as BookingStatus);
 
     return NextResponse.json({
       success: true,
@@ -70,17 +69,14 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật trạng thái vé:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật trạng thái vé." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // DELETE /api/admin/orders/[id] - Hủy hoặc xóa đơn vé
 export async function DELETE(request: NextRequest, { params }: ParamsContext) {
   try {
+    await requireAdmin(request);
     const { id } = await params;
     const order = await getOrderById(id);
 
@@ -101,13 +97,9 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
 
     return NextResponse.json({
       success: true,
-      message: `Đã xóa đơn vé mã ${id} thành công!`,
+      message: `Đã hủy đơn vé mã ${id} thành công!`,
     });
   } catch (error) {
-    console.error("Lỗi khi xóa đơn vé:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi xóa đơn vé." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

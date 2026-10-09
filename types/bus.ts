@@ -1,11 +1,11 @@
-import { PaginationMeta } from "./employee";
+import type { PaginationMeta } from "./common";
 
 export interface Bus {
   id: string;
   plate: string;
   type: string;
   seats: number;
-  status: "Đang hoạt động" | "Bảo dưỡng" | "Ngừng hoạt động" | string;
+  status: string;
   brand?: string;
   year?: number;
   driverName?: string;
@@ -29,7 +29,7 @@ export interface BusListResponse {
   success: boolean;
   data: Bus[];
   pagination: PaginationMeta;
-  stats?: BusStats;
+  stats: BusStats;
   message?: string;
 }
 
@@ -37,7 +37,7 @@ export interface BusDetailResponse {
   success: boolean;
   data?: Bus;
   message?: string;
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export interface BusStats {

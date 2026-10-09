@@ -1,5 +1,7 @@
 "use client";
 
+import type { z } from "zod";
+
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,8 +28,8 @@ export function BusModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<BusFormValues>({
-    resolver: zodResolver(busSchema) as any,
+  } = useForm<z.input<typeof busSchema>, unknown, BusFormValues>({
+    resolver: zodResolver(busSchema),
     defaultValues: {
       plate: "",
       type: "Limousine 22 phòng",
@@ -48,9 +50,9 @@ export function BusModal({
         plate: initialData.plate,
         type: initialData.type,
         seats: initialData.seats,
-        status: initialData.status as any,
+        status: initialData.status as BusFormValues["status"],
         brand: initialData.brand || "",
-        year: initialData.year || new Date().getFullYear(),
+        year: initialData.year ?? "",
         driverName: initialData.driverName || "",
         driverPhone: initialData.driverPhone || "",
         lastMaintenance: initialData.lastMaintenance || "",
@@ -116,7 +118,7 @@ export function BusModal({
                 type="text"
                 placeholder="VD: 51B-123.45"
                 {...register("plate")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-semibold uppercase focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs font-semibold uppercase focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.plate && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.plate.message}</p>
@@ -129,7 +131,7 @@ export function BusModal({
               </label>
               <select
                 {...register("type")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="Limousine 22 phòng">Limousine 22 phòng</option>
                 <option value="Giường nằm 34 chỗ">Giường nằm 34 chỗ</option>
@@ -150,7 +152,7 @@ export function BusModal({
               <input
                 type="number"
                 {...register("seats")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.seats && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.seats.message}</p>
@@ -163,7 +165,7 @@ export function BusModal({
               </label>
               <select
                 {...register("status")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               >
                 <option value="Đang hoạt động">Đang hoạt động</option>
                 <option value="Bảo dưỡng">Bảo dưỡng</option>
@@ -185,7 +187,7 @@ export function BusModal({
                 type="text"
                 placeholder="VD: Thaco Mobihome"
                 {...register("brand")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
@@ -196,7 +198,7 @@ export function BusModal({
               <input
                 type="number"
                 {...register("year")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
             </div>
           </div>
@@ -211,7 +213,7 @@ export function BusModal({
                 type="text"
                 placeholder="Họ tên tài xế"
                 {...register("driverName")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
             </div>
 
@@ -223,7 +225,7 @@ export function BusModal({
                 type="text"
                 placeholder="VD: 0901234567"
                 {...register("driverPhone")}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
               {errors.driverPhone && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.driverPhone.message}</p>
@@ -239,7 +241,7 @@ export function BusModal({
             <input
               type="date"
               {...register("lastMaintenance")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
           </div>
 
@@ -251,7 +253,7 @@ export function BusModal({
               rows={2}
               placeholder="VD: Cần kiểm tra định kỳ 50,000km..."
               {...register("notes")}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
             />
           </div>
 
@@ -267,7 +269,7 @@ export function BusModal({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
+              className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {isSubmitting ? "Đang lưu..." : mode === "create" ? "Tạo xe mới" : "Lưu thay đổi"}
             </button>

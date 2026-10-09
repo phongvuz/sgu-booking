@@ -1,5 +1,7 @@
 import { NextRequest } from "next/server";
 import { addClient, removeClient } from "@/lib/sse";
+import { parseTripId } from "@/lib/trip-id";
+import { apiError } from "@/lib/admin-api";
 
 export const dynamic = "force-dynamic";
 
@@ -7,7 +9,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id: tripId } = await params;
+  const { id } = await params;
+  let tripId: number;
+  try {
+    tripId = parseTripId(id);
+  } catch (error) {
+    return apiError(error, "ID chuyến xe không hợp lệ.");
+  }
 
   let cleanup: () => void;
 
@@ -20,7 +28,7 @@ export async function GET(
       const heartbeatId = setInterval(() => {
         try {
           controller.enqueue(new TextEncoder().encode(":\n\n"));
-        } catch (e) {
+        } catch {
           clearInterval(heartbeatId);
           cleanup();
         }

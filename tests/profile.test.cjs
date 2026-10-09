@@ -1,24 +1,8 @@
 ﻿const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const Module = require("node:module");
-const ts = require("typescript");
+const { load } = require("./load-ts.cjs");
 const { Prisma } = require("@prisma/client");
 
-function load(relative, mocks = {}) {
-  const filename = path.resolve(__dirname, "..", relative);
-  const compiled = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText;
-  const mod = new Module(filename, module);
-  mod.filename = filename;
-  mod.paths = Module._nodeModulePaths(path.dirname(filename));
-  const original = mod.require.bind(mod);
-  mod.require = (id) => Object.hasOwn(mocks, id) ? mocks[id] : original(id);
-  mod._compile(compiled, filename);
-  return mod.exports;
-}
 
 const registration = load("lib/validations/register.ts");
 const validation = load("lib/validations/profile.ts", { "./register": registration });
@@ -91,5 +75,3 @@ test("password change requires current password and matching valid new password"
   assert.equal(await passwords.verifyPassword("old123", writes[0].data.password), false);
   assert.equal((await response.text()).includes("scrypt"), false);
 });
-
-const password = load("lib/password.ts");

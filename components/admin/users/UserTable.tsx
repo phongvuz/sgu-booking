@@ -2,7 +2,7 @@
 
 import React from "react";
 import { UserAccount } from "@/types";
-import { formatPrice } from "@/types/trip";
+import { formatPrice } from "@/lib/trip-display";
 
 interface UserTableProps {
   users: UserAccount[];
@@ -49,6 +49,7 @@ export function UserTable({
             <th className="px-5 py-3.5">Họ và tên</th>
             <th className="px-5 py-3.5">Số điện thoại</th>
             <th className="px-5 py-3.5">Vai trò</th>
+            <th className="px-5 py-3.5">Trạng thái</th>
             <th className="px-5 py-3.5">Số đơn đã đặt</th>
             <th className="px-5 py-3.5">Tổng chi tiêu</th>
             <th className="px-5 py-3.5">Ngày tham gia</th>
@@ -70,6 +71,7 @@ export function UserTable({
               <td className="px-5 py-3.5 font-semibold text-gray-700">{user.phone}</td>
               <td className="px-5 py-3.5">
                 <button
+                  disabled={user.role === "CUSTOMER"}
                   onClick={() => onToggleRole(user)}
                   title="Nhấp để đổi quyền giữa USER và ADMIN"
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform active:scale-95 ${
@@ -78,15 +80,16 @@ export function UserTable({
                       : "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
                   }`}
                 >
-                  <span>{user.role === "ADMIN" ? "👑 ADMIN" : "👤 USER"}</span>
+                  <span>{user.role === "ADMIN" ? "👑 ADMIN" : `👤 ${user.role}`}</span>
                 </button>
               </td>
+              <td className="px-5 py-3.5">{user.isActive ? "Đang hoạt động" : "Đã khóa"}</td>
               <td className="px-5 py-3.5">
                 <span className="font-bold text-gray-900">
                   {user._count?.booking || 0} vé
                 </span>
               </td>
-              <td className="px-5 py-3.5 font-bold text-[#1a9e09]">
+              <td className="px-5 py-3.5 font-bold text-brand-primary">
                 {formatPrice(user.totalSpent || 0)}
               </td>
               <td className="px-5 py-3.5 text-gray-400">

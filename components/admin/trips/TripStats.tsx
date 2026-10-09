@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TripStats as TripStatsType } from "@/services/tripService";
+import type { TripStats as TripStatsType } from "@/types/trip";
 
 interface TripStatsProps {
   stats: TripStatsType;

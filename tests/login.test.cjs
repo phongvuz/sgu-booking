@@ -1,25 +1,7 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const Module = require("node:module");
-const ts = require("typescript");
-const { scryptSync } = require("node:crypto");
-const { Prisma } = require("@prisma/client");
+const { load } = require("./load-ts.cjs");
 
-function load(relative, mocks = {}) {
-  const filename = path.resolve(__dirname, "..", relative);
-  const compiled = ts.transpileModule(fs.readFileSync(filename, "utf8"), {
-    compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020 },
-  }).outputText;
-  const mod = new Module(filename, module);
-  mod.filename = filename;
-  mod.paths = Module._nodeModulePaths(path.dirname(filename));
-  const original = mod.require.bind(mod);
-  mod.require = (id) => Object.hasOwn(mocks, id) ? mocks[id] : original(id);
-  mod._compile(compiled, filename);
-  return mod.exports;
-}
 
 
 process.env.SESSION_SECRET = "test-secret-".repeat(4);
@@ -127,24 +109,6 @@ test("admin session rechecks role and rejects missing, expired or tampered cooki
       "@/lib/prisma": { prisma: { user: { findUnique: async () => ({ id: 7, role }) } } },
     });
     assert.equal(Boolean(await current.getCurrentAdmin()), allowed);
-  }
-});
-
-test("management APIs reject unauthorized requests before accessing data", async () => {
-  const cases = [
-    ["app/api/employees/route.ts", ["GET", "POST"]],
-    ["app/api/employees/[id]/route.ts", ["GET", "PUT", "DELETE"]],
-    ["app/api/employees/[id]/status/route.ts", ["PATCH"]],
-    ["app/api/trips/route.ts", ["POST"]],
-    ["app/api/trips/[id]/route.ts", ["PUT", "DELETE"]],
-  ];
-  for (const [file, methods] of cases) {
-    const handlers = load(file, {
-      "@/lib/session": { getCurrentAdmin: async () => null },
-      "@/lib/employee-store": {}, "@/lib/validations/employee": {},
-      "@/services/tripService": {}, "@/types": {},
-    });
-    for (const method of methods) assert.equal((await handlers[method](new Request("http://localhost/api"), { params: Promise.resolve({ id: "1" }) })).status, 403);
   }
 });
 

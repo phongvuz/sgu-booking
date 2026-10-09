@@ -1,13 +1,11 @@
 "use client";
 
 import React from "react";
-import { Seat } from "./seatUtils";
+import type { Seat } from "@/types/trip";
 
 interface SeatMapProps {
   seats: Seat[];
   selectedSeats: string[];
-  heldSeats: Record<string, string>;
-  clientId: string;
   isSubmitting: boolean;
   onToggleSeat: (seatId: string, isBooked: boolean) => void;
 }
@@ -15,8 +13,6 @@ interface SeatMapProps {
 export default function SeatMap({
   seats,
   selectedSeats,
-  heldSeats,
-  clientId,
   isSubmitting,
   onToggleSeat,
 }: SeatMapProps) {
@@ -37,22 +33,14 @@ export default function SeatMap({
               {floorSeats
                 .filter((s) => s.row === row)
                 .map((seat) => {
-                  const holder = heldSeats[seat.id];
-                  const isHeldByMe = holder === clientId;
-                  const isHeldByOther = holder && holder !== clientId;
-                  const isDisabled = seat.isBooked || isHeldByOther || isSubmitting;
-
                   let seatClass =
-                    "bg-white text-gray-700 border-gray-300 hover:border-[#1a9e09] hover:text-[#1a9e09]";
+                    "bg-white text-gray-700 border-gray-300 hover:border-brand-primary hover:text-brand-primary";
 
                   if (seat.isBooked) {
                     seatClass =
                       "bg-gray-200 text-gray-400 border-gray-300 cursor-not-allowed line-through";
-                  } else if (isHeldByOther) {
-                    seatClass =
-                      "bg-orange-200 text-orange-600 border-orange-300 cursor-not-allowed";
-                  } else if (selectedSeats.includes(seat.id) || isHeldByMe) {
-                    seatClass = "bg-[#1a9e09] text-white border-[#1a9e09] shadow-sm";
+                  } else if (selectedSeats.includes(seat.id)) {
+                    seatClass = "bg-brand-primary text-white border-brand-primary shadow-sm";
                   }
 
                   return (
@@ -60,7 +48,7 @@ export default function SeatMap({
                       key={seat.id}
                       type="button"
                       onClick={() => onToggleSeat(seat.id, seat.isBooked)}
-                      disabled={isDisabled}
+                      disabled={seat.isBooked || isSubmitting}
                       className={`w-full py-3 rounded text-sm font-bold border transition-colors ${seatClass}`}
                     >
                       {seat.id}
@@ -85,12 +73,8 @@ export default function SeatMap({
             <span className="text-gray-600">Trống</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-[#1a9e09] border border-[#1a9e09] rounded"></div>
+            <div className="w-4 h-4 bg-brand-primary border border-brand-primary rounded"></div>
             <span className="text-gray-600">Đang chọn</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-orange-200 border border-orange-300 rounded"></div>
-            <span className="text-gray-600">Đang giữ</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 bg-gray-200 border border-gray-300 rounded"></div>

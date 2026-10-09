@@ -1,6 +1,6 @@
-import { getCurrentAdmin } from "@/lib/session";
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
-import { getEmployeeById, updateEmployeeStatus } from "@/lib/employee-store";
+import { getEmployeeById, updateEmployeeStatus } from "@/services/employeeService";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,9 +12,7 @@ type ParamsContext = {
 // PATCH /api/employees/[id]/status - Cập nhật trạng thái làm việc của nhân viên
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
-    if (!(await getCurrentAdmin())) {
-      return NextResponse.json({ message: "Bạn không có quyền quản trị!" }, { status: 403 });
-    }
+    await requireAdmin(request);
     const { id } = await params;
     const employee = await getEmployeeById(id);
 
@@ -25,8 +23,8 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    const body = await request.json();
-    const { status } = body;
+    const body = await readJson(request);
+    const { status } = (body ?? {}) as { status?: string };
 
     const allowedStatuses = ["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"];
     if (!status || !allowedStatuses.includes(status)) {
@@ -47,10 +45,6 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       data: updated,
     });
   } catch (error) {
-    console.error("Lỗi khi cập nhật trạng thái nhân viên:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi cập nhật trạng thái." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

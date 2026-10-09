@@ -1,18 +1,14 @@
-import { resolveLocationName } from "@/types";
+import type { TripSearchParams } from "@/types";
+import { resolveLocationName } from "@/lib/trip-display";
 import Link from "next/link";
 import TripListWithFilter from "@/components/trips/TripFilter";
 import { getTrips } from "@/services/tripService";
 
-interface SearchParams {
-  from?: string;
-  to?: string;
-  date?: string;
-}
 
 export default async function TripsPage({
   searchParams,
 }: {
-  searchParams: Promise<SearchParams>;
+  searchParams: Promise<TripSearchParams>;
 }) {
   const params = await searchParams;
   const fromQuery = params.from?.trim() || "";
@@ -36,15 +32,15 @@ export default async function TripsPage({
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Kết quả tìm kiếm</h2>
             <p className="text-gray-600">
               Tuyến:{" "}
-              <span className="font-bold text-[#1a9e09]">
+              <span className="font-bold text-brand-primary">
                 {fromCity || fromQuery || "Tất cả điểm đi"}
               </span>{" "}
               ➔{" "}
-              <span className="font-bold text-[#1a9e09]">
+              <span className="font-bold text-brand-primary">
                 {toCity || toQuery || "Tất cả điểm đến"}
               </span>
               <span className="mx-2">|</span>
-              Ngày đi: <span className="font-bold">{params.date || "Hôm nay"}</span>
+              Ngày đi: <span className="font-bold">{params.date || "Tất cả ngày"}</span>
             </p>
           </div>
           <Link

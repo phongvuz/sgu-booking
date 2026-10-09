@@ -1,3 +1,5 @@
+import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { readOption } from "@/lib/query-params";
 import { NextRequest, NextResponse } from "next/server";
 import { queryBuses, createBus, checkBusPlateConflict } from "@/services/busService";
 import { busSchema } from "@/lib/validations/bus";
@@ -9,6 +11,7 @@ export const revalidate = 0;
 // GET /api/buses - Lấy danh sách xe với tìm kiếm, lọc và phân trang
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin(request);
     const { searchParams } = new URL(request.url);
 
     const params: BusQueryParams = {
@@ -17,8 +20,8 @@ export async function GET(request: NextRequest) {
       status: searchParams.get("status") || "",
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 8,
-      sortBy: (searchParams.get("sortBy") as any) || "id",
-      sortOrder: (searchParams.get("sortOrder") as any) || "desc",
+      sortBy: readOption(searchParams.get("sortBy"), ["plate", "seats", "createdAt", "id"] as const, "createdAt"),
+      sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };
 
     const result = await queryBuses(params);
@@ -31,18 +34,15 @@ export async function GET(request: NextRequest) {
       message: "Lấy danh sách xe thành công",
     });
   } catch (error) {
-    console.error("Lỗi khi tải danh sách xe:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi hệ thống khi tải danh sách xe" },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }
 
 // POST /api/buses - Tạo mới xe
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    await requireAdmin(request);
+    const body = await readJson(request);
 
     const validationResult = busSchema.safeParse(body);
     if (!validationResult.success) {
@@ -80,10 +80,6 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error("Lỗi khi thêm xe mới:", error);
-    return NextResponse.json(
-      { success: false, message: "Lỗi máy chủ khi thêm xe mới." },
-      { status: 500 }
-    );
+    return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");
   }
 }

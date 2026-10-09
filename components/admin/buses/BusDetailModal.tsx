@@ -30,7 +30,7 @@ export function BusDetailModal({
             ✕
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#1a9e09] text-white flex items-center justify-center text-2xl font-bold shadow-sm">
+            <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex items-center justify-center text-2xl font-bold shadow-sm">
               🚐
             </div>
             <div>
@@ -117,7 +117,7 @@ export function BusDetailModal({
               onClose();
               onEdit(bus);
             }}
-            className="px-4 py-2 bg-[#1a9e09] hover:bg-[#1db63e] text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             Chỉnh sửa thông tin
           </button>

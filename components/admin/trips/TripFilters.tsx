@@ -30,14 +30,14 @@ export function TripFilters({
   return (
     <div className="p-4 border-b border-gray-200 bg-gray-50/60 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
       <div className="flex flex-col sm:flex-row gap-3 flex-1 flex-wrap">
-        {/* Search by code */}
+        {/* Tìm theo ID hoặc hành trình */}
         <div className="relative flex-1 sm:max-w-xs">
           <input
             type="text"
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Tìm theo mã chuyến xe..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-xs placeholder-gray-400 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+            placeholder="Tìm theo ID chuyến, điểm đi, điểm đến..."
+            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-xs placeholder-gray-400 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
           />
           <span className="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
           {search && (
@@ -56,7 +56,7 @@ export function TripFilters({
           value={from}
           onChange={(e) => onFromChange(e.target.value)}
           placeholder="Điểm đi (VD: Hồ Chí Minh)..."
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
 
         {/* Điểm đến */}
@@ -65,7 +65,7 @@ export function TripFilters({
           value={to}
           onChange={(e) => onToChange(e.target.value)}
           placeholder="Điểm đến (VD: Đà Lạt)..."
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
 
         {/* Ngày khởi hành */}
@@ -73,7 +73,7 @@ export function TripFilters({
           type="date"
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
       </div>
 

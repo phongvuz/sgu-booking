@@ -1,66 +1,65 @@
+require("dotenv/config");
+const { randomBytes, scryptSync } = require("node:crypto");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("Đang làm mới và tạo dữ liệu mẫu theo schema mới...");
-
-  // Xóa sạch dữ liệu cũ theo thứ tự foreign keys
-  await prisma.booking.deleteMany();
-  await prisma.trip.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.employee.deleteMany();
-  await prisma.bus.deleteMany();
-
+  const password = process.env.SEED_PASSWORD;
+  if (!password || password.length < 6 || password.length > 128) throw new Error("Thiết lập SEED_PASSWORD từ 6–128 ký tự trước khi tạo dữ liệu mẫu.");
+  await prisma.$transaction(async (tx) => {
+    const counts = await Promise.all([tx.user.count(), tx.trip.count(), tx.booking.count(), tx.customer.count(), tx.employee.count(), tx.bus.count(), tx.seatHold.count()]);
+    if (counts.some((count) => count > 0)) throw new Error("Seed chỉ dùng cho database trống. Dữ liệu hiện có được giữ nguyên.");
+    const salt = randomBytes(16).toString("hex");
+    const passwordHash = `scrypt:${salt}:${scryptSync(password, salt, 64).toString("hex")}`;
   // 1. Tạo Users mẫu
   const usersData = [
     {
       fullName: "Nguyễn Văn An",
       phone: "0901234567",
-      password: "password123",
+      password: passwordHash,
       role: "USER",
     },
     {
       fullName: "Trần Thị Bình",
       phone: "0987654321",
-      password: "password123",
+      password: passwordHash,
       role: "ADMIN",
     },
     {
       fullName: "Lê Văn Cường",
       phone: "0912888999",
-      password: "password123",
+      password: passwordHash,
       role: "USER",
     },
     {
       fullName: "Phạm Thu Hương",
       phone: "0933777666",
-      password: "password123",
+      password: passwordHash,
       role: "USER",
     },
     {
       fullName: "Hoàng Minh Đức",
       phone: "0977112233",
-      password: "password123",
+      password: passwordHash,
       role: "USER",
     },
     {
       fullName: "Võ Ngọc Mai",
       phone: "0966445566",
-      password: "password123",
+      password: passwordHash,
       role: "USER",
     },
   ];
 
   const createdUsers = [];
   for (const u of usersData) {
-    const user = await prisma.user.create({ data: u });
+    const user = await tx.user.create({ data: u });
     createdUsers.push(user);
   }
 
   // 2. Tạo danh sách Chuyến xe (Trip) mẫu
   const tripsData = [
     {
-      code: "SG-DL-01",
       from: "Hồ Chí Minh",
       to: "Đà Lạt",
       time: new Date("2026-10-04T21:00:00Z"),
@@ -68,7 +67,6 @@ async function main() {
       availableSeats: 30,
     },
     {
-      code: "SG-DL-02",
       from: "Hồ Chí Minh",
       to: "Đà Lạt",
       time: new Date("2026-10-04T23:00:00Z"),
@@ -76,7 +74,6 @@ async function main() {
       availableSeats: 20,
     },
     {
-      code: "SG-NHA-01",
       from: "Hồ Chí Minh",
       to: "Nha Trang",
       time: new Date("2026-10-04T22:30:00Z"),
@@ -84,7 +81,6 @@ async function main() {
       availableSeats: 28,
     },
     {
-      code: "SG-VT-01",
       from: "Hồ Chí Minh",
       to: "Vũng Tàu",
       time: new Date("2026-10-04T07:30:00Z"),
@@ -92,7 +88,6 @@ async function main() {
       availableSeats: 25,
     },
     {
-      code: "SG-HAN-01",
       from: "Hồ Chí Minh",
       to: "Hà Nội",
       time: new Date("2026-10-05T08:00:00Z"),
@@ -100,7 +95,6 @@ async function main() {
       availableSeats: 34,
     },
     {
-      code: "DL-SG-01",
       from: "Đà Lạt",
       to: "Hồ Chí Minh",
       time: new Date("2026-10-04T21:30:00Z"),
@@ -108,7 +102,6 @@ async function main() {
       availableSeats: 26,
     },
     {
-      code: "SG-DAD-01",
       from: "Hồ Chí Minh",
       to: "Đà Nẵng",
       time: new Date("2026-10-05T14:00:00Z"),
@@ -116,7 +109,6 @@ async function main() {
       availableSeats: 32,
     },
     {
-      code: "SG-CTH-01",
       from: "Hồ Chí Minh",
       to: "Cần Thơ",
       time: new Date("2026-10-04T09:00:00Z"),
@@ -127,7 +119,7 @@ async function main() {
 
   const createdTrips = [];
   for (const t of tripsData) {
-    const created = await prisma.trip.create({ data: t });
+    const created = await tx.trip.create({ data: { ...t, time: new Date(Date.now() + (createdTrips.length + 1) * 24 * 60 * 60 * 1000), capacity: t.availableSeats } });
     createdTrips.push(created);
   }
 
@@ -199,7 +191,12 @@ async function main() {
   ];
 
   for (const b of bookingsData) {
-    await prisma.booking.create({ data: b });
+    const passenger = createdUsers.find((user) => user.id === b.userId);
+    await tx.booking.create({ data: { ...b, pnr: `NHAXE-SEED-${randomBytes(8).toString("hex").toUpperCase()}`,
+      passengerName: passenger.fullName, passengerPhone: passenger.phone,
+      activeSeat: b.status === "CANCELLED" ? null : `${b.tripId}:${b.seatNumber}`,
+      confirmedAt: b.status === "CONFIRMED" ? new Date() : null } });
+    if (b.status !== "CANCELLED") await tx.trip.update({ where: { id: b.tripId }, data: { availableSeats: { decrement: 1 } } });
   }
 
   // 4. Tạo danh sách Xe (Bus) mẫu
@@ -311,7 +308,7 @@ async function main() {
   ];
 
   for (const bus of busesData) {
-    await prisma.bus.create({ data: bus });
+    await tx.bus.create({ data: bus });
   }
 
   // 5. Tạo danh sách Nhân viên (Employee)
@@ -475,7 +472,7 @@ async function main() {
   ];
 
   for (const emp of employeesData) {
-    await prisma.employee.create({ data: emp });
+    await tx.employee.create({ data: emp });
   }
 
   console.log("✅ Đã tạo thành công dữ liệu mẫu hoàn chỉnh cho tất cả các bảng!");
@@ -484,6 +481,7 @@ async function main() {
   console.log(`- Đơn vé: ${bookingsData.length}`);
   console.log(`- Xe: ${busesData.length}`);
   console.log(`- Nhân sự: ${employeesData.length}`);
+  }, { timeout: 30000 });
 }
 
 main()

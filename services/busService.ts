@@ -1,3 +1,7 @@
+import { randomBytes } from "node:crypto";
+import { positiveInteger } from "@/lib/query-params";
+import type { Prisma } from "@prisma/client";
+import { toBus } from "@/lib/record-mappers";
 import { prisma } from "@/lib/prisma";
 import { Bus, BusQueryParams, PaginationMeta, BusStats } from "@/types";
 import { BusFormValues } from "@/lib/validations/bus";
@@ -16,11 +20,11 @@ export async function queryBuses(params: BusQueryParams): Promise<{
     status = "",
     page = 1,
     limit = 8,
-    sortBy = "id",
+    sortBy = "createdAt",
     sortOrder = "desc",
   } = params;
 
-  const where: any = {};
+  const where: Prisma.busWhereInput = {};
 
   if (search.trim()) {
     const s = search.trim();
@@ -41,26 +45,26 @@ export async function queryBuses(params: BusQueryParams): Promise<{
     where.status = status;
   }
 
-  const numLimit = Math.max(1, Number(limit) || 8);
-  const numPage = Math.max(1, Number(page) || 1);
+  const numLimit = positiveInteger(limit, 8, 100);
+  const numPage = positiveInteger(page, 1);
 
-  const [total, allBuses] = await Promise.all([
+  const [total, statusCounts] = await Promise.all([
     prisma.bus.count({ where }),
-    prisma.bus.findMany({ select: { status: true } }),
+    prisma.bus.groupBy({ by: ["status"], where, _count: { _all: true } }),
   ]);
-
+  const countStatus = (status: string) => statusCounts.find((group) => group.status === status)?._count._all ?? 0;
   const stats: BusStats = {
-    total: allBuses.length,
-    active: allBuses.filter((b) => b.status === "Đang hoạt động").length,
-    maintenance: allBuses.filter((b) => b.status === "Bảo dưỡng").length,
-    inactive: allBuses.filter((b) => b.status === "Ngừng hoạt động").length,
+    total: statusCounts.reduce((sum, group) => sum + group._count._all, 0),
+    active: countStatus("Đang hoạt động"),
+    maintenance: countStatus("Bảo dưỡng"),
+    inactive: countStatus("Ngừng hoạt động"),
   };
 
   const totalPages = Math.ceil(total / numLimit) || 1;
   const validPage = Math.min(numPage, totalPages);
   const skip = (validPage - 1) * numLimit;
 
-  let orderBy: any = {};
+  let orderBy: Prisma.busOrderByWithRelationInput = {};
   if (sortBy === "plate" || sortBy === "seats" || sortBy === "createdAt") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
@@ -74,20 +78,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
     take: numLimit,
   });
 
-  const data: Bus[] = buses.map((b) => ({
-    id: b.id,
-    plate: b.plate,
-    type: b.type,
-    seats: b.seats,
-    status: b.status,
-    brand: b.brand || undefined,
-    year: b.year || undefined,
-    driverName: b.driverName || undefined,
-    driverPhone: b.driverPhone || undefined,
-    lastMaintenance: b.lastMaintenance || undefined,
-    notes: b.notes || undefined,
-    createdAt: b.createdAt.toISOString(),
-  }));
+  const data: Bus[] = buses.map(toBus);
 
   return {
     data,
@@ -113,20 +104,7 @@ export async function getBusById(id: string): Promise<Bus | null> {
 
   if (!bus) return null;
 
-  return {
-    id: bus.id,
-    plate: bus.plate,
-    type: bus.type,
-    seats: bus.seats,
-    status: bus.status,
-    brand: bus.brand || undefined,
-    year: bus.year || undefined,
-    driverName: bus.driverName || undefined,
-    driverPhone: bus.driverPhone || undefined,
-    lastMaintenance: bus.lastMaintenance || undefined,
-    notes: bus.notes || undefined,
-    createdAt: bus.createdAt.toISOString(),
-  };
+  return toBus(bus);
 }
 
 /**
@@ -146,16 +124,7 @@ export async function checkBusPlateConflict(plate: string, excludeId?: string): 
  * Thêm mới xe vào cơ sở dữ liệu
  */
 export async function createBus(data: BusFormValues): Promise<Bus> {
-  const allBuses = await prisma.bus.findMany({ select: { id: true } });
-  const existingNums = allBuses
-    .map((b) => {
-      const match = b.id.match(/\d+/);
-      return match ? parseInt(match[0], 10) : 0;
-    })
-    .filter((n) => !isNaN(n));
-
-  const nextNum = (existingNums.length > 0 ? Math.max(...existingNums) : 0) + 1;
-  const nextId = `BUS-${String(nextNum).padStart(3, "0")}`;
+  const nextId = `BUS-${randomBytes(6).toString("hex").toUpperCase()}`;
 
   const created = await prisma.bus.create({
     data: {
@@ -173,20 +142,7 @@ export async function createBus(data: BusFormValues): Promise<Bus> {
     },
   });
 
-  return {
-    id: created.id,
-    plate: created.plate,
-    type: created.type,
-    seats: created.seats,
-    status: created.status,
-    brand: created.brand || undefined,
-    year: created.year || undefined,
-    driverName: created.driverName || undefined,
-    driverPhone: created.driverPhone || undefined,
-    lastMaintenance: created.lastMaintenance || undefined,
-    notes: created.notes || undefined,
-    createdAt: created.createdAt.toISOString(),
-  };
+  return toBus(created);
 }
 
 /**
@@ -196,7 +152,7 @@ export async function updateBus(id: string, data: Partial<BusFormValues>): Promi
   const bus = await getBusById(id);
   if (!bus) return null;
 
-  const updateData: any = {};
+  const updateData: Prisma.busUpdateInput = {};
   if (data.plate !== undefined) updateData.plate = data.plate.trim().toUpperCase();
   if (data.type !== undefined) updateData.type = data.type.trim();
   if (data.seats !== undefined) updateData.seats = Number(data.seats);
@@ -213,20 +169,7 @@ export async function updateBus(id: string, data: Partial<BusFormValues>): Promi
     data: updateData,
   });
 
-  return {
-    id: updated.id,
-    plate: updated.plate,
-    type: updated.type,
-    seats: updated.seats,
-    status: updated.status,
-    brand: updated.brand || undefined,
-    year: updated.year || undefined,
-    driverName: updated.driverName || undefined,
-    driverPhone: updated.driverPhone || undefined,
-    lastMaintenance: updated.lastMaintenance || undefined,
-    notes: updated.notes || undefined,
-    createdAt: updated.createdAt.toISOString(),
-  };
+  return toBus(updated);
 }
 
 /**
@@ -236,15 +179,8 @@ export async function deleteBus(id: string): Promise<boolean> {
   const bus = await getBusById(id);
   if (!bus) return false;
 
-  try {
-    await prisma.bus.delete({
-      where: { id: bus.id },
-    });
-    return true;
-  } catch (err) {
-    console.error("Error deleting bus:", err);
-    return false;
-  }
+  await prisma.bus.delete({ where: { id: bus.id } });
+  return true;
 }
 
 /**
@@ -259,18 +195,5 @@ export async function updateBusStatus(id: string, newStatus: string): Promise<Bu
     data: { status: newStatus },
   });
 
-  return {
-    id: updated.id,
-    plate: updated.plate,
-    type: updated.type,
-    seats: updated.seats,
-    status: updated.status,
-    brand: updated.brand || undefined,
-    year: updated.year || undefined,
-    driverName: updated.driverName || undefined,
-    driverPhone: updated.driverPhone || undefined,
-    lastMaintenance: updated.lastMaintenance || undefined,
-    notes: updated.notes || undefined,
-    createdAt: updated.createdAt.toISOString(),
-  };
+  return toBus(updated);
 }

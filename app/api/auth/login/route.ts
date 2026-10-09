@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       ? timingSafeEqual(createHash("sha256").update(password).digest(), createHash("sha256").update(user.password).digest())
       : hashedPasswordValid;
     const allowed = user?.role === "ADMIN" || (user?.role === "CUSTOMER" && customer?.status === "Đang hoạt động");
-    if (!user || !validPassword || !allowed) {
+    if (!user || user.isActive === false || !validPassword || !allowed) {
       return NextResponse.json({ message: "Thông tin đăng nhập không đúng hoặc tài khoản không được phép đăng nhập!" }, { status: 401 });
     }
     if (legacyAdmin) {

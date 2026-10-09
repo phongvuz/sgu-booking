@@ -1,23 +1,13 @@
-export type EmployeeRole =
-  | "Tài xế"
-  | "Phụ xe"
-  | "Văn phòng"
-  | "Quản lý"
-  | "Điều hành";
-
-export type EmployeeStatus =
-  | "Đang làm việc"
-  | "Nghỉ phép"
-  | "Đã nghỉ việc";
+import type { PaginationMeta } from "./common";
 
 export interface Employee {
   id: string;
   name: string;
   email: string;
   phone: string;
-  role: EmployeeRole | string;
+  role: string;
   department: string;
-  status: EmployeeStatus | string;
+  status: string;
   avatar?: string;
   identityCard?: string;
   address?: string;
@@ -36,17 +26,11 @@ export interface EmployeeQueryParams {
   sortOrder?: "asc" | "desc";
 }
 
-export interface PaginationMeta {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-}
-
 export interface EmployeeListResponse {
   success: boolean;
   data: Employee[];
   pagination: PaginationMeta;
+  stats: EmployeeStats;
   message?: string;
 }
 
@@ -56,29 +40,9 @@ export interface EmployeeDetailResponse {
   message?: string;
 }
 
-export interface CreateEmployeeInput {
-  name: string;
-  email: string;
-  phone: string;
-  role: string;
-  department: string;
-  status?: string;
-  avatar?: string;
-  identityCard?: string;
-  address?: string;
-  startDate?: string;
-  password?: string;
-}
-
-export interface UpdateEmployeeInput {
-  name?: string;
-  email?: string;
-  phone?: string;
-  role?: string;
-  department?: string;
-  status?: string;
-  avatar?: string;
-  identityCard?: string;
-  address?: string;
-  startDate?: string;
+export interface EmployeeStats {
+  total: number;
+  active: number;
+  onLeave: number;
+  drivers: number;
 }

@@ -33,7 +33,7 @@ export function OrderFilters({
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Tìm theo PNR, tên khách, SĐT, tuyến..."
-            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-xs placeholder-gray-400 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-gray-300 rounded-lg text-xs placeholder-gray-400 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
           />
           <span className="absolute left-3 top-2.5 text-gray-400 text-xs">🔍</span>
           {search && (
@@ -51,14 +51,14 @@ export function OrderFilters({
           type="date"
           value={date}
           onChange={(e) => onDateChange(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
 
         {/* Status filter */}
         <select
           value={status}
           onChange={(e) => onStatusChange(e.target.value)}
-          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-[#1a9e09] focus:ring-1 focus:ring-[#1a9e09]"
+          className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         >
           <option value="">Tất cả trạng thái vé</option>
           <option value="CONFIRMED">Đã xác nhận</option>

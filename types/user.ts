@@ -1,10 +1,11 @@
-import { PaginationMeta } from "./employee";
+import { PaginationMeta } from "./common";
 
 export interface UserAccount {
   id: number;
   fullName: string;
   phone: string;
-  role: "USER" | "ADMIN" | string;
+  role: string;
+  isActive: boolean;
   createdAt: string;
   _count?: {
     booking: number;
@@ -26,7 +27,7 @@ export interface UserListResponse {
   data: UserAccount[];
   pagination: PaginationMeta;
   message?: string;
-  stats?: UserStats;
+  stats: UserStats;
 }
 
 export interface UserDetailResponse {
@@ -40,7 +41,6 @@ export interface UserDetailResponse {
       createdAt: string;
       trip: {
         id: number;
-        code: string;
         from: string;
         to: string;
         time: string;
@@ -48,7 +48,7 @@ export interface UserDetailResponse {
     }>;
   };
   message?: string;
-  errors?: any[];
+  errors?: unknown[];
 }
 
 export interface UserStats {

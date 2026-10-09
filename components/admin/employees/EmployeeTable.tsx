@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 import React from "react";
 import { Employee } from "@/types";
 
@@ -9,7 +11,6 @@ interface EmployeeTableProps {
   onEdit: (employee: Employee) => void;
   onDelete: (employee: Employee) => void;
   onView: (employee: Employee) => void;
-  onToggleStatus: (employee: Employee) => void;
 }
 
 export function EmployeeTable({
@@ -18,7 +19,6 @@ export function EmployeeTable({
   onEdit,
   onDelete,
   onView,
-  onToggleStatus,
 }: EmployeeTableProps) {
   // Skeleton loader when data is fetching
   if (loading) {
@@ -80,7 +80,7 @@ export function EmployeeTable({
   if (employees.length === 0) {
     return (
       <div className="py-16 text-center">
-        <div className="w-16 h-16 bg-orange-50 text-[#1a9e09] rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
+        <div className="w-16 h-16 bg-orange-50 text-brand-primary rounded-full flex items-center justify-center mx-auto mb-3 text-2xl font-bold">
           👥
         </div>
         <h4 className="text-base font-semibold text-gray-800 mb-1">
@@ -119,7 +119,10 @@ export function EmployeeTable({
                 {/* Avatar & Name & ID */}
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <img
+                    <Image
+                      width={40}
+                      height={40}
+                      unoptimized
                       src={
                         emp.avatar ||
                         `https://ui-avatars.com/api/?name=${encodeURIComponent(
@@ -132,7 +135,7 @@ export function EmployeeTable({
                     <div>
                       <div
                         onClick={() => onView(emp)}
-                        className="font-bold text-gray-900 hover:text-[#1a9e09] transition-colors cursor-pointer flex items-center gap-2"
+                        className="font-bold text-gray-900 hover:text-brand-primary transition-colors cursor-pointer flex items-center gap-2"
                       >
                         <span>{emp.name}</span>
                       </div>
