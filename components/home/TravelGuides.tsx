@@ -9,11 +9,6 @@ export default function TravelGuides() {
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
-          {/* Pill Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand-primary text-xs font-bold uppercase tracking-wider mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-            GỢI Ý HÀNH TRÌNH
-          </div>
           <h2 className="font-serif font-black text-3xl sm:text-4xl text-brand-text tracking-tight">
             Khám phá những hành trình mới
           </h2>

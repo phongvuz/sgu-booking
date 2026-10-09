@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Máy chủ: 127.0.0.1
--- Thời gian đã tạo: Th9 24, 2026 lúc 04:50 AM
+-- Thời gian đã tạo: Th10 09, 2026 lúc 11:39 AM
 -- Phiên bản máy phục vụ: 10.4.32-MariaDB
 -- Phiên bản PHP: 8.2.12
 
@@ -26,8 +26,7 @@ SET time_zone = "+00:00";
 --
 -- Cấu trúc bảng cho bảng `booking`
 --
-CREATE DATABASE `sgu-booking`;
-USE `sgu-booking`;
+
 CREATE TABLE `booking` (
   `id` int(11) NOT NULL,
   `seatNumber` varchar(191) NOT NULL,
@@ -35,68 +34,66 @@ CREATE TABLE `booking` (
   `totalPrice` double NOT NULL,
   `userId` int(11) NOT NULL,
   `tripId` int(11) NOT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `pnr` varchar(191) DEFAULT NULL,
+  `passengerName` varchar(191) DEFAULT NULL,
+  `passengerPhone` varchar(191) DEFAULT NULL,
+  `activeSeat` varchar(191) DEFAULT NULL,
+  `confirmedAt` datetime(3) DEFAULT NULL
+) ;
 
 --
 -- Đang đổ dữ liệu cho bảng `booking`
 --
 
-INSERT INTO `booking` (`id`, `seatNumber`, `status`, `totalPrice`, `userId`, `tripId`, `createdAt`) VALUES
-(5, 'A01', 'CONFIRMED', 300000, 7, 6, '2026-09-21 08:31:45.318'),
-(6, 'B05', 'PENDING', 350000, 8, 7, '2026-09-21 08:31:45.322');
+INSERT INTO `booking` (`id`, `seatNumber`, `status`, `totalPrice`, `userId`, `tripId`, `createdAt`, `pnr`, `passengerName`, `passengerPhone`, `activeSeat`, `confirmedAt`) VALUES
+(5, 'A01', 'CONFIRMED', 300000, 7, 6, '2026-09-21 08:31:45.318', 'NHAXE-SG-DL-01-75', 'Nguyễn Văn An', '0901234567', '6:A01', '2026-09-21 08:31:45.318'),
+(6, 'B05', 'PENDING', 350000, 8, 7, '2026-09-21 08:31:45.322', 'NHAXE-SG-DL-02-86', 'Trần Thị Bình', '0987654321', '7:B05', NULL),
+(7, 'C09', 'CONFIRMED', 160000, 9, 9, '2026-10-01 08:27:39.466', 'NHAXE-SG-VT-01-97', 'a', '1', '9:C09', '2026-10-01 08:27:39.466'),
+(8, 'B01', 'CONFIRMED', 160000, 10, 9, '2026-10-01 09:12:19.920', 'NHAXE-SG-VT-01-108', 'áda', 'sdasd', '9:B01', '2026-10-01 09:12:19.920'),
+(9, 'A02', 'CONFIRMED', 160000, 10, 9, '2026-10-01 09:12:19.928', 'NHAXE-SG-VT-01-109', 'áda', 'sdasd', '9:A02', '2026-10-01 09:12:19.928'),
+(10, 'B02', 'CONFIRMED', 160000, 10, 9, '2026-10-01 09:12:19.931', 'NHAXE-SG-VT-01-1010', 'áda', 'sdasd', '9:B02', '2026-10-01 09:12:19.931'),
+(11, 'C09', 'CONFIRMED', 900000, 11, 10, '2026-10-09 07:07:17.028', 'NHAXE-SG-HAN-01-1111', 'a', '123', '10:C09', '2026-10-09 07:07:17.028'),
+(12, 'C08', 'CONFIRMED', 900000, 11, 10, '2026-10-09 07:07:17.035', 'NHAXE-SG-HAN-01-1112', 'a', '123', '10:C08', '2026-10-09 07:07:17.035'),
+(13, 'C07', 'PENDING', 280000, 12, 8, '2026-10-09 08:21:53.247', 'NHAXE-8-2CEA642504BBE3DB', 'vu', '0932234567', '8:C07', NULL),
+(14, 'C06', 'PENDING', 280000, 12, 8, '2026-10-09 08:21:53.251', 'NHAXE-8-2CEA642504BBE3DB', 'vu', '0932234567', '8:C06', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `trip`
+-- Cấu trúc bảng cho bảng `bus`
 --
 
-CREATE TABLE `trip` (
-  `id` int(11) NOT NULL,
-  `code` varchar(191) NOT NULL,
-  `from` varchar(191) NOT NULL,
-  `to` varchar(191) NOT NULL,
-  `time` datetime(3) NOT NULL,
-  `price` double NOT NULL,
-  `availableSeats` int(11) NOT NULL,
+CREATE TABLE `bus` (
+  `id` varchar(191) NOT NULL,
+  `plate` varchar(191) NOT NULL,
+  `type` varchar(191) NOT NULL,
+  `seats` int(11) NOT NULL,
+  `status` varchar(191) NOT NULL DEFAULT 'Đang hoạt động',
+  `brand` varchar(191) DEFAULT NULL,
+  `year` int(11) DEFAULT NULL,
+  `driverName` varchar(191) DEFAULT NULL,
+  `driverPhone` varchar(191) DEFAULT NULL,
+  `lastMaintenance` varchar(191) DEFAULT NULL,
+  `notes` text DEFAULT NULL,
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Đang đổ dữ liệu cho bảng `trip`
---
-
-INSERT INTO `trip` (`id`, `code`, `from`, `to`, `time`, `price`, `availableSeats`, `createdAt`) VALUES
-(6, 'SG-DL-01', 'Hồ Chí Minh', 'Đà Lạt', '2026-10-01 21:00:00.000', 300000, 32, '2026-09-21 08:31:45.298'),
-(7, 'SG-DL-02', 'Hồ Chí Minh', 'Đà Lạt', '2026-10-01 23:00:00.000', 350000, 22, '2026-09-21 08:31:45.302'),
-(8, 'SG-NHA-01', 'Hồ Chí Minh', 'Nha Trang', '2026-10-01 22:30:00.000', 280000, 30, '2026-09-21 08:31:45.305'),
-(9, 'SG-VT-01', 'Hồ Chí Minh', 'Vũng Tàu', '2026-10-01 07:30:00.000', 160000, 26, '2026-09-21 08:31:45.308'),
-(10, 'SG-HAN-01', 'Hồ Chí Minh', 'Hà Nội', '2026-10-01 08:00:00.000', 900000, 34, '2026-09-21 08:31:45.312'),
-(11, 'DL-SG-01', 'Đà Lạt', 'Hồ Chí Minh', '2026-10-01 21:30:00.000', 300000, 28, '2026-09-21 08:31:45.315');
-
 -- --------------------------------------------------------
 
 --
--- Cấu trúc bảng cho bảng `user`
+-- Cấu trúc bảng cho bảng `customer`
 --
 
-CREATE TABLE `user` (
-  `id` int(11) NOT NULL,
-  `fullName` varchar(191) NOT NULL,
+CREATE TABLE `customer` (
+  `id` varchar(191) NOT NULL,
+  `name` varchar(191) NOT NULL,
+  `email` varchar(191) NOT NULL,
   `phone` varchar(191) NOT NULL,
-  `password` varchar(191) NOT NULL,
-  `role` varchar(191) NOT NULL DEFAULT 'USER',
+  `status` varchar(191) NOT NULL DEFAULT 'Đang hoạt động',
+  `address` varchar(191) DEFAULT NULL,
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Đang đổ dữ liệu cho bảng `user`
---
-
-INSERT INTO `user` (`id`, `fullName`, `phone`, `password`, `role`, `createdAt`) VALUES
-(7, 'Nguyễn Văn An', '0901234567', 'password123', 'USER', '2026-09-21 08:31:45.290'),
-(8, 'Trần Thị Bình', '0987654321', 'password123', 'ADMIN', '2026-09-21 08:31:45.294');
 
 -- --------------------------------------------------------
 
@@ -119,50 +116,136 @@ CREATE TABLE `employee` (
   `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- --------------------------------------------------------
+
 --
--- Đang đổ dữ liệu cho bảng `employee`
+-- Cấu trúc bảng cho bảng `seathold`
 --
 
-INSERT INTO `employee` (`id`, `name`, `email`, `phone`, `role`, `department`, `status`, `avatar`, `identityCard`, `address`, `startDate`, `createdAt`) VALUES
-('EMP-001', 'Nguyễn Văn A', 'nguyenvana@nhaxe.vn', '0901234567', 'Tài xế', 'Đội xe', 'Đang làm việc', 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80', '079201001234', 'Quận 1, TP. Hồ Chí Minh', '2023-01-15', '2026-09-26 01:05:38.390'),
-('EMP-002', 'Trần Thị B', 'tranthib@nhaxe.vn', '0912345678', 'Văn phòng', 'Phòng vé', 'Đang làm việc', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80', '079202002345', 'Quận 5, TP. Hồ Chí Minh', '2023-03-20', '2026-09-26 01:05:38.394'),
-('EMP-003', 'Lê Hoàng C', 'lehoangc@nhaxe.vn', '0923456789', 'Phụ xe', 'Đội xe', 'Nghỉ phép', 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=150&q=80', '079203003456', 'TP. Thủ Đức, TP. Hồ Chí Minh', '2023-06-10', '2026-09-26 01:05:38.398'),
-('EMP-004', 'Phạm Văn D', 'phamvand@nhaxe.vn', '0934567890', 'Tài xế', 'Đội xe', 'Đang làm việc', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80', '079204004567', 'Quận Bình Thạnh, TP. Hồ Chí Minh', '2023-09-01', '2026-09-26 01:05:38.401'),
-('EMP-005', 'Hoàng Thị E', 'hoangthie@nhaxe.vn', '0945678901', 'Quản lý', 'Ban điều hành', 'Đang làm việc', 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=150&q=80', '079205005678', 'Quận 3, TP. Hồ Chí Minh', '2022-11-15', '2026-09-26 01:05:38.404'),
-('EMP-006', 'Vũ Minh Tuấn', 'tuanvm@nhaxe.vn', '0967890123', 'Tài xế', 'Đội xe', 'Đang làm việc', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80', '079206006789', 'Quận 10, TP. Hồ Chí Minh', '2024-01-08', '2026-09-26 01:05:38.409'),
-('EMP-007', 'Đặng Thu Thảo', 'thaodt@nhaxe.vn', '0978901234', 'Văn phòng', 'Kế toán', 'Đang làm việc', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80', '079207007890', 'Quận Phú Nhuận, TP. Hồ Chí Minh', '2024-02-14', '2026-09-26 01:05:38.411'),
-('EMP-008', 'Bùi Quốc Hưng', 'hungbq@nhaxe.vn', '0989012345', 'Điều hành', 'Ban điều hành', 'Đang làm việc', 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=150&q=80', '079208008901', 'Quận Gò Vấp, TP. Hồ Chí Minh', '2024-03-01', '2026-09-26 01:05:38.415'),
-('EMP-009', 'Ngô Thanh Hằng', 'hangnt@nhaxe.vn', '0918765432', 'Văn phòng', 'Phòng vé', 'Đã nghỉ việc', 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=150&q=80', '079209009012', 'Quận Tân Bình, TP. Hồ Chí Minh', '2023-04-12', '2026-09-26 01:05:38.418'),
-('EMP-010', 'Đinh Công Trình', 'trinhdc@nhaxe.vn', '0932145678', 'Tài xế', 'Đội xe', 'Đang làm việc', 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=150&q=80', '079210001023', 'Quận 12, TP. Hồ Chí Minh', '2024-05-20', '2026-09-26 01:05:38.421'),
-('EMP-011', 'Lý Hải Đăng', 'danglh@nhaxe.vn', '0943215678', 'Phụ xe', 'Đội xe', 'Đang làm việc', 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=150&q=80', '079211002134', 'Huyện Hóc Môn, TP. Hồ Chí Minh', '2024-06-01', '2026-09-26 01:05:38.425'),
-('EMP-012', 'Phan Kim Oanh', 'oanhpk@nhaxe.vn', '0954321678', 'Văn phòng', 'Kế toán', 'Nghỉ phép', 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=150&q=80', '079212003245', 'Quận 7, TP. Hồ Chí Minh', '2024-06-15', '2026-09-26 01:05:38.428');
+CREATE TABLE `seathold` (
+  `id` int(11) NOT NULL,
+  `tripId` int(11) NOT NULL,
+  `seatNumber` varchar(191) NOT NULL,
+  `clientId` varchar(191) NOT NULL,
+  `expiresAt` datetime(3) NOT NULL,
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `seathold`
+--
+
+INSERT INTO `seathold` (`id`, `tripId`, `seatNumber`, `clientId`, `expiresAt`, `createdAt`) VALUES
+(67, 10, 'C01', 'lz2bo01lcyp', '2026-10-01 13:24:57.960', '2026-10-01 13:19:57.965'),
+(69, 10, 'C03', 'lz2bo01lcyp', '2026-10-01 13:25:08.259', '2026-10-01 13:20:08.265');
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `trip`
+--
+
+CREATE TABLE `trip` (
+  `id` int(11) NOT NULL,
+  `from` varchar(191) NOT NULL,
+  `to` varchar(191) NOT NULL,
+  `time` datetime(3) NOT NULL,
+  `price` double NOT NULL,
+  `availableSeats` int(11) NOT NULL,
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `capacity` int(11) NOT NULL
+) ;
+
+--
+-- Đang đổ dữ liệu cho bảng `trip`
+--
+
+INSERT INTO `trip` (`id`, `from`, `to`, `time`, `price`, `availableSeats`, `createdAt`, `capacity`) VALUES
+(6, 'Hồ Chí Minh', 'Đà Lạt', '2026-10-01 21:00:00.000', 300000, 32, '2026-09-21 08:31:45.298', 33),
+(7, 'Hồ Chí Minh', 'Đà Lạt', '2026-10-01 23:00:00.000', 350000, 22, '2026-09-21 08:31:45.302', 23),
+(8, 'Hồ Chí Minh', 'Nha Trang', '2026-10-09 22:30:00.000', 280000, 28, '2026-09-21 08:31:45.305', 30),
+(9, 'Hồ Chí Minh', 'Vũng Tàu', '2026-10-01 07:30:00.000', 160000, 23, '2026-09-21 08:31:45.308', 27),
+(10, 'Hồ Chí Minh', 'Hà Nội', '2026-10-01 08:00:00.000', 900000, 32, '2026-09-21 08:31:45.312', 34),
+(11, 'Đà Lạt', 'Hồ Chí Minh', '2026-10-01 21:30:00.000', 300000, 28, '2026-09-21 08:31:45.315', 28);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `user`
+--
+
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL,
+  `fullName` varchar(191) NOT NULL,
+  `phone` varchar(191) NOT NULL,
+  `password` varchar(191) NOT NULL,
+  `role` varchar(191) NOT NULL DEFAULT 'USER',
+  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `isActive` tinyint(1) NOT NULL DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `user`
+--
+
+INSERT INTO `user` (`id`, `fullName`, `phone`, `password`, `role`, `createdAt`, `isActive`) VALUES
+(7, 'Nguyễn Văn An', '0901234567', 'password123', 'USER', '2026-09-21 08:31:45.290', 1),
+(8, 'Trần Thị Bình', '0987654321', 'password123', 'ADMIN', '2026-09-21 08:31:45.294', 1),
+(9, 'a', '1', 'guest_password', 'USER', '2026-10-01 08:27:39.456', 1),
+(10, 'áda', 'sdasd', 'guest_password', 'USER', '2026-10-01 09:12:19.909', 1),
+(11, 'a', '123', 'guest_password', 'USER', '2026-10-09 07:07:17.011', 1),
+(12, 'vu', '0932234567', 'scrypt:de3e76057450ae354f71f776b91e552e:790ce28d12e857d9f479fe48138b21f05aae738352b08b58ae88ce31d93d665efc97d4b985b8735407cff6724d906e608212e22cb95cbc75a5a5e5f3c32545cf', 'USER', '2026-10-09 08:21:53.245', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Cấu trúc bảng cho bảng `_prisma_migrations`
+--
+
+CREATE TABLE `_prisma_migrations` (
+  `id` varchar(36) NOT NULL,
+  `checksum` varchar(64) NOT NULL,
+  `finished_at` datetime(3) DEFAULT NULL,
+  `migration_name` varchar(255) NOT NULL,
+  `logs` text DEFAULT NULL,
+  `rolled_back_at` datetime(3) DEFAULT NULL,
+  `started_at` datetime(3) NOT NULL DEFAULT current_timestamp(3),
+  `applied_steps_count` int(10) UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+--
+-- Đang đổ dữ liệu cho bảng `_prisma_migrations`
+--
+
+INSERT INTO `_prisma_migrations` (`id`, `checksum`, `finished_at`, `migration_name`, `logs`, `rolled_back_at`, `started_at`, `applied_steps_count`) VALUES
+('23c957a5-9590-49f2-be4d-221d86314c67', '5b6eed1ab396626114f6b0f3c80ce8347963b2bc313f8e938c34578e9dacaa99', '2026-10-09 07:29:57.345', '20261009000000_baseline', '', NULL, '2026-10-09 07:29:57.345', 0),
+('968a1039-7ddc-4a65-a09e-399f788c230a', '080015226160ae8fc029ad90709ad5a46185e281b8469643939ca13043bd719c', '2026-10-09 07:29:58.871', '20261009010000_admin_business_rules', NULL, NULL, '2026-10-09 07:29:58.535', 1),
+('d3a5042b-3649-4fce-ac96-e2d35b66b495', '3c621125a2df92d1c239a92f4912e07e8d255532a7b46dd8f0f2cb2b731be101', '2026-10-09 07:34:33.934', '20261009030000_payment_time', NULL, NULL, '2026-10-09 07:34:33.908', 1),
+('d58546da-2311-4ad4-ada2-98d283b52392', 'd91a320809857cbfb3677cb8bbcbdfc3f57ee6b069f90f7a8cedd65cda35e8f7', '2026-10-09 08:23:42.794', '20261009040000_numeric_trip_id', NULL, NULL, '2026-10-09 08:23:42.781', 1),
+('feb324f3-cc06-4619-af06-22d5b349b0c5', '7c0159bc32012805fb5616eebcb6b1085cc447d647d387809f0c99caa7748c9b', '2026-10-09 07:32:31.503', '20261009020000_account_status', NULL, NULL, '2026-10-09 07:32:31.491', 1);
 
 --
 -- Chỉ mục cho các bảng đã đổ
 --
 
 --
--- Cấu trúc cho bảng `customer`
+-- Chỉ mục cho bảng `booking`
 --
-CREATE TABLE `customer` (
-  `id` varchar(191) NOT NULL,
-  `name` varchar(191) NOT NULL,
-  `email` varchar(191) NOT NULL,
-  `phone` varchar(191) NOT NULL,
-  `status` varchar(191) NOT NULL DEFAULT 'Đang hoạt động',
-  `address` varchar(191) DEFAULT NULL,
-  `createdAt` datetime(3) NOT NULL DEFAULT current_timestamp(3)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
+ALTER TABLE `booking`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `booking_activeSeat_key` (`activeSeat`),
+  ADD KEY `booking_pnr_idx` (`pnr`),
+  ADD KEY `booking_status_createdAt_idx` (`status`,`createdAt`),
+  ADD KEY `Booking_tripId_fkey` (`tripId`),
+  ADD KEY `Booking_userId_fkey` (`userId`),
+  ADD KEY `booking_status_confirmedAt_idx` (`status`,`confirmedAt`);
 
 --
--- Đang đổ dữ liệu cho bảng `customer`
+-- Chỉ mục cho bảng `bus`
 --
-INSERT INTO `customer` (`id`, `name`, `email`, `phone`, `status`, `address`) VALUES
-('CUS-001', 'Nguyễn Minh Tuấn', 'tuannguyen@gmail.com', '0903456789', 'Đang hoạt động', 'Quận 10, TP. Hồ Chí Minh'),
-('CUS-002', 'Trần Ngọc Mai', 'maitran@gmail.com', '0914567890', 'Đang hoạt động', 'Quận Bình Thạnh, TP. Hồ Chí Minh'),
-('CUS-003', 'Lê Hoàng Nam', 'namle@gmail.com', '0935678901', 'Ngừng hoạt động', 'TP. Thủ Đức, TP. Hồ Chí Minh');
-
+ALTER TABLE `bus`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `bus_plate_key` (`plate`);
 
 --
 -- Chỉ mục cho bảng `customer`
@@ -171,8 +254,6 @@ ALTER TABLE `customer`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `customer_email_key` (`email`),
   ADD UNIQUE KEY `customer_phone_key` (`phone`);
-
-
 
 --
 -- Chỉ mục cho bảng `employee`
@@ -183,19 +264,19 @@ ALTER TABLE `employee`
   ADD UNIQUE KEY `employee_phone_key` (`phone`);
 
 --
--- Chỉ mục cho bảng `booking`
+-- Chỉ mục cho bảng `seathold`
 --
-ALTER TABLE `booking`
+ALTER TABLE `seathold`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `Booking_userId_fkey` (`userId`),
-  ADD KEY `Booking_tripId_fkey` (`tripId`);
+  ADD UNIQUE KEY `SeatHold_tripId_seatNumber_key` (`tripId`,`seatNumber`),
+  ADD KEY `SeatHold_expiresAt_idx` (`expiresAt`);
 
 --
 -- Chỉ mục cho bảng `trip`
 --
 ALTER TABLE `trip`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `Trip_code_key` (`code`);
+  ADD KEY `trip_time_idx` (`time`);
 
 --
 -- Chỉ mục cho bảng `user`
@@ -205,6 +286,12 @@ ALTER TABLE `user`
   ADD UNIQUE KEY `user_phone_key` (`phone`);
 
 --
+-- Chỉ mục cho bảng `_prisma_migrations`
+--
+ALTER TABLE `_prisma_migrations`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- AUTO_INCREMENT cho các bảng đã đổ
 --
 
@@ -212,19 +299,25 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT cho bảng `booking`
 --
 ALTER TABLE `booking`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT cho bảng `seathold`
+--
+ALTER TABLE `seathold`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=76;
 
 --
 -- AUTO_INCREMENT cho bảng `trip`
 --
 ALTER TABLE `trip`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT cho bảng `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- Các ràng buộc cho các bảng đã đổ
@@ -234,8 +327,14 @@ ALTER TABLE `user`
 -- Các ràng buộc cho bảng `booking`
 --
 ALTER TABLE `booking`
-  ADD CONSTRAINT `Booking_tripId_fkey` FOREIGN KEY (`tripId`) REFERENCES `trip` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `Booking_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `Booking_tripId_fkey` FOREIGN KEY (`tripId`) REFERENCES `trip` (`id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `Booking_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `user` (`id`) ON UPDATE CASCADE;
+
+--
+-- Các ràng buộc cho bảng `seathold`
+--
+ALTER TABLE `seathold`
+  ADD CONSTRAINT `SeatHold_tripId_fkey` FOREIGN KEY (`tripId`) REFERENCES `trip` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

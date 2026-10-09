@@ -1,5 +1,7 @@
 # Nhà xe Sài Gòn
 
+Bài học CRUD thực hành: [tự viết API quản lý đơn hàng](docs/exercises/orders/README.md). Các API đơn hàng đang có TODO để hoàn thành theo bài học; bản gốc và hướng dẫn khôi phục nằm trong tài liệu.
+
 Ứng dụng đặt vé xe dùng Next.js App Router, React, TypeScript, Prisma và MySQL. Khách có thể tìm chuyến, chọn ghế, tra cứu vé; trang `/admin` quản lý chuyến xe, vé, xe, nhân viên và tài khoản.
 
 ## Chạy ở máy cá nhân

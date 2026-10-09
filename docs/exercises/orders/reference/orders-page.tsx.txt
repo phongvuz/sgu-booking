@@ -30,7 +30,6 @@ export default function AdminOrdersPage() {
     refresh,
     createOfflineOrder,
     changeStatus,
-    deleteOrder,
   } = useOrders({ limit: 8 });
 
   const { success, error: toastError, info } = useToast();
@@ -71,7 +70,7 @@ export default function AdminOrdersPage() {
   };
 
   const handleConfirmCancel = async (id: number) => {
-    const res = await deleteOrder(id);
+    const res = await changeStatus(id, "CANCELLED");
     if (res.success) {
       info(res.message || "Đã hủy đơn vé và hoàn trả ghế trống!", "Đã hủy vé");
       return { success: true };

@@ -6,20 +6,17 @@ import TravelRoadmap from "@/components/home/TravelRoadmap";
 import RouteCard from "@/components/RouteCard";
 import Link from "next/link";
 import { connection } from "next/server";
-import { getFeaturedRoutes, getTripSearchOptions } from "@/services/tripService";
+import { getFeaturedRoutes } from "@/services/tripService";
 import { ROUTE_IMAGES } from "@/lib/home-content";
 
 export default async function Home() {
   await connection();
-  const [routes, searchOptions] = await Promise.all([
-    getFeaturedRoutes(),
-    getTripSearchOptions(),
-  ]);
+  const routes = await getFeaturedRoutes();
   return (
     <div className="flex flex-col bg-brand-bg">
       <HomeHero />
 
-      <SearchWidget options={searchOptions} />
+      <SearchWidget />
 
       <FeaturedDestinations />
 
@@ -29,10 +26,6 @@ export default async function Home() {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand-primary text-xs font-bold uppercase tracking-wider mb-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-                LỊCH TRÌNH XE KHÁCH
-              </div>
               <h2 className="font-serif font-black text-3xl sm:text-4xl text-brand-text tracking-tight">
                 Các tuyến xe đang mở bán
               </h2>
