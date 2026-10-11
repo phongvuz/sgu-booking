@@ -86,18 +86,18 @@ async function main() {
     return;
   }
   const names = tables.map((name) => name.toLowerCase());
-  for (const table of ["user", "trip", "booking", "employee", "seathold"]) {
+  for (const table of ["user", "trip", "booking", "employee"]) {
     if (!names.includes(table)) throw new Error(`Database import thiếu bảng ${table}. Chưa thực hiện thay đổi.`);
   }
-  await preflight();
   await backup(tables);
   const sql = fs.readFileSync(migrationPath, "utf8");
-  for (const table of ["bus", "customer"]) {
-    if (names.includes(table)) continue;
+  for (const table of ["bus", "customer", "SeatHold"]) {
+    if (names.includes(table.toLowerCase())) continue;
     const statement = sql.split(";").find((part) => part.includes(`CREATE TABLE \`${table}\``));
     if (!statement) throw new Error(`Baseline thiếu định nghĩa ${table}`);
     await prisma.$executeRawUnsafe(statement);
   }
+  await preflight();
   const indexes = await prisma.$queryRawUnsafe("SHOW INDEX FROM user");
   if (!indexes.some((index) => index.Column_name === "phone" && Number(index.Non_unique) === 0)) {
     await prisma.$executeRawUnsafe("CREATE UNIQUE INDEX user_phone_key ON user(phone)");
