@@ -1,5 +1,9 @@
 # Nhà xe Sài Gòn
 
+Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [docs/authentication.md](docs/authentication.md).
+
+Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [docs/seat-realtime.md](docs/seat-realtime.md).
+
 Bài học CRUD thực hành: [tự viết API quản lý đơn hàng](docs/exercises/orders/README.md). Các API đơn hàng đang có TODO để hoàn thành theo bài học; bản gốc và hướng dẫn khôi phục nằm trong tài liệu.
 
 Ứng dụng đặt vé xe dùng Next.js App Router, React, TypeScript, Prisma và MySQL. Khách có thể tìm chuyến, chọn ghế, tra cứu vé; trang `/admin` quản lý chuyến xe, vé, xe, nhân viên và tài khoản.
@@ -36,6 +40,10 @@ Chuyến xe dùng `id` tự tăng và `tripId` kiểu số nguyên dương. API 
 Mở `http://localhost:3000`. Tài khoản quản trị cần có role `ADMIN` trong database.
 
 Nếu cần dữ liệu mẫu, thiết lập biến môi trường `SEED_PASSWORD` (6–128 ký tự) rồi chạy `npx prisma db seed`. Seed chỉ chạy trên database hoàn toàn trống, lưu mật khẩu đã hash và không xóa dữ liệu hiện có. Tài khoản ADMIN mẫu dùng số điện thoại `0987654321` với mật khẩu bạn đã thiết lập.
+
+## Thanh toán online thử nghiệm
+
+Thanh toán bằng VietQR Quick Link: QR điền sẵn ngân hàng, tài khoản, tổng tiền và mã đơn hàng. Khi bật `PAYMENT_DEMO_ENABLED`, nút “Tôi đã chuyển khoản” tạo giao dịch giả lập và hoàn tất vé; quản trị xem tại `/admin/payments`. Không cần API key, SDK hay webhook. Cấu hình tài khoản nhận tiền và giải thích code tại [PAYMENT.md](PAYMENT.md). Xác nhận Demo không kiểm chứng tiền đã vào ngân hàng.
 
 ## Kiểm tra và build
 

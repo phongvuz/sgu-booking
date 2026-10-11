@@ -1,7 +1,7 @@
 "use client";
 
 import { FaBus, FaRoad, FaTicketAlt } from "react-icons/fa";
-import { FiArrowLeft, FiBarChart2, FiMenu, FiUser, FiUsers, FiX } from "react-icons/fi";
+import { FiArrowLeft, FiBarChart2, FiCreditCard, FiMenu, FiUser, FiUsers, FiX } from "react-icons/fi";
 import type { IconType } from "react-icons";
 import Link from "next/link";
 import LogoutButton from "@/components/auth/LogoutButton";
@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Bảng điều khiển", icon: FiBarChart2, exact: true },
   { href: "/admin/trips", label: "Quản lý Chuyến xe", icon: FaRoad },
   { href: "/admin/orders", label: "Quản lý Đơn hàng", icon: FaTicketAlt },
+  { href: "/admin/payments", label: "Thanh toán online", icon: FiCreditCard },
   { href: "/admin/buses", label: "Quản lý Xe", icon: FaBus },
   { href: "/admin/employees", label: "Quản lý Nhân viên", icon: FiUsers },
   { href: "/admin/users", label: "Quản lý Tài khoản", icon: FiUser },
@@ -179,7 +180,7 @@ export default function AdminShell({
             </div>
 
             <div className="flex items-center gap-4">
-              <LogoutButton />
+              <LogoutButton redirectTo="/admin/login" />
               <div className="w-8 h-8 bg-brand-primary text-white rounded-full flex items-center justify-center font-bold text-xs shadow-xs">
                 A
               </div>

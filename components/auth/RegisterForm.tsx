@@ -2,10 +2,12 @@
 
 import { FiAlertTriangle } from "react-icons/fi";
 import { useRef, useState } from "react";
-import Link from "next/link";
 import { registerSchema } from "@/lib/validations/register";
 
-export default function RegisterForm() {
+export default function RegisterForm({ onLogin, onSuccess }: {
+  onLogin: () => void;
+  onSuccess: (redirectTo: string) => void;
+}) {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -14,11 +16,10 @@ export default function RegisterForm() {
     address: "",
     password: "",
     confirmPassword: "",
-    agreeTerms: true,
+    agreeTerms: false,
   });
   const [error, setError] = useState("");
   const [isPending, setIsPending] = useState(false);
-  const [success, setSuccess] = useState(false);
   const submitting = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ export default function RegisterForm() {
     try {
       const response = await fetch("/api/auth/register", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(parsed.data),
       });
@@ -46,7 +48,7 @@ export default function RegisterForm() {
         return;
       }
       setFormData((current) => ({ ...current, password: "", confirmPassword: "" }));
-      setSuccess(true);
+      onSuccess(result.redirectTo);
     } catch {
       setError("Không thể kết nối máy chủ. Vui lòng thử lại!");
     } finally {
@@ -55,21 +57,8 @@ export default function RegisterForm() {
     }
   };
 
-  if (success) {
-    return (
-      <div className="mt-6 space-y-4 text-center">
-        <p role="status" className="rounded-xl bg-green-50 p-4 text-green-700">
-          Đăng ký tài khoản thành công!
-        </p>
-        <Link href="/login" className="inline-block font-semibold text-brand-primary hover:underline">
-          Đến trang đăng nhập
-        </Link>
-      </div>
-    );
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+    <form onSubmit={handleSubmit} aria-busy={isPending} className="mt-6 space-y-4">
       {error && (
         <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-3.5 py-2.5 rounded-xl flex items-center gap-2">
           <span><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
@@ -215,9 +204,9 @@ export default function RegisterForm() {
         />
         <label htmlFor="terms" className="text-xs text-gray-600 cursor-pointer">
           Tôi đồng ý với{" "}
-          <Link href="#" className="text-brand-primary hover:underline font-medium">
+          <span className="text-brand-primary font-medium">
             Điều khoản dịch vụ & Chính sách bảo mật
-          </Link>
+          </span>
         </label>
       </div>
 
@@ -232,9 +221,9 @@ export default function RegisterForm() {
 
       <div className="text-center text-sm text-gray-500 pt-3 border-t">
         Đã có tài khoản?{" "}
-        <Link href="/login" className="font-bold text-brand-primary hover:underline">
+        <button type="button" onClick={onLogin} disabled={isPending} className="cursor-pointer font-bold text-brand-primary hover:underline">
           Đăng nhập
-        </Link>
+        </button>
       </div>
     </form>
   );

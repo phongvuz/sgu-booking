@@ -1,85 +1,50 @@
-import { FiCheckCircle } from "react-icons/fi";
 import Link from "next/link";
-import { tripIdSchema } from "@/lib/trip-id";
+import { notFound } from "next/navigation";
+import { FiCheckCircle } from "react-icons/fi";
+import { prisma } from "@/lib/prisma";
+import { getPaymentStatus, getVietqrPaymentInfo } from "@/services/paymentService";
+import { isPaymentDemoEnabled } from "@/lib/vietqr";
+import type { VietqrPaymentInfo } from "@/types/payment";
+import PaymentPanel from "@/components/payments/PaymentPanel";
 
-interface SuccessSearchParams {
-  tripId?: string;
-  seats?: string;
-  pnr?: string;
-  name?: string;
-  total?: string;
-}
+export const dynamic = "force-dynamic";
+export const metadata = { title: "Thông tin vé và thanh toán | Nhà xe Sài Gòn", robots: { index: false, follow: false }, referrer: "no-referrer" };
 
-export default async function SuccessPage({
-  searchParams,
-}: {
-  searchParams: Promise<SuccessSearchParams>;
+export default async function SuccessPage({ searchParams }: {
+  searchParams: Promise<{ pnr?: string }>;
 }) {
   const params = await searchParams;
-  const parsedTripId = tripIdSchema.safeParse(params.tripId && /^\d+$/.test(params.tripId) ? Number(params.tripId) : undefined);
-  const tripId = parsedTripId.success ? parsedTripId.data : undefined;
-  const pnrCode = params.pnr || `NHAXE-${tripId ?? "BOOKING"}`;
-
-  return (
-    <div className="bg-gray-100 min-h-screen py-16 px-4">
-      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <span className="text-4xl"><FiCheckCircle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
-        </div>
-        
-        <h2 className="text-3xl font-bold text-gray-800 mb-4">Đặt vé thành công!</h2>
-        <p className="text-gray-600 mb-8">
-          Cảm ơn bạn đã tin tưởng và lựa chọn Nhà xe Sài Gòn. Chuyến đi của bạn đã được lưu vào hệ thống cơ sở dữ liệu.
-        </p>
-
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-8 text-left">
-          <h3 className="font-bold text-lg mb-4 border-b pb-2">Thông tin vé</h3>
-          <div className="space-y-3 text-gray-700">
-            {params.name && (
-              <div className="flex justify-between">
-                <span>Hành khách:</span>
-                <span className="font-bold">{params.name}</span>
-              </div>
-            )}
-            <div className="flex justify-between">
-              <span>Mã chuyến xe:</span>
-              <span className="font-bold text-brand-primary">{tripId ?? "—"}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Ghế đã đặt:</span>
-              <span className="font-bold text-green-700">{params.seats || "Chưa xác định"}</span>
-            </div>
-            {params.total && (
-              <div className="flex justify-between">
-                <span>Tổng tiền:</span>
-                <span className="font-bold text-brand-primary">
-                  {Number(params.total).toLocaleString("vi-VN")} đ
-                </span>
-              </div>
-            )}
-            <div className="flex justify-between pt-2 border-t border-gray-200">
-              <span>Mã đặt chỗ (PNR):</span>
-              <span className="font-bold text-blue-600">{pnrCode}</span>
-            </div>
-          </div>
-        </div>
-
-  
-        <p className="mb-6 rounded-lg bg-amber-50 p-4 text-sm text-amber-800">
-          Đặt chỗ đang chờ thanh toán. Vui lòng thanh toán tại quầy; nhân viên sẽ xác nhận sau khi thu tiền.
-        </p>
-
-        <p className="text-sm text-gray-500 mb-8">
-          Vui lòng lưu thông tin vé và xuất trình mã đặt chỗ khi ra bến xe.
-        </p>
-
-        <Link 
-          href="/" 
-          className="inline-block bg-brand-primary hover:bg-brand-dark text-white font-bold py-3 px-8 rounded-md transition-colors"
-        >
-          Trở về trang chủ
-        </Link>
-      </div>
+  if (typeof params.pnr !== "string" || !params.pnr || params.pnr.length > 191) notFound();
+  // Chỉ đọc mã PNR từ URL. Giá, ghế và hành khách phải lấy từ database.
+  const bookings = await prisma.booking.findMany({ where: { pnr: params.pnr }, include: { trip: true, user: { select: { fullName: true } } } });
+  if (!bookings.length) notFound();
+  const first = bookings[0];
+  const state = await getPaymentStatus(params.pnr);
+  const canPay = bookings.every((booking) => booking.status === "PENDING" && booking.trip.time > new Date());
+  let paymentInfo: VietqrPaymentInfo | null = null;
+  let configurationError = "";
+  if (canPay) {
+    try { paymentInfo = await getVietqrPaymentInfo(params.pnr); }
+    catch { configurationError = "Chưa cấu hình đúng tài khoản nhận chuyển khoản. Vui lòng liên hệ nhà xe."; }
+  }
+  const total = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
+  const departure = new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(first.trip.time);
+  return <div className="min-h-screen bg-gray-100 px-4 py-12">
+    <div className="mx-auto max-w-2xl rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
+      <FiCheckCircle aria-hidden="true" className="mx-auto mb-4 text-5xl text-green-600" />
+      <h1 className="mb-3 text-center text-3xl font-bold text-gray-800">Thông tin đặt vé</h1>
+      <p className="mb-6 text-center text-gray-600">Lượt đặt chỗ của bạn đã được lưu vào hệ thống.</p>
+      <dl className="mb-6 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-5 text-sm">
+        <div><dt className="text-gray-500">Mã đặt chỗ (PNR)</dt><dd className="break-all font-bold text-blue-700">{params.pnr}</dd></div>
+        <div><dt className="text-gray-500">Hành khách</dt><dd className="font-semibold">{first.passengerName ?? first.user.fullName}</dd></div>
+        <div><dt className="text-gray-500">Chuyến xe</dt><dd className="font-semibold">#{first.tripId} · {first.trip.from} → {first.trip.to}</dd></div>
+        <div><dt className="text-gray-500">Khởi hành</dt><dd className="font-semibold">{departure}</dd></div>
+        <div><dt className="text-gray-500">Ghế đã đặt</dt><dd className="font-semibold">{bookings.map((b) => b.seatNumber).join(", ")}</dd></div>
+        <div><dt className="text-gray-500">Tổng tiền</dt><dd className="text-lg font-bold text-brand-primary">{total.toLocaleString("vi-VN")} đ</dd></div>
+      </dl>
+      <PaymentPanel key={`${state.status}:${state.bookingStatus}`} pnr={params.pnr} initial={state} paymentInfo={paymentInfo} canPay={canPay} demoEnabled={isPaymentDemoEnabled()} configurationError={configurationError} />
+      <p className="mb-6 text-sm text-gray-500">Vui lòng giữ riêng mã đặt chỗ và xuất trình khi ra bến xe.</p>
+      <Link href="/" className="block rounded-md bg-brand-primary px-6 py-3 text-center font-bold text-white hover:bg-brand-dark">Trở về trang chủ</Link>
     </div>
-  );
+  </div>;
 }

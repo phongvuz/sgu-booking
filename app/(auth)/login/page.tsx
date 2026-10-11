@@ -1,25 +1,18 @@
-import { FaBus } from "react-icons/fa";
-import LoginForm from "@/components/auth/LoginForm";
+import { redirect } from "next/navigation";
+import { safeAuthReturnTo } from "@/lib/auth-navigation";
 
 export const metadata = {
   title: "Đăng nhập | Nhà xe Sài Gòn",
   description: "Đăng nhập hệ thống đặt vé xe Nhà xe Sài Gòn",
 };
 
-export default function LoginPage() {
-  return (
-    <>
-      <div className="text-center">
-        <span className="text-4xl"><FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
-        <h2 className="mt-2 text-2xl font-black text-gray-800 tracking-tight">
-          ĐĂNG NHẬP
-        </h2>
-        <p className="mt-2 text-sm text-gray-500">
-          Hệ thống đặt vé xe trực tuyến Nhà xe Sài Gòn
-        </p>
-      </div>
-
-      <LoginForm />
-    </>
-  );
+export default async function LoginPage({ searchParams }: {
+  searchParams: Promise<{ next?: string | string[] }>;
+}) {
+  const { next } = await searchParams;
+  const returnTo = safeAuthReturnTo(typeof next === "string" ? next : null);
+  if (returnTo === "/admin" || returnTo?.startsWith("/admin/")) redirect("/admin/login");
+  const params = new URLSearchParams({ auth: "login" });
+  if (returnTo) params.set("next", returnTo);
+  redirect(`/?${params}`);
 }

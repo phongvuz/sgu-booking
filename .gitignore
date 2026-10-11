@@ -44,3 +44,6 @@ next-env.d.ts
 
 # Local database backups contain private data
 /.local-backups/
+
+# Local documentation
+/docs/

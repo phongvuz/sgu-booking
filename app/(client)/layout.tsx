@@ -3,6 +3,7 @@ import { FiNavigation, FiSearch } from "react-icons/fi";
 import Link from "next/link";
 import { Suspense } from "react";
 import CustomerMenu from "@/components/auth/CustomerMenu";
+import AuthModal from "@/components/auth/AuthModal";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -71,6 +72,9 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
       </header>
 
       <main className="flex-1">{children}</main>
+      <Suspense fallback={null}>
+        <AuthModal />
+      </Suspense>
 \
       <footer className="relative bg-brand-dark text-slate-200 mt-20 pt-16 pb-12 overflow-hidden">
         {/* Organic Wave Top Divider */}

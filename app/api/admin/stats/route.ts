@@ -6,9 +6,9 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 // GET /api/admin/stats - Thống kê tổng hợp cho Admin Dashboard
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    await requireAdmin();
+    await requireAdmin(request);
     const stats = await getDashboardStats();
 
     return NextResponse.json({

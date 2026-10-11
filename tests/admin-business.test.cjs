@@ -2,24 +2,34 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { load } = require("./load-ts.cjs");
 
-test("management guard allows visitors in review mode", async () => {
+test("management guard requires an authenticated administrator for reads and writes", async () => {
   const databaseAdmin = { id: 7, fullName: "Admin", phone: "0900000000", role: "ADMIN", isActive: true };
-  const helpers = load("lib/admin-api.ts", {
-    "@/lib/session": { getCurrentAdmin: async () => null },
-    "@/lib/prisma": { prisma: { user: { findFirst: async () => databaseAdmin } } },
-  });
-  const reviewer = await helpers.requireAdmin(new Request("http://localhost/api/admin/stats"));
-  const mutationActor = await helpers.requireAdmin(new Request("http://localhost/api/users", { method: "POST" }));
-  assert.equal(reviewer.id, 0);
-  assert.equal(mutationActor.id, databaseAdmin.id);
+  for (const [account, status] of [[null, 401], [{ role: "CUSTOMER" }, 403], [{ role: "USER" }, 403], [databaseAdmin, 200]]) {
+    const helpers = load("lib/admin-api.ts", { "@/lib/session": { getCurrentUser: async () => account } });
+    for (const method of ["GET", "POST"]) {
+      const request = new Request("http://localhost/api/users", { method });
+      if (status === 200) assert.equal((await helpers.requireAdmin(request)).id, databaseAdmin.id);
+      else await assert.rejects(helpers.requireAdmin(request), { status });
+    }
+  }
 });
 
 test("management guard rejects mutations from another origin and malformed JSON", async () => {
-  const helpers = load("lib/admin-api.ts", { "@/lib/session": { getCurrentAdmin: async () => ({ id: 1 }) } });
+  const helpers = load("lib/admin-api.ts", { "@/lib/session": { getCurrentUser: async () => ({ id: 1, role: "ADMIN" }) } });
   await assert.rejects(helpers.requireAdmin(new Request("http://localhost/api/users", { method: "POST", headers: { origin: "https://elsewhere.test" } })), { status: 403 });
   await assert.rejects(helpers.readJson(new Request("http://localhost", { method: "POST", body: "{" })), { status: 400 });
   const response = helpers.apiError({ code: "P2002" }, "Error");
   assert.equal(response.status, 409);
+});
+
+test("admin pages send visitors and customers to the separate admin login page", async () => {
+  for (const account of [null, { role: "CUSTOMER" }]) {
+    const helpers = load("lib/admin-api.ts", {
+      "@/lib/session": { getCurrentUser: async () => account },
+      "next/navigation": { redirect: url => { throw new Error(`redirect:${url}`); } },
+    });
+    await assert.rejects(helpers.requireAdmin(), /^Error: redirect:\/admin\/login$/);
+  }
 });
 
 test("validates integer capacity, distinct locations, real dates and employee identity", () => {
@@ -73,7 +83,7 @@ test("locked accounts cannot use an existing signed session", async () => {
   process.env.SESSION_SECRET = "test-secret-".repeat(4);
   const { createSessionToken } = load("lib/session.ts", { "@/lib/prisma": { prisma: {} } });
   const session = load("lib/session.ts", {
-    "next/headers": { cookies: async () => ({ get: () => ({ value: createSessionToken(7) }) }) },
+    "next/headers": { cookies: async () => ({ get: () => ({ value: createSessionToken(7, "stored-hash") }) }) },
     "@/lib/prisma": { prisma: { user: { findUnique: async () => ({ id: 7, role: "ADMIN", isActive: false }) } } },
   });
   assert.equal(await session.getCurrentAdmin(), null);

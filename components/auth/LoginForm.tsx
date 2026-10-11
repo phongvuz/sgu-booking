@@ -2,52 +2,57 @@
 
 import { FaSpinner } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRef, useState } from "react";
 
-export default function LoginForm() {
-  const router = useRouter();
+export default function LoginForm({ onSuccess, onRegister, variant = "customer" }: {
+  onSuccess: (redirectTo: string) => void;
+  onRegister?: () => void;
+  variant?: "customer" | "admin";
+}) {
+  const isAdmin = variant === "admin";
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isPending, setIsPending] = useState(false);
+  const submitting = useRef(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isPending) return;
+    if (submitting.current) return;
     setError("");
 
-    if (!email || !password) {
+    if (!email.trim() || !password) {
       setError("Vui lòng nhập đầy đủ thông tin!");
       return;
     }
 
+    submitting.current = true;
     setIsPending(true);
 
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
+        credentials: "same-origin",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier: email, password }),
+        body: JSON.stringify({ identifier: email.trim(), password, audience: variant }),
       });
       const data = await response.json();
-      if (!response.ok) {
+      if (!response.ok || !data.success) {
         setError(data.message || "Không thể đăng nhập. Vui lòng thử lại!");
         return;
       }
-      router.replace(data.redirectTo === "/admin" ? "/admin" : "/");
-      router.refresh();
+      onSuccess(data.redirectTo);
     } catch {
       setError("Không thể kết nối máy chủ. Vui lòng thử lại!");
     } finally {
+      submitting.current = false;
       setIsPending(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+    <form onSubmit={handleSubmit} aria-busy={isPending} className="mt-8 space-y-5">
       {error && (
         <div role="alert" className="bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl flex items-center gap-2">
           <span><FiAlertTriangle aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
@@ -56,41 +61,40 @@ export default function LoginForm() {
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-1">
-          Email hoặc Số điện thoại
+        <label htmlFor="login-identifier" className="block text-sm font-semibold text-gray-700 mb-1">
+          {isAdmin ? "Số điện thoại" : "Email hoặc Số điện thoại"}
         </label>
         <input
+          id="login-identifier"
           name="email"
           autoComplete="username"
-          maxLength={191}
-          type="text"
+          maxLength={isAdmin ? 10 : 191}
+          type={isAdmin ? "tel" : "text"}
+          pattern={isAdmin ? "0[0-9]{9}" : undefined}
           required
+          disabled={isPending}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="Nhập email hoặc số điện thoại"
+          placeholder={isAdmin ? "Nhập số điện thoại quản trị viên" : "Nhập email hoặc số điện thoại"}
           className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition bg-gray-50/50 focus:bg-white text-gray-800 text-sm"
         />
       </div>
 
       <div>
         <div className="flex justify-between items-center mb-1">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label htmlFor="login-password" className="block text-sm font-semibold text-gray-700">
             Mật khẩu
           </label>
-          <Link
-            href="#"
-            className="text-xs font-medium text-brand-primary hover:underline"
-          >
-            Quên mật khẩu?
-          </Link>
         </div>
         <div className="relative">
           <input
+            id="login-password"
             name="password"
             autoComplete="current-password"
             maxLength={128}
             type={showPassword ? "text" : "password"}
             required
+            disabled={isPending}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Nhập mật khẩu"
@@ -121,15 +125,17 @@ export default function LoginForm() {
         )}
       </button>
 
-      <div className="text-center text-sm text-gray-500 pt-2 border-t">
+      {!isAdmin && onRegister && <div className="text-center text-sm text-gray-500 pt-2 border-t">
         Chưa có tài khoản?{" "}
-        <Link
-          href="/register"
-          className="font-bold text-brand-primary hover:underline"
+        <button
+          type="button"
+          onClick={onRegister}
+          disabled={isPending}
+          className="cursor-pointer font-bold text-brand-primary hover:underline"
         >
           Đăng ký ngay
-        </Link>
-      </div>
+        </button>
+      </div>}
     </form>
   );
 }

@@ -1,35 +1,24 @@
 import { NextResponse } from "next/server";
-import { getCurrentAdmin } from "@/lib/session";
-import { prisma } from "@/lib/prisma";
+import { getCurrentUser } from "@/lib/session";
+import { redirect } from "next/navigation";
+import { isSameOriginRequest } from "@/lib/request-origin";
 import { BusinessError, hasDatabaseCode } from "@/lib/business-error";
 
-const REVIEW_ADMIN = {
-  id: 0,
-  fullName: "Reviewer",
-  phone: "Không cần đăng nhập",
-  role: "ADMIN",
-  isActive: true,
-};
-
 export async function requireAdmin(request?: Request) {
-  let admin = await getCurrentAdmin();
+  const user = await getCurrentUser();
   const isMutation = request && !["GET", "HEAD"].includes(request.method);
-
-  // Tạm mở trang quản trị để review. Với thao tác ghi, dùng một admin thật làm
-  // người thực hiện nếu database đã có tài khoản quản trị.
-  if (!admin && isMutation) {
-    admin = await prisma.user.findFirst({
-      where: { role: "ADMIN", isActive: true },
-      select: { id: true, fullName: true, phone: true, role: true, isActive: true },
-      orderBy: { id: "asc" },
-    });
-  }
-  // Cookie đăng nhập không được dùng để sửa dữ liệu từ một website khác.
-  const origin = request?.headers.get("origin");
-  if (isMutation && origin && origin !== new URL(request.url).origin) {
+  if (isMutation && !isSameOriginRequest(request)) {
     throw new BusinessError("Nguồn yêu cầu không hợp lệ.", 403);
   }
-  return admin ?? REVIEW_ADMIN;
+  if (!user) {
+    if (!request) redirect("/admin/login");
+    throw new BusinessError("Vui lòng đăng nhập để tiếp tục!", 401);
+  }
+  if (user.role !== "ADMIN") {
+    if (!request) redirect("/admin/login");
+    throw new BusinessError("Bạn không có quyền quản trị!", 403);
+  }
+  return user;
 }
 
 export async function readJson(request: Request): Promise<unknown> {

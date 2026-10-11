@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 
@@ -9,22 +9,38 @@ export const sessionCookieOptions = {
   sameSite: "lax" as const, path: "/", maxAge: SESSION_AGE,
 };
 
-function sign(value: string) {
+function sessionSecret() {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) throw new Error("SESSION_SECRET must contain at least 32 characters");
-  return createHmac("sha256", secret).update(value).digest("hex");
+  return secret;
 }
 
-export function createSessionToken(userId: number, now = Date.now()) {
-  const payload = `${userId}.${now + SESSION_AGE * 1000}`;
+export function ensureSessionConfigured() {
+  sessionSecret();
+}
+
+function sign(value: string) {
+  return createHmac("sha256", sessionSecret()).update(value).digest("hex");
+}
+
+// Bind the session to the current password without exposing its stored hash.
+function passwordVersion(passwordHash: string) {
+  return sign(`password:${passwordHash}`);
+}
+
+export function createSessionToken(userId: number, passwordHash: string, now = Date.now()) {
+  if (!Number.isSafeInteger(userId) || userId <= 0 || !passwordHash || !Number.isSafeInteger(now) || now < 0) {
+    throw new Error("Invalid session credentials");
+  }
+  const payload = `${userId}.${now + SESSION_AGE * 1000}.${passwordVersion(passwordHash)}.${randomBytes(16).toString("hex")}`;
   return `${payload}.${sign(payload)}`;
 }
 
 export function verifySessionToken(token: string, now = Date.now()): number | null {
-  if (!/^\d+\.\d+\.[a-f0-9]{64}$/.test(token)) return null;
-  const [id, expires, signature] = token.split(".");
-  if (!Number.isSafeInteger(Number(id)) || Number(id) <= 0 || Number(expires) <= now) return null;
-  if (!timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(sign(`${id}.${expires}`), "hex"))) return null;
+  if (!/^\d+\.\d+\.[a-f0-9]{64}\.[a-f0-9]{32}\.[a-f0-9]{64}$/.test(token)) return null;
+  const [id, expires, version, nonce, signature] = token.split(".");
+  if (!Number.isSafeInteger(Number(id)) || Number(id) <= 0 || !Number.isSafeInteger(Number(expires)) || Number(expires) <= now) return null;
+  if (!timingSafeEqual(Buffer.from(signature, "hex"), Buffer.from(sign(`${id}.${expires}.${version}.${nonce}`), "hex"))) return null;
   return Number(id);
 }
 
@@ -34,8 +50,9 @@ export async function getCurrentUser() {
   if (!token) return null;
   const id = verifySessionToken(token);
   if (!id) return null;
-  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, fullName: true, phone: true, role: true, isActive: true } });
-  return user?.isActive === false ? null : user;
+  const user = await prisma.user.findUnique({ where: { id }, select: { id: true, fullName: true, phone: true, role: true, isActive: true, password: true } });
+  if (!user?.isActive || !timingSafeEqual(Buffer.from(token.split(".")[2], "hex"), Buffer.from(passwordVersion(user.password), "hex"))) return null;
+  return { id: user.id, fullName: user.fullName, phone: user.phone, role: user.role, isActive: user.isActive };
 }
 
 export async function getCurrentAdmin() {

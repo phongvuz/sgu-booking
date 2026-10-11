@@ -7,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export const metadata = { title: "Lịch sử đặt vé | Nhà xe Sài Gòn" };
 
 const statuses: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Chờ xác nhận", className: "bg-amber-100 text-amber-800" },
+  PENDING: { label: "Chờ thanh toán", className: "bg-amber-100 text-amber-800" },
   CONFIRMED: { label: "Đã xác nhận", className: "bg-green-100 text-green-800" },
   CANCELLED: { label: "Đã hủy", className: "bg-red-100 text-red-800" },
 };
@@ -18,7 +18,7 @@ const moneyFormat = new Intl.NumberFormat("vi-VN", { style: "currency", currency
 
 export default async function BookingHistoryPage() {
   const customer = await getCurrentCustomer();
-  if (!customer) redirect("/login");
+  if (!customer) redirect("/login?next=/bookings");
 
   const bookings = await prisma.booking.findMany({
     where: { userId: customer.userId },
@@ -55,6 +55,9 @@ export default async function BookingHistoryPage() {
             <span className="text-sm text-gray-500">Tổng tiền</span>
             <span className="text-xl font-bold text-brand-primary">{moneyFormat.format(booking.totalPrice)}</span>
           </div>
+          {booking.pnr && <Link href={`/success?pnr=${encodeURIComponent(booking.pnr)}`} className="mt-4 inline-block text-sm font-semibold text-blue-700 underline">
+            {booking.status === "PENDING" ? "Xem vé và thanh toán" : "Xem lượt đặt chỗ"}
+          </Link>}
         </li>;
       })}
     </ul>}

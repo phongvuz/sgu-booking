@@ -1,0 +1,38 @@
+import Link from "next/link";
+import { requireAdmin } from "@/lib/admin-api";
+import { prisma } from "@/lib/prisma";
+
+export const metadata = { title: "Thanh toán online | Quản trị" };
+const labels: Record<string, string> = { PENDING: "Chờ thanh toán", SUCCESS: "Thành công", FAILED: "Thất bại / đã hủy", REVIEW: "Cần đối soát" };
+
+export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ page?: string; review?: string }> }) {
+  await requireAdmin();
+  const params = await searchParams;
+  const where = params.review === "1" ? { status: "REVIEW" } : {};
+  const count = await prisma.payment.count({ where });
+  const pages = Math.max(1, Math.ceil(count / 20));
+  const requestedPage = Number(params.page);
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, pages) : 1;
+  const payments = await prisma.payment.findMany({ where, orderBy: [{ createdAt: "desc" }, { id: "desc" }], take: 20, skip: (page - 1) * 20 });
+  const formatDate = (date: Date) => new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(date);
+  const pageLink = (number: number) => `/admin/payments?page=${number}${params.review === "1" ? "&review=1" : ""}`;
+  return <div>
+    <h1 className="text-2xl font-bold">Thanh toán online</h1>
+    <p className="my-3 text-sm text-gray-600">VietQR Demo: giao dịch được tạo khi khách bấm “Tôi đã chuyển khoản”. Đây là xác nhận giả lập, chưa được ngân hàng kiểm chứng. Lịch sử cổng thanh toán cũ được giữ để đối chiếu.</p>
+    <div className="mb-4 flex gap-5 text-sm font-semibold text-blue-700"><Link href="/admin/payments">Tất cả</Link><Link href="/admin/payments?review=1">Cần đối soát</Link></div>
+    <div className="overflow-x-auto rounded-lg border bg-white">
+      <table className="w-full text-left text-sm">
+        <thead className="bg-gray-100"><tr>{["Mã đặt chỗ", "Số tiền", "Trạng thái", "Phương thức / Mã giao dịch", "Ngày tạo / xác nhận"].map((label) => <th key={label} className="p-3">{label}</th>)}</tr></thead>
+        <tbody>{payments.map((payment) => <tr key={payment.id} className="border-t">
+          <td className="p-3"><Link className="text-blue-700 underline" href={`/admin/orders?search=${encodeURIComponent(payment.pnr)}`}>{payment.pnr}</Link><p className="mt-1 break-all text-xs text-gray-500">{payment.id}</p></td>
+          <td className="whitespace-nowrap p-3">{payment.amount.toLocaleString("vi-VN")} đ</td>
+          <td className={`p-3 font-semibold ${payment.status === "REVIEW" ? "text-red-700" : ""}`}>{payment.status === "PENDING" && payment.expiresAt <= new Date() ? "Hết hạn" : labels[payment.status] ?? payment.status}</td>
+          <td className="max-w-xs break-all p-3"><p className="font-semibold">{payment.responseCode === "DEMO" ? "VietQR · Demo" : "Cổng thanh toán cũ"}</p>{payment.providerTransactionId ?? "—"}</td>
+          <td className="whitespace-nowrap p-3">{formatDate(payment.createdAt)}<p className="text-xs text-gray-500">{payment.paidAt ? formatDate(payment.paidAt) : "Chưa nhận thanh toán"}</p></td>
+        </tr>)}</tbody>
+      </table>
+      {!payments.length && <p className="p-6 text-gray-500">Chưa có giao dịch.</p>}
+    </div>
+    <div className="mt-4 flex items-center gap-5 text-sm"><span>Trang {page}/{pages} · {count} giao dịch</span>{page > 1 && <Link href={pageLink(page - 1)} className="text-blue-700">Trang trước</Link>}{page < pages && <Link href={pageLink(page + 1)} className="text-blue-700">Trang sau</Link>}</div>
+  </div>;
+}
