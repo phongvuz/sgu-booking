@@ -1,7 +1,7 @@
 "use client";
 
 import { FiAlertTriangle, FiInfo } from "react-icons/fi";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Employee } from "@/types";
 
 interface DeleteConfirmModalProps {

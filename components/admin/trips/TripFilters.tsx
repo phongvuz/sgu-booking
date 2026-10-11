@@ -1,7 +1,6 @@
 "use client";
 
 import { FiSearch, FiX } from "react-icons/fi";
-import React from "react";
 
 interface TripFiltersProps {
   search: string;

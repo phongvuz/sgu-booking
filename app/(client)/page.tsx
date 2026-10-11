@@ -7,17 +7,17 @@ import TravelRoadmap from "@/components/home/TravelRoadmap";
 import RouteCard from "@/components/RouteCard";
 import Link from "next/link";
 import { connection } from "next/server";
-import { getFeaturedRoutes } from "@/services/tripService";
+import { getFeaturedRoutes, getTripSearchOptions } from "@/services/tripService";
 import { ROUTE_IMAGES } from "@/lib/home-content";
 
 export default async function Home() {
   await connection();
-  const routes = await getFeaturedRoutes();
+  const [routes, searchOptions] = await Promise.all([getFeaturedRoutes(), getTripSearchOptions()]);
   return (
     <div className="flex flex-col bg-brand-bg">
       <HomeHero />
 
-      <SearchWidget />
+      <SearchWidget options={searchOptions} />
 
       <FeaturedDestinations />
 

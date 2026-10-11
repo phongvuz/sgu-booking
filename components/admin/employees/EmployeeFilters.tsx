@@ -2,7 +2,6 @@
 
 import { FiRefreshCw, FiSearch, FiX } from "react-icons/fi";
 import { FaCircle } from "react-icons/fa";
-import React from "react";
 
 interface EmployeeFiltersProps {
   search: string;

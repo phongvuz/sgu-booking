@@ -3,7 +3,7 @@
 import { FiX } from "react-icons/fi";
 import type { z } from "zod";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { busSchema, BusFormValues } from "@/lib/validations/bus";

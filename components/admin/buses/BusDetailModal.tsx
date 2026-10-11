@@ -2,7 +2,6 @@
 
 import { FaBus } from "react-icons/fa";
 import { FiX } from "react-icons/fi";
-import React from "react";
 import { Bus } from "@/types";
 
 interface BusDetailModalProps {

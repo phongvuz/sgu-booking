@@ -16,7 +16,7 @@ export default function FeaturedDestinations() {
         {DESTINATIONS.map((destination) => (
           <Link
             key={destination.id}
-            href={`/trips?${new URLSearchParams({ to: destination.id })}`}
+            href={`/trips?${new URLSearchParams({ to: destination.tripDestination })}`}
             className={`group relative block overflow-hidden rounded-3xl shadow-lg transition-shadow hover:shadow-2xl ${
               destination.large
                 ? "h-[380px] sm:h-[460px] lg:col-span-7 lg:row-span-2"

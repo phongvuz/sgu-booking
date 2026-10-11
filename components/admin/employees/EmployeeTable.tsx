@@ -4,7 +4,6 @@ import { FiEdit, FiEye, FiTrash2, FiUsers } from "react-icons/fi";
 import { FaCircle } from "react-icons/fa";
 import Image from "next/image";
 
-import React from "react";
 import { Employee } from "@/types";
 
 interface EmployeeTableProps {

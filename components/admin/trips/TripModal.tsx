@@ -5,7 +5,7 @@ import { formatVietnamDateTime } from "@/lib/trip-search";
 
 import type { z } from "zod";
 
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { tripSchema, TripFormValues } from "@/lib/validations/trip";

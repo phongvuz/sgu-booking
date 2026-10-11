@@ -1,14 +1,9 @@
-import type { Bus, BusQueryParams, BusListResponse, BusDetailResponse, MutationResponse } from "@/types";
+import type { BusQueryParams, BusListResponse, BusDetailResponse, MutationResponse } from "@/types";
 import type { BusFormValues } from "@/lib/validations/bus";
 import { buildQuery, requestJson } from "@/lib/api-client";
 
 export function fetchBuses(params: BusQueryParams = {}, signal?: AbortSignal) {
   return requestJson<BusListResponse>(`/api/buses?${buildQuery(params)}`, { signal });
-}
-
-export async function fetchBusById(id: string, signal?: AbortSignal) {
-  const response = await requestJson<{ success: boolean; data: Bus }>(`/api/buses/${encodeURIComponent(id)}`, { signal });
-  return response.data;
 }
 
 export function createBus(payload: BusFormValues) {

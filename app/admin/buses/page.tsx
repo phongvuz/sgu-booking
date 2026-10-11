@@ -1,7 +1,7 @@
 "use client";
 
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useBuses } from "@/hooks/useBuses";
 import { BusTable } from "@/components/admin/buses/BusTable";

@@ -2,7 +2,7 @@ import { z } from "zod";
 import { tripIdSchema } from "@/lib/trip-id";
 
 export const realtimeClientIdSchema = z.string().min(1).max(80).regex(/^[a-zA-Z0-9_-]+$/);
-export const realtimeSeatNumberSchema = z.string().regex(/^[ABC][0-9]{2}$/);
+const realtimeSeatNumberSchema = z.string().regex(/^[ABC][0-9]{2}$/);
 
 const seatSelectionSchema = z.object({
   seatNumber: realtimeSeatNumberSchema,

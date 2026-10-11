@@ -1,18 +1,5 @@
 import type { PaginationMeta } from "./common";
 
-export interface Trip {
-  id: number;
-  from: string;
-  to: string;
-  time: Date | string;
-  price: number;
-  availableSeats?: number;
-  capacity?: number;
-  emptySeats?: number;
-  type?: string;
-  date?: string;
-}
-
 export interface TripQueryParams {
   bookable?: boolean;
   search?: string;

@@ -1,15 +1,9 @@
 import { FiSearch } from "react-icons/fi";
-const locations = [
-  "Hồ Chí Minh",
-  "Đà Lạt",
-  "Nha Trang",
-  "Hà Nội",
-  "Đà Nẵng",
-  "Vũng Tàu",
-  "Cần Thơ",
-];
+import type { TripSearchOption } from "@/types";
 
-export default function SearchWidget() {
+export default function SearchWidget({ options }: { options: TripSearchOption[] }) {
+  const origins = [...new Set(options.map((option) => option.from))];
+  const destinations = [...new Set(options.map((option) => option.to))];
   return (
     <div className="relative z-30 w-full max-w-5xl mx-auto px-4 -mt-10 lg:-mt-12">
       <form
@@ -29,7 +23,7 @@ export default function SearchWidget() {
               className="w-full bg-transparent font-bold text-slate-800 text-sm focus:outline-none cursor-pointer py-0.5"
             >
               <option value="">Tất cả điểm đi</option>
-              {locations.map((location) => (
+              {origins.map((location) => (
                 <option key={location} value={location}>{location}</option>
               ))}
             </select>
@@ -50,7 +44,7 @@ export default function SearchWidget() {
               className="w-full bg-transparent font-bold text-slate-800 text-sm focus:outline-none cursor-pointer py-0.5"
             >
               <option value="">Tất cả điểm đến</option>
-              {locations.map((location) => (
+              {destinations.map((location) => (
                 <option key={location} value={location}>{location}</option>
               ))}
             </select>

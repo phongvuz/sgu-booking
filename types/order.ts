@@ -1,4 +1,4 @@
-import { PaginationMeta } from "./common";
+import type { PaginationMeta } from "./common";
 
 export type BookingStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
 
@@ -57,12 +57,4 @@ export interface OrderStats {
   pending: number;
   cancelled: number;
   totalRevenue: number;
-}
-
-export interface CreateOfflineOrderInput {
-  tripId: number;
-  seats: string[];
-  fullName: string;
-  phone: string;
-  status?: BookingStatus;
 }

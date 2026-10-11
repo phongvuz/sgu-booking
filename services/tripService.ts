@@ -2,21 +2,20 @@ import { assertTripId } from "@/lib/trip-id";
 import { BusinessError } from "@/lib/business-error";
 import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes } from "@/lib/seats";
-import { parseVietnamDateTime } from "@/lib/trip-search";
+import { formatDepartureDate, getDepartureDayRange, parseVietnamDateTime } from "@/lib/trip-search";
 import { positiveInteger } from "@/lib/query-params";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
-import { formatDepartureDate, getDepartureDayRange } from "@/lib/trip-search";
 
-export interface GetTripsFilter {
+interface GetTripsFilter {
   fromCity?: string;
   toCity?: string;
   date?: string; // Định dạng YYYY-MM-DD
   includeBookings?: boolean;
 }
 
-export interface CreateTripInput {
+interface CreateTripInput {
   from: string;
   to: string;
   time: Date | string;
@@ -24,7 +23,7 @@ export interface CreateTripInput {
   capacity: number;
 }
 
-export interface UpdateTripInput {
+interface UpdateTripInput {
   from?: string;
   to?: string;
   time?: Date | string;
@@ -96,7 +95,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   }
 
   const { gte: startToday, lt: endToday } = getDepartureDayRange(formatDepartureDate(new Date()))!;
-  const [trips, capacities, totalTrips, totalActiveBookings, departingToday] = await Promise.all([
+  const [trips, capacities, totalActiveBookings, departingToday] = await Promise.all([
     prisma.trip.findMany({
       where,
       orderBy,
@@ -116,7 +115,6 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
       },
     }),
     prisma.trip.aggregate({ where, _sum: { capacity: true } }),
-    prisma.trip.count({ where }),
     prisma.booking.count({ where: { status: { not: "CANCELLED" }, trip: where } }),
     prisma.trip.count({ where: { AND: [where, { time: { gte: startToday, lt: endToday } }] } }),
   ]);
@@ -125,7 +123,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   const avgOccupancy = totalCapacities > 0 ? Math.round(totalActiveBookings / totalCapacities * 100) : 0;
 
   const stats: TripStats = {
-    total: totalTrips,
+    total,
     departingToday,
     totalBookings: totalActiveBookings,
     avgOccupancy,

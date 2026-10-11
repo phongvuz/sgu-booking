@@ -9,7 +9,7 @@ type ParamsContext = {
 };
 
 // GET /api/trips/[id] - Lấy thông tin chi tiết một tuyến xe
-export async function GET(request: NextRequest, { params }: ParamsContext) {
+export async function GET(_request: NextRequest, { params }: ParamsContext) {
   try {
     const { id } = await params;
     const trip = await getTripById(parseTripId(id));

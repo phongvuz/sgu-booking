@@ -3,7 +3,6 @@
 import { FiEdit, FiX } from "react-icons/fi";
 import Image from "next/image";
 
-import React from "react";
 import { Employee } from "@/types";
 
 interface EmployeeDetailModalProps {

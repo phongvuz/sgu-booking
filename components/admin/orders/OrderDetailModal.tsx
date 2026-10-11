@@ -2,7 +2,6 @@
 
 import { FaBus } from "react-icons/fa";
 import { FiArrowRight, FiPrinter, FiX } from "react-icons/fi";
-import React from "react";
 import { OrderItem } from "@/types";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
 

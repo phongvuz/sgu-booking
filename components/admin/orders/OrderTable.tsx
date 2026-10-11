@@ -2,7 +2,6 @@
 
 import { FaTicketAlt } from "react-icons/fa";
 import { FiArrowRight, FiEye, FiRefreshCw } from "react-icons/fi";
-import React from "react";
 import { OrderItem, BookingStatus } from "@/types";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
 

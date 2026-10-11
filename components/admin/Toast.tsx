@@ -3,9 +3,9 @@
 import { FiAlertTriangle, FiCheck, FiInfo, FiX } from "react-icons/fi";
 import React, { createContext, useContext, useState, useCallback } from "react";
 
-export type ToastType = "success" | "error" | "info" | "warning";
+type ToastType = "success" | "error" | "info" | "warning";
 
-export interface ToastMessage {
+interface ToastMessage {
   id: string;
   type: ToastType;
   title?: string;

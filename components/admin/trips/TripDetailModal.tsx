@@ -2,7 +2,6 @@
 
 import { FaRoad } from "react-icons/fa";
 import { FiArrowRight, FiX } from "react-icons/fi";
-import React from "react";
 import { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
 

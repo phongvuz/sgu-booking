@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import type { TripStats as TripStatsType } from "@/types/trip";
 
 interface TripStatsProps {

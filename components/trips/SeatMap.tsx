@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import type { Seat } from "@/types/trip";
 
 interface SeatMapProps {

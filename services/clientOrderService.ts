@@ -6,10 +6,6 @@ export function fetchAdminOrders(params: OrderQueryParams = {}, signal?: AbortSi
   return requestJson<OrderListResponse>(`/api/admin/orders?${buildQuery(params)}`, { signal });
 }
 
-export function fetchOrderById(id: number | string, signal?: AbortSignal) {
-  return requestJson<OrderDetailResponse>(`/api/admin/orders/${encodeURIComponent(id)}`, { signal });
-}
-
 export function createOfflineOrder(payload: OfflineOrderFormValues) {
   return requestJson<OrderDetailResponse>("/api/admin/orders", { method: "POST", body: JSON.stringify(payload) });
 }

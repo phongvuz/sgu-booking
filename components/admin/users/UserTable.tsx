@@ -2,7 +2,6 @@
 
 import { FiEdit, FiEye, FiRefreshCw, FiTrash2, FiUser } from "react-icons/fi";
 import { FaCrown } from "react-icons/fa";
-import React from "react";
 import { UserAccount } from "@/types";
 import { formatPrice } from "@/lib/trip-display";
 

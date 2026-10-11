@@ -2,7 +2,6 @@
 
 import { FaBus, FaUmbrellaBeach } from "react-icons/fa";
 import { FiUsers } from "react-icons/fi";
-import React from "react";
 import type { EmployeeStats as EmployeeStatsData } from "@/types";
 
 interface EmployeeStatsProps {

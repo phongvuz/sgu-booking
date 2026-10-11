@@ -1,7 +1,6 @@
 "use client";
 
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
-import React from "react";
 import { PaginationMeta } from "@/types";
 
 interface EmployeePaginationProps {

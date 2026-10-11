@@ -2,7 +2,7 @@
 
 import { FaSpinner } from "react-icons/fa";
 import { FiEdit, FiPlus, FiX } from "react-icons/fi";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { employeeSchema, EmployeeFormValues } from "@/lib/validations/employee";

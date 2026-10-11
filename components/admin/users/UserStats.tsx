@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { UserStats as UserStatsType } from "@/types";
 
 interface UserStatsProps {

@@ -12,13 +12,12 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-unused-vars": ["warn", { varsIgnorePattern: "^_" }],
     },
   },
-  // Override default ignores of eslint-config-next.
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    ".local-backups/**",
   ]),
 ]);
 

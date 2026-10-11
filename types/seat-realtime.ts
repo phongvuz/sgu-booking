@@ -3,7 +3,7 @@ export interface SeatSelection {
   clientId: string;
 }
 
-export type SeatEventType = "SEAT_SELECTED" | "SEAT_DESELECTED";
+type SeatEventType = "SEAT_SELECTED" | "SEAT_DESELECTED";
 
 export interface SeatInteractionRequest extends SeatSelection {
   tripId: number;
@@ -22,7 +22,7 @@ export interface SeatSnapshotEvent {
   timestamp: string;
 }
 
-export interface TripViewersEvent {
+interface TripViewersEvent {
   tripId: number;
   type: "VIEWERS_UPDATED";
   viewerCount: number;

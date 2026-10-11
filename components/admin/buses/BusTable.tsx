@@ -2,7 +2,6 @@
 
 import { FaBus, FaCircle } from "react-icons/fa";
 import { FiEdit, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import React from "react";
 import { Bus } from "@/types";
 
 interface BusTableProps {
