@@ -1,3 +1,4 @@
+import { FiChevronRight } from "react-icons/fi";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -9,11 +10,6 @@ export default function TravelGuides() {
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4">
         <div>
-          {/* Pill Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-light text-brand-primary text-xs font-bold uppercase tracking-wider mb-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-primary" />
-            GỢI Ý HÀNH TRÌNH
-          </div>
           <h2 className="font-serif font-black text-3xl sm:text-4xl text-brand-text tracking-tight">
             Khám phá những hành trình mới
           </h2>
@@ -63,9 +59,7 @@ export default function TravelGuides() {
 
               {/* Chevron arrow */}
               <div className="text-slate-400 group-hover:text-brand-primary group-hover:translate-x-1 transition-all">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                </svg>
+                <FiChevronRight aria-hidden="true" className="w-4 h-4" />
               </div>
             </div>
           </Link>

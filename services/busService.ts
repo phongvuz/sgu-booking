@@ -19,7 +19,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
     type = "",
     status = "",
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "createdAt",
     sortOrder = "desc",
   } = params;
@@ -45,7 +45,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
     where.status = status;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const [total, statusCounts] = await Promise.all([
@@ -65,7 +65,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.busOrderByWithRelationInput = {};
-  if (sortBy === "plate" || sortBy === "seats" || sortBy === "createdAt") {
+  if (sortBy === "plate" || sortBy === "seats" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -73,7 +73,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
 
   const buses = await prisma.bus.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
   });

@@ -4,7 +4,7 @@ import { parseTripId } from "@/lib/trip-id";
 import { apiError } from "@/lib/admin-api";
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

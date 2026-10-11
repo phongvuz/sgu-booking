@@ -1,3 +1,4 @@
+import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentCustomer } from "@/lib/session";
@@ -6,7 +7,7 @@ import { prisma } from "@/lib/prisma";
 export const metadata = { title: "Lịch sử đặt vé | Nhà xe Sài Gòn" };
 
 const statuses: Record<string, { label: string; className: string }> = {
-  PENDING: { label: "Chờ xác nhận", className: "bg-amber-100 text-amber-800" },
+  PENDING: { label: "Chờ thanh toán", className: "bg-amber-100 text-amber-800" },
   CONFIRMED: { label: "Đã xác nhận", className: "bg-green-100 text-green-800" },
   CANCELLED: { label: "Đã hủy", className: "bg-red-100 text-red-800" },
 };
@@ -17,7 +18,7 @@ const moneyFormat = new Intl.NumberFormat("vi-VN", { style: "currency", currency
 
 export default async function BookingHistoryPage() {
   const customer = await getCurrentCustomer();
-  if (!customer) redirect("/login");
+  if (!customer) redirect("/login?next=/bookings");
 
   const bookings = await prisma.booking.findMany({
     where: { userId: customer.userId },
@@ -43,7 +44,7 @@ export default async function BookingHistoryPage() {
             <h2 className="break-all text-lg font-bold text-brand-primary">Mã vé: {booking.pnr ?? `#${booking.id}`}</h2>
             <span className={`rounded-full px-3 py-1 text-sm font-semibold ${status.className}`}>{status.label}</span>
           </div>
-          <p className="mt-4 text-xl font-bold text-gray-900">{booking.trip.from} → {booking.trip.to}</p>
+          <p className="mt-4 text-xl font-bold text-gray-900">{booking.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {booking.trip.to}</p>
           <dl className="mt-4 grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div><dt className="text-gray-500">Mã chuyến xe</dt><dd className="mt-1 font-semibold">{booking.trip.id}</dd></div>
             <div><dt className="text-gray-500">Khởi hành</dt><dd className="mt-1 font-semibold"><time dateTime={booking.trip.time.toISOString()}>{dateFormat.format(booking.trip.time)}</time></dd></div>
@@ -54,6 +55,9 @@ export default async function BookingHistoryPage() {
             <span className="text-sm text-gray-500">Tổng tiền</span>
             <span className="text-xl font-bold text-brand-primary">{moneyFormat.format(booking.totalPrice)}</span>
           </div>
+          {booking.pnr && <Link href={`/success?pnr=${encodeURIComponent(booking.pnr)}`} className="mt-4 inline-block text-sm font-semibold text-blue-700 underline">
+            {booking.status === "PENDING" ? "Xem vé và thanh toán" : "Xem lượt đặt chỗ"}
+          </Link>}
         </li>;
       })}
     </ul>}

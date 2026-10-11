@@ -1,3 +1,5 @@
+import { FiArrowUp, FiUsers } from "react-icons/fi";
+import { FaBus, FaMoneyBillWave, FaTicketAlt } from "react-icons/fa";
 import type { DashboardStats } from "@/types";
 import { formatPrice } from "@/lib/trip-display";
 
@@ -11,7 +13,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             Doanh thu tháng này
           </span>
           <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
-            💰
+            <FaMoneyBillWave aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </span>
         </div>
         <div className="mt-3">
@@ -23,7 +25,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             )}
           </div>
           <p className="text-xs text-emerald-600 font-medium mt-1.5 flex items-center gap-1">
-            <span>↑ {stats?.revenueGrowthPercent || 0}%</span>
+            <span><FiArrowUp aria-hidden="true" className="inline-block shrink-0 align-middle" /> {stats?.revenueGrowthPercent || 0}%</span>
             <span className="text-gray-400">so với tháng trước</span>
           </p>
         </div>
@@ -36,7 +38,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             Vé bán hôm nay
           </span>
           <span className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-bold">
-            🎫
+            <FaTicketAlt aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </span>
         </div>
         <div className="mt-3">
@@ -48,7 +50,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             )}
           </div>
           <p className="text-xs text-blue-600 font-medium mt-1.5 flex items-center gap-1">
-            <span>↑ {stats?.ticketsGrowthPercent || 0}%</span>
+            <span><FiArrowUp aria-hidden="true" className="inline-block shrink-0 align-middle" /> {stats?.ticketsGrowthPercent || 0}%</span>
             <span className="text-gray-400">so với hôm qua</span>
           </p>
         </div>
@@ -61,7 +63,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             Xe đang hoạt động
           </span>
           <span className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-sm font-bold">
-            🚐
+            <FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </span>
         </div>
         <div className="mt-3">
@@ -85,7 +87,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
             Nhân viên làm việc
           </span>
           <span className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-sm font-bold">
-            👥
+            <FiUsers aria-hidden="true" className="inline-block shrink-0 align-middle" />
           </span>
         </div>
         <div className="mt-3">

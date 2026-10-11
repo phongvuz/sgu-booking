@@ -8,13 +8,13 @@ import { positiveInteger } from "@/lib/query-params";
 import { assertTripId } from "@/lib/trip-id";
 import type { CreateBookingInput, BookingResult } from "@/types";
 
-export class BookingConflictError extends BusinessError {
+class BookingConflictError extends BusinessError {
   constructor(public conflictingSeats: string[]) {
     super(`Ghế ${conflictingSeats.join(", ")} đã được đặt hoặc đang được giữ. Vui lòng chọn ghế khác.`, 409);
     this.name = "BookingConflictError";
   }
 }
-export class TripNotFoundError extends BusinessError {
+class TripNotFoundError extends BusinessError {
   constructor(tripId: number) {
     super(`Không tìm thấy chuyến xe với mã: ${tripId}`, 404);
     this.name = "TripNotFoundError";
@@ -71,7 +71,7 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
   });
 }
 
-export interface GetBookingsFilter { query?: string; phone?: string; limit?: number }
+interface GetBookingsFilter { query?: string; phone?: string; limit?: number }
 export async function getBookings({ query = "", phone = "", limit = 50 }: GetBookingsFilter = {}) {
   const target = (phone || query).trim();
   if (!target) throw new BusinessError("Nhập đầy đủ số điện thoại hoặc mã đặt chỗ (PNR).");

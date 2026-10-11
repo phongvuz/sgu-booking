@@ -1,18 +1,5 @@
 import type { PaginationMeta } from "./common";
 
-export interface Trip {
-  id: number;
-  from: string;
-  to: string;
-  time: Date | string;
-  price: number;
-  availableSeats?: number;
-  capacity?: number;
-  emptySeats?: number;
-  type?: string;
-  date?: string;
-}
-
 export interface TripQueryParams {
   bookable?: boolean;
   search?: string;
@@ -21,7 +8,7 @@ export interface TripQueryParams {
   date?: string;
   page?: number;
   limit?: number;
-  sortBy?: "time" | "price" | "availableSeats" | "id";
+  sortBy?: "createdAt" | "time" | "price" | "availableSeats" | "id";
   sortOrder?: "asc" | "desc";
 }
 

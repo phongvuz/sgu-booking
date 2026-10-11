@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 import { PaginationMeta } from "@/types";
 
 interface EmployeePaginationProps {
@@ -55,7 +55,7 @@ export function EmployeePagination({
             onChange={(e) => onLimitChange(Number(e.target.value))}
             className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:border-brand-primary cursor-pointer"
           >
-            <option value={8}>8</option>
+            <option value={10}>10</option>
             <option value={12}>12</option>
             <option value={20}>20</option>
             <option value={50}>50</option>
@@ -72,7 +72,7 @@ export function EmployeePagination({
           className="px-2.5 py-1.5 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           title="Trang trước"
         >
-          &larr; Trước
+          <FiArrowLeft aria-hidden="true" className="inline-block shrink-0 align-middle" /> Trước
         </button>
 
         {getPageNumbers().map((p, idx) =>
@@ -103,7 +103,7 @@ export function EmployeePagination({
           className="px-2.5 py-1.5 rounded border border-gray-300 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           title="Trang tiếp"
         >
-          Sau &rarr;
+          Sau <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </button>
       </div>
     </div>

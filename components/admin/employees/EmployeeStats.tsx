@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { FaBus, FaUmbrellaBeach } from "react-icons/fa";
+import { FiUsers } from "react-icons/fi";
 import type { EmployeeStats as EmployeeStatsData } from "@/types";
 
 interface EmployeeStatsProps {
@@ -16,7 +17,7 @@ export function EmployeeStats({ stats }: EmployeeStatsProps) {
           <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
         </div>
         <div className="w-10 h-10 rounded-xl bg-orange-100 text-brand-primary flex items-center justify-center font-bold text-lg">
-          👥
+          <FiUsers aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </div>
       </div>
 
@@ -28,7 +29,7 @@ export function EmployeeStats({ stats }: EmployeeStatsProps) {
           <p className="text-2xl font-bold text-amber-600 mt-1">{stats.onLeave}</p>
         </div>
         <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold text-lg">
-          🏖️
+          <FaUmbrellaBeach aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </div>
       </div>
 
@@ -38,7 +39,7 @@ export function EmployeeStats({ stats }: EmployeeStatsProps) {
           <p className="text-2xl font-bold text-slate-800 mt-1">{stats.drivers}</p>
         </div>
         <div className="w-10 h-10 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center font-bold text-lg">
-          🚌
+          <FaBus aria-hidden="true" className="inline-block shrink-0 align-middle" />
         </div>
       </div>
     </div>

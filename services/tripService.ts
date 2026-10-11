@@ -2,21 +2,20 @@ import { assertTripId } from "@/lib/trip-id";
 import { BusinessError } from "@/lib/business-error";
 import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes } from "@/lib/seats";
-import { parseVietnamDateTime } from "@/lib/trip-search";
+import { formatDepartureDate, getDepartureDayRange, parseVietnamDateTime } from "@/lib/trip-search";
 import { positiveInteger } from "@/lib/query-params";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
-import { formatDepartureDate, getDepartureDayRange } from "@/lib/trip-search";
 
-export interface GetTripsFilter {
+interface GetTripsFilter {
   fromCity?: string;
   toCity?: string;
   date?: string; // Định dạng YYYY-MM-DD
   includeBookings?: boolean;
 }
 
-export interface CreateTripInput {
+interface CreateTripInput {
   from: string;
   to: string;
   time: Date | string;
@@ -24,7 +23,7 @@ export interface CreateTripInput {
   capacity: number;
 }
 
-export interface UpdateTripInput {
+interface UpdateTripInput {
   from?: string;
   to?: string;
   time?: Date | string;
@@ -47,9 +46,9 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     to = "",
     date = "",
     page = 1,
-    limit = 8,
-    sortBy = "time",
-    sortOrder = "asc",
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = params;
 
   const where: Prisma.tripWhereInput = {};
@@ -80,7 +79,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     where.time = bookable ? { ...range, gt: new Date() } : range;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const total = await prisma.trip.count({ where });
@@ -89,17 +88,17 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.tripOrderByWithRelationInput = {};
-  if (sortBy === "price" || sortBy === "availableSeats" || sortBy === "id" || sortBy === "time") {
+  if (sortBy === "createdAt" || sortBy === "price" || sortBy === "availableSeats" || sortBy === "id" || sortBy === "time") {
     orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
   } else {
-    orderBy = { time: "asc" };
+    orderBy = { createdAt: "desc" };
   }
 
   const { gte: startToday, lt: endToday } = getDepartureDayRange(formatDepartureDate(new Date()))!;
-  const [trips, capacities, totalTrips, totalActiveBookings, departingToday] = await Promise.all([
+  const [trips, capacities, totalActiveBookings, departingToday] = await Promise.all([
     prisma.trip.findMany({
       where,
-      orderBy,
+      orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
       skip,
       take: numLimit,
       include: {
@@ -116,7 +115,6 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
       },
     }),
     prisma.trip.aggregate({ where, _sum: { capacity: true } }),
-    prisma.trip.count({ where }),
     prisma.booking.count({ where: { status: { not: "CANCELLED" }, trip: where } }),
     prisma.trip.count({ where: { AND: [where, { time: { gte: startToday, lt: endToday } }] } }),
   ]);
@@ -125,7 +123,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   const avgOccupancy = totalCapacities > 0 ? Math.round(totalActiveBookings / totalCapacities * 100) : 0;
 
   const stats: TripStats = {
-    total: totalTrips,
+    total,
     departingToday,
     totalBookings: totalActiveBookings,
     avgOccupancy,

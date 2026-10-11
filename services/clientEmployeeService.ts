@@ -1,14 +1,9 @@
-import type { Employee, EmployeeQueryParams, EmployeeListResponse, EmployeeDetailResponse, MutationResponse } from "@/types";
+import type { EmployeeQueryParams, EmployeeListResponse, EmployeeDetailResponse, MutationResponse } from "@/types";
 import type { EmployeeFormValues } from "@/lib/validations/employee";
 import { buildQuery, requestJson } from "@/lib/api-client";
 
 export function fetchEmployees(params: EmployeeQueryParams = {}, signal?: AbortSignal) {
   return requestJson<EmployeeListResponse>(`/api/employees?${buildQuery(params)}`, { signal });
-}
-
-export async function fetchEmployeeById(id: string, signal?: AbortSignal) {
-  const response = await requestJson<{ success: boolean; data: Employee }>(`/api/employees/${encodeURIComponent(id)}`, { signal });
-  return response.data;
 }
 
 export function createEmployee(payload: EmployeeFormValues) {

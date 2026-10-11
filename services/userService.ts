@@ -20,7 +20,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     search = "",
     role = "",
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "id",
     sortOrder = "desc",
   } = params;
@@ -39,7 +39,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     where.role = role;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const startOfMonth = getVietnamMonthStart(new Date());
@@ -60,7 +60,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.userOrderByWithRelationInput = {};
-  if (sortBy === "fullName" || sortBy === "createdAt") {
+  if (sortBy === "fullName" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -68,7 +68,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
 
   const users = await prisma.user.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
     include: {

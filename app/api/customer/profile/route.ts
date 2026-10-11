@@ -1,13 +1,15 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { getCurrentCustomer } from "@/lib/session";
+import { createSessionToken, getCurrentCustomer, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { NextResponse } from "next/server";
+import { isSameOriginRequest } from "@/lib/request-origin";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { profileSchema, passwordSchema } from "@/lib/validations/profile";
 
 export const runtime = "nodejs";
 
 export async function PATCH(request: Request) {
-  if (request.headers.get("origin") && request.headers.get("origin") !== new URL(request.url).origin) {
+  if (!isSameOriginRequest(request)) {
     return Response.json({ message: "Yêu cầu không hợp lệ!" }, { status: 403 });
   }
   try {
@@ -25,11 +27,14 @@ export async function PATCH(request: Request) {
         return Response.json({ message: "Mật khẩu hiện tại không đúng!" }, { status: 400 });
       }
       const password = await hashPassword(parsed.data.password);
+      const token = createSessionToken(customer.userId, password);
       const updated = await prisma.user.updateMany({
         where: { id: customer.userId, password: user.password, role: "CUSTOMER" }, data: { password },
       });
       if (!updated.count) return Response.json({ message: "Thông tin đã thay đổi. Vui lòng thử lại!" }, { status: 409 });
-      return Response.json({ message: "Đổi mật khẩu thành công!" });
+      const response = NextResponse.json({ message: "Đổi mật khẩu thành công!" }, { headers: { "Cache-Control": "no-store" } });
+      response.cookies.set(SESSION_COOKIE, token, sessionCookieOptions);
+      return response;
     }
     if (body?.action !== "profile") return Response.json({ message: "Yêu cầu không hợp lệ!" }, { status: 400 });
     const parsed = profileSchema.safeParse(body);

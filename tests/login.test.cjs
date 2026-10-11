@@ -16,7 +16,7 @@ test("password verification rejects incorrect passwords and malformed/legacy has
 });
 
 test("session signatures reject tampering, expiry and invalid identifiers", () => {
-  const token = session.createSessionToken(7, 1000);
+  const token = session.createSessionToken(7, "stored-hash", 1000);
   assert.equal(session.verifySessionToken(token, 1001), 7);
   assert.equal(session.verifySessionToken(token.replace(/^7/, "8"), 1001), null);
   assert.equal(session.verifySessionToken(token, 1000 + session.SESSION_AGE * 1000), null);
@@ -73,7 +73,7 @@ test("rejects malformed input and hides database failures", async () => {
 
 test("logout expires the session cookie", async () => {
   const { POST } = load("app/api/auth/logout/route.ts", { "@/lib/session": session });
-  const response = await POST();
+  const response = await POST(new Request("http://localhost/api/auth/logout", { method: "POST" }));
   assert.equal(response.status, 200);
   assert.match(response.headers.get("set-cookie"), /Max-Age=0/i);
 });
@@ -95,18 +95,28 @@ test("admin logs in without a customer and upgrades legacy password for subseque
   assert.equal((await customer.post()).status, 401);
 });
 
+test("admin and customer forms reject accounts for the other audience without setting cookies", async () => {
+  for (const [role, audience, status] of [["CUSTOMER", "admin", 401], ["ADMIN", "customer", 401], ["CUSTOMER", "customer", 200], ["ADMIN", "admin", 200]]) {
+    const { post } = await setup({ role });
+    const response = await post({ identifier: "0901234567", password: "secret123", audience });
+    assert.equal(response.status, status);
+    if (status === 401) assert.equal(response.headers.get("set-cookie"), null);
+    else assert.match(response.headers.get("set-cookie"), /HttpOnly/i);
+  }
+});
+
 test("admin session rechecks role and rejects missing, expired or tampered cookies", async () => {
   for (const [role, token, allowed] of [
-    ["ADMIN", session.createSessionToken(7), true],
-    ["CUSTOMER", session.createSessionToken(7), false],
-    ["USER", session.createSessionToken(7), false],
+    ["ADMIN", session.createSessionToken(7, "stored-hash"), true],
+    ["CUSTOMER", session.createSessionToken(7, "stored-hash"), false],
+    ["USER", session.createSessionToken(7, "stored-hash"), false],
     ["ADMIN", undefined, false],
-    ["ADMIN", session.createSessionToken(7, 0), false],
-    ["ADMIN", session.createSessionToken(7).replace(/^7/, "8"), false],
+    ["ADMIN", session.createSessionToken(7, "stored-hash", 0), false],
+    ["ADMIN", session.createSessionToken(7, "stored-hash").replace(/^7/, "8"), false],
   ]) {
     const current = load("lib/session.ts", {
       "next/headers": { cookies: async () => ({ get: () => token ? { value: token } : undefined }) },
-      "@/lib/prisma": { prisma: { user: { findUnique: async () => ({ id: 7, role }) } } },
+      "@/lib/prisma": { prisma: { user: { findUnique: async () => ({ id: 7, role, password: "stored-hash", isActive: true }) } } },
     });
     assert.equal(Boolean(await current.getCurrentAdmin()), allowed);
   }
@@ -115,9 +125,9 @@ test("admin session rechecks role and rejects missing, expired or tampered cooki
 test("session use rechecks current role and customer status", async () => {
   for (const [role, status, allowed] of [["CUSTOMER", "Đang hoạt động", true], ["ADMIN", "Đang hoạt động", false], ["CUSTOMER", "Ngừng hoạt động", false]]) {
     const current = load("lib/session.ts", {
-      "next/headers": { cookies: async () => ({ get: () => ({ value: session.createSessionToken(7) }) }) },
+      "next/headers": { cookies: async () => ({ get: () => ({ value: session.createSessionToken(7, "stored-hash") }) }) },
       "@/lib/prisma": { prisma: {
-        user: { findUnique: async () => ({id: 7, phone: "0901234567", role}) },
+        user: { findUnique: async () => ({id: 7, phone: "0901234567", role, password: "stored-hash", isActive: true}) },
         customer: { findUnique: async () => ({id: "CUS-001", name: "Test", status}) },
       } },
     });

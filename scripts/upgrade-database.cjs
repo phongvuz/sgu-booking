@@ -105,7 +105,8 @@ async function main() {
   // Chỉ ghi nhận baseline khi cấu trúc thật khớp; không đánh dấu sai migration là đã chạy.
   const temporary = path.join(os.tmpdir(), `nha-xe-baseline-${process.pid}.prisma`);
   let schema = fs.readFileSync("prisma/schema.prisma", "utf8");
-  schema = schema.replace(/^\s*(pnr|passengerName|passengerPhone|activeSeat|capacity|seatHolds|isActive|confirmedAt)\s+.*$/gm, "")
+  schema = schema.replace(/^model Payment \{[\s\S]*?^\}/gm, "")
+    .replace(/^\s*(pnr|passengerName|passengerPhone|activeSeat|capacity|seatHolds|isActive|confirmedAt)\s+.*$/gm, "")
     .replace(/(model trip \{\s+id[^\n]*\n)/, '$1  code           String     @unique(map: "Trip_code_key")\n')
     .replace(/onDelete: Restrict/g, "onDelete: Cascade")
     .replace(/^\s*trip trip @relation.*$/gm, "")

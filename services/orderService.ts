@@ -23,7 +23,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
     date = "",
     tripId,
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "id",
     sortOrder = "desc",
   } = params;
@@ -58,7 +58,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
     where.createdAt = range;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const [total, statusCounts] = await Promise.all([
@@ -79,7 +79,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.bookingOrderByWithRelationInput = {};
-  if (sortBy === "totalPrice" || sortBy === "createdAt") {
+  if (sortBy === "totalPrice" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -87,7 +87,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
 
   const bookings = await prisma.booking.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
     include: {

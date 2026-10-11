@@ -97,7 +97,14 @@ test("seat hold URLs validate before querying and streams use the canonical nume
   assert.equal((await holds.GET(new Request("http://localhost"), context("0042"))).status, 200);
   const stream = load("app/api/trips/[id]/stream/route.ts", {
     "@/lib/admin-api": apiHelpers,
-    "@/lib/sse": { addClient: (id) => calls.push(id), removeClient: (id) => calls.push(id) },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async ({ where }) => ({ id: where.id }) } } },
+    "@/lib/sse": {
+      addClient: (id) => calls.push(id),
+      removeClient: (id) => calls.push(id),
+      getSeatSnapshot: (id) => ({ type: "SEAT_SNAPSHOT", tripId: id, selections: [], viewerCount: 0, timestamp: new Date().toISOString() }),
+      broadcastViewerCount: () => {},
+      encodeRealtimeMessage: (message) => new TextEncoder().encode(JSON.stringify(message)),
+    },
   });
   assert.equal((await stream.GET(new Request("http://localhost"), context("OLD-CODE"))).status, 400);
   const abort = new AbortController();

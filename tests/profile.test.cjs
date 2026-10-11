@@ -7,6 +7,8 @@ const { Prisma } = require("@prisma/client");
 const registration = load("lib/validations/register.ts");
 const validation = load("lib/validations/profile.ts", { "./register": registration });
 const passwords = load("lib/password.ts");
+process.env.SESSION_SECRET = "test-secret-".repeat(4);
+const session = load("lib/session.ts", { "@/lib/prisma": { prisma: {} } });
 const profile = { action: "profile", fullName: " Nguyễn Văn A ", email: " TEST@example.com ", phone: "0901234567", address: "" };
 
 async function setup({ authenticated = true, failure } = {}) {
@@ -28,7 +30,7 @@ async function setup({ authenticated = true, failure } = {}) {
   const { PATCH } = load("app/api/customer/profile/route.ts", {
     "@/lib/prisma": { prisma }, "@/lib/password": passwords,
     "@/lib/validations/profile": validation,
-    "@/lib/session": { getCurrentCustomer: async () => authenticated ? { userId: 7, customerId: "CUS-007" } : null },
+    "@/lib/session": { ...session, getCurrentCustomer: async () => authenticated ? { userId: 7, customerId: "CUS-007" } : null },
   });
   return { writes, patch: (body, origin = "http://localhost") => PATCH(new Request("http://localhost/api/customer/profile", {
     method: "PATCH", headers: { origin }, body: typeof body === "string" ? body : JSON.stringify(body),
@@ -70,6 +72,7 @@ test("password change requires current password and matching valid new password"
   assert.equal(writes.length, 0);
   const response = await patch(body);
   assert.equal(response.status, 200);
+  assert.match(response.headers.get("set-cookie"), /customer_session=.*HttpOnly/i);
   assert.equal(writes[0].where.id, 7);
   assert.equal(await passwords.verifyPassword("new123", writes[0].data.password), true);
   assert.equal(await passwords.verifyPassword("old123", writes[0].data.password), false);

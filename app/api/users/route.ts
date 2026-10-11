@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       search: searchParams.get("search") || "",
       role: searchParams.get("role") || "",
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
-      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 8,
+      limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 10,
       sortBy: readOption(searchParams.get("sortBy"), ["createdAt", "fullName", "id"] as const, "id"),
       sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };

@@ -7,27 +7,33 @@ import * as service from "@/services/clientEmployeeService";
 import { useDebouncedSearch } from "./useDebouncedSearch";
 import { useRemoteData } from "./useRemoteData";
 import { useAsyncAction } from "./useAsyncAction";
+import { useTableSort } from "./useTableSort";
+import { employeeSortOptions } from "@/lib/admin-table-sort";
 
 const INITIAL_DATA: EmployeeListResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, active: 0, onLeave: 0, drivers: 0 },
 };
 
 export function useEmployees(initialParams?: EmployeeQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [role, setRole] = useState(initialParams?.role ?? "");
   const [department, setDepartment] = useState(initialParams?.department ?? "");
   const [status, setStatus] = useState(initialParams?.status ?? "");
   const resetPage = useCallback(() => setPage(1), []);
+  const { sort, setSort } = useTableSort<NonNullable<EmployeeQueryParams["sortBy"]>>({
+    sortBy: initialParams?.sortBy ?? "createdAt",
+    sortOrder: initialParams?.sortOrder ?? "desc",
+  }, resetPage, employeeSortOptions);
   const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
   const { actionLoading, runAction } = useAsyncAction();
 
   const load = useCallback((signal: AbortSignal) => service.fetchEmployees({
-    search: appliedSearch, role, department, status, page, limit,
-  }, signal), [appliedSearch, role, department, status, page, limit]);
+    search: appliedSearch, role, department, status, page, limit, ...sort,
+  }, signal), [appliedSearch, role, department, status, page, limit, sort]);
   const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
   function resetFilters() {
@@ -90,7 +96,7 @@ export function useEmployees(initialParams?: EmployeeQueryParams) {
     employees: data.data,
     stats: data.stats,
     pagination: data.pagination,
-    loading, error, actionLoading,
+    loading, error, actionLoading, sort, setSort,
     filters: { search, role, department, status, page, limit },
     setSearch: changeSearch,
     setRole: filterRole,

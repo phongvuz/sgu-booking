@@ -1,12 +1,15 @@
-import type { UseFormRegister, FieldErrors } from "react-hook-form";
+import { FaCircle } from "react-icons/fa";
+import { useWatch, type Control, type UseFormRegister, type FieldErrors } from "react-hook-form";
 import type { EmployeeFormValues } from "@/lib/validations/employee";
 
 interface Props {
   register: UseFormRegister<EmployeeFormValues>;
   errors: FieldErrors<EmployeeFormValues>;
+  control: Control<EmployeeFormValues>;
 }
 
-export function EmployeeWorkFields({ register, errors }: Props) {
+export function EmployeeWorkFields({ register, errors, control }: Props) {
+  const status = useWatch({ control, name: "status" });
   return (
     <>
       {/* Vai trò / Chức vụ */}
@@ -64,14 +67,22 @@ export function EmployeeWorkFields({ register, errors }: Props) {
         <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wider mb-1">
           Trạng thái làm việc
         </label>
-        <select
-          {...register("status")}
-          className="w-full px-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-brand-primary bg-white transition-colors cursor-pointer"
-        >
-          <option value="Đang làm việc">🟢 Đang làm việc</option>
-          <option value="Nghỉ phép">🟡 Nghỉ phép</option>
-          <option value="Đã nghỉ việc">🔴 Đã nghỉ việc</option>
-        </select>
+        <div className="relative">
+          <FaCircle
+            aria-hidden="true"
+            className={`pointer-events-none absolute left-3.5 top-1/2 h-2 w-2 -translate-y-1/2 ${
+              status === "Đang làm việc" ? "text-emerald-500" : status === "Nghỉ phép" ? "text-amber-500" : "text-rose-500"
+            }`}
+          />
+          <select
+            {...register("status")}
+            className="w-full pl-8 pr-3.5 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-200 focus:border-brand-primary bg-white transition-colors cursor-pointer"
+          >
+            <option value="Đang làm việc">Đang làm việc</option>
+            <option value="Nghỉ phép">Nghỉ phép</option>
+            <option value="Đã nghỉ việc">Đã nghỉ việc</option>
+          </select>
+        </div>
         {errors.status && (
           <p className="text-xs text-rose-500 mt-1">{errors.status.message}</p>
         )}

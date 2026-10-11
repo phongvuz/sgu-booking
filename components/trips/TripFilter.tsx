@@ -1,5 +1,6 @@
 "use client";
 
+import { FaCircle } from "react-icons/fa";
 import { useState } from "react";
 import Link from "next/link";
 import { formatTripTime, formatPrice } from "@/lib/trip-display";
@@ -186,7 +187,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                       Ngày {dateFormatted}
                     </span>
                     <span className="flex items-center gap-1 text-green-600 font-medium">
-                      <span className="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                      <FaCircle aria-hidden="true" className="w-2 h-2 shrink-0 text-green-500" />
                       Còn {trip.availableSeats} chỗ trống
                     </span>
                   </div>

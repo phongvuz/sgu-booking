@@ -1,4 +1,4 @@
-export const STATION_NAMES: Record<string, string> = {
+const STATION_NAMES: Record<string, string> = {
   SGN: "Hồ Chí Minh",
   HCM: "Hồ Chí Minh",
   TPHCM: "Hồ Chí Minh",

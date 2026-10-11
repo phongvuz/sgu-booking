@@ -1,4 +1,4 @@
-import { PaginationMeta } from "./common";
+import type { PaginationMeta } from "./common";
 
 export interface UserAccount {
   id: number;

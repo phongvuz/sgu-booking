@@ -8,6 +8,7 @@ const { Prisma } = require("@prisma/client");
 const validation = load("lib/validations/register.ts");
 const password = load("lib/password.ts");
 const customerId = load("lib/customer-id.ts");
+process.env.SESSION_SECRET = "test-secret-".repeat(4);
 const valid = {
   fullName: " Nguyễn Văn A ", email: " Test@Example.com ", phone: "0901234567",
   address: " 123 đường A ", password: "secret123", confirmPassword: "secret123", agreeTerms: true,
@@ -53,6 +54,9 @@ test("creates both records with normalized fields and server-controlled role", a
   const { post, writes } = setup();
   const response = await post({ ...valid, role: "ADMIN", status: "inactive", address: " " });
   assert.equal(response.status, 201);
+  assert.match(response.headers.get("set-cookie"), /customer_session=.*HttpOnly/i);
+  assert.match(response.headers.get("set-cookie"), /Max-Age=86400/i);
+  assert.equal(response.headers.get("cache-control"), "no-store");
   assert.deepEqual(writes.map(([table]) => table), ["user", "customer"]);
   assert.equal(writes[0][1].role, "CUSTOMER");
   assert.equal(writes[0][1].fullName, "Nguyễn Văn A");

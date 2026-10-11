@@ -3,10 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/password";
 import { registerSchema } from "@/lib/validations/register";
 import { nextCustomerId } from "@/lib/customer-id";
+import { NextResponse } from "next/server";
+import { createSessionToken, ensureSessionConfigured, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { isSameOriginRequest } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!isSameOriginRequest(request)) return Response.json({ success: false, message: "Nguồn yêu cầu không hợp lệ!" }, { status: 403 });
   let body: unknown;
   try {
     body = await request.json();
@@ -30,12 +34,15 @@ export async function POST(request: Request) {
     }
 
     const passwordHash = await hashPassword(password);
+    // Validate session configuration before committing a new account.
+    ensureSessionConfigured();
+    let sessionToken = "";
     // Retry deadlocks/serialization conflicts when registrations allocate the same ID.
     for (let attempt = 0; ; attempt++) {
       try {
-        await prisma.$transaction(async (tx) => {
+        sessionToken = await prisma.$transaction(async (tx) => {
           const id = await nextCustomerId(tx);
-          await tx.user.create({
+          const user = await tx.user.create({
             data: { fullName, phone, password: passwordHash, role: "CUSTOMER" },
             select: { id: true },
           });
@@ -43,6 +50,7 @@ export async function POST(request: Request) {
             data: { id, name: fullName, email, phone, address: address || null },
             select: { id: true },
           });
+          return createSessionToken(user.id, passwordHash);
         }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
         break;
       } catch (error) {
@@ -54,7 +62,9 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ success: true, message: "Đăng ký tài khoản thành công!" }, { status: 201 });
+    const response = NextResponse.json({ success: true, message: "Đăng ký tài khoản thành công!", redirectTo: "/" }, { status: 201, headers: { "Cache-Control": "no-store" } });
+    response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions);
+    return response;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       return Response.json({ success: false, message: "Email hoặc số điện thoại đã được đăng ký!" }, { status: 409 });
