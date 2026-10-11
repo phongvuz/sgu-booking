@@ -1,5 +1,8 @@
 "use client";
 
+import { TableSort } from "@/components/admin/TableSort";
+import { userSortOptions } from "@/lib/admin-table-sort";
+
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
@@ -27,6 +30,8 @@ export default function AdminUsersPage() {
     setPage,
     setLimit,
     resetFilters,
+    sort,
+    setSort,
     refresh,
     createUser,
     updateUser,
@@ -183,6 +188,8 @@ export default function AdminUsersPage() {
         />
 
         {/* Table */}
+        <TableSort value={sort} options={userSortOptions} onChange={setSort} />
+
         <UserTable
           users={users}
           loading={loading}

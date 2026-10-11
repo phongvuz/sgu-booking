@@ -1,5 +1,8 @@
 "use client";
 
+import { TableSort } from "@/components/admin/TableSort";
+import { busSortOptions } from "@/lib/admin-table-sort";
+
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
@@ -28,6 +31,8 @@ export default function AdminBusesPage() {
     setPage,
     setLimit,
     resetFilters,
+    sort,
+    setSort,
     refresh,
     createBus,
     updateBus,
@@ -171,6 +176,8 @@ export default function AdminBusesPage() {
         />
 
         {/* Table */}
+        <TableSort value={sort} options={busSortOptions} onChange={setSort} />
+
         <BusTable
           buses={buses}
           loading={loading}

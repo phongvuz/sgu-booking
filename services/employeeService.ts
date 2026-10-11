@@ -78,7 +78,7 @@ export async function queryEmployees(params: EmployeeQueryParams): Promise<{
 
   const employees = await prisma.employee.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
   });

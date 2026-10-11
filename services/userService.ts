@@ -60,7 +60,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.userOrderByWithRelationInput = {};
-  if (sortBy === "fullName" || sortBy === "createdAt") {
+  if (sortBy === "fullName" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -68,7 +68,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
 
   const users = await prisma.user.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
     include: {

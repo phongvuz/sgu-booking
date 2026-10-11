@@ -79,7 +79,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.bookingOrderByWithRelationInput = {};
-  if (sortBy === "totalPrice" || sortBy === "createdAt") {
+  if (sortBy === "totalPrice" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -87,7 +87,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
 
   const bookings = await prisma.booking.findMany({
     where,
-    orderBy,
+    orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
     skip,
     take: numLimit,
     include: {

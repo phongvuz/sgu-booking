@@ -7,6 +7,8 @@ import * as service from "@/services/clientUserService";
 import { useDebouncedSearch } from "./useDebouncedSearch";
 import { useRemoteData } from "./useRemoteData";
 import { useAsyncAction } from "./useAsyncAction";
+import { useTableSort } from "./useTableSort";
+import { userSortOptions } from "@/lib/admin-table-sort";
 
 const INITIAL_DATA: UserListResponse = {
   success: true,
@@ -20,12 +22,16 @@ export function useUsers(initialParams?: UserQueryParams) {
   const [limit, setLimit] = useState(initialParams?.limit ?? 8);
   const [role, setRole] = useState(initialParams?.role ?? "");
   const resetPage = useCallback(() => setPage(1), []);
+  const { sort, setSort } = useTableSort<NonNullable<UserQueryParams["sortBy"]>>({
+    sortBy: initialParams?.sortBy ?? "createdAt",
+    sortOrder: initialParams?.sortOrder ?? "desc",
+  }, resetPage, userSortOptions);
   const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
   const { actionLoading, runAction } = useAsyncAction();
 
   const load = useCallback((signal: AbortSignal) => service.fetchAdminUsers({
-    search: appliedSearch, role, page, limit,
-  }, signal), [appliedSearch, role, page, limit]);
+    search: appliedSearch, role, page, limit, ...sort,
+  }, signal), [appliedSearch, role, page, limit, sort]);
   const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
   function resetFilters() {
@@ -76,7 +82,7 @@ export function useUsers(initialParams?: UserQueryParams) {
     users: data.data,
     stats: data.stats,
     pagination: data.pagination,
-    loading, error, actionLoading,
+    loading, error, actionLoading, sort, setSort,
     filters: { search, role, page, limit },
     setSearch: changeSearch,
     setRole: filterRole,

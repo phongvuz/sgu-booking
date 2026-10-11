@@ -8,7 +8,7 @@ export interface TripQueryParams {
   date?: string;
   page?: number;
   limit?: number;
-  sortBy?: "time" | "price" | "availableSeats" | "id";
+  sortBy?: "createdAt" | "time" | "price" | "availableSeats" | "id";
   sortOrder?: "asc" | "desc";
 }
 

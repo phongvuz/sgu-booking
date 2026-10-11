@@ -1,5 +1,8 @@
 "use client";
 
+import { TableSort } from "@/components/admin/TableSort";
+import { tripSortOptions } from "@/lib/admin-table-sort";
+
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
@@ -29,6 +32,8 @@ export default function AdminTripsPage() {
     setPage,
     setLimit,
     resetFilters,
+    sort,
+    setSort,
     refresh,
     createTrip,
     updateTrip,
@@ -182,6 +187,8 @@ export default function AdminTripsPage() {
         />
 
         {/* Table */}
+        <TableSort value={sort} options={tripSortOptions} onChange={setSort} />
+
         <TripTable
           trips={trips}
           loading={loading}

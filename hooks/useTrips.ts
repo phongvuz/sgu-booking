@@ -7,6 +7,8 @@ import * as service from "@/services/clientTripService";
 import { useDebouncedSearch } from "./useDebouncedSearch";
 import { useRemoteData } from "./useRemoteData";
 import { useAsyncAction } from "./useAsyncAction";
+import { useTableSort } from "./useTableSort";
+import { tripSortOptions } from "@/lib/admin-table-sort";
 
 const INITIAL_DATA: TripListAdminResponse = {
   success: true,
@@ -22,12 +24,16 @@ export function useTrips(initialParams?: TripQueryParams) {
   const [to, setTo] = useState(initialParams?.to ?? "");
   const [date, setDate] = useState(initialParams?.date ?? "");
   const resetPage = useCallback(() => setPage(1), []);
+  const { sort, setSort } = useTableSort<NonNullable<TripQueryParams["sortBy"]>>({
+    sortBy: initialParams?.sortBy ?? "createdAt",
+    sortOrder: initialParams?.sortOrder ?? "desc",
+  }, resetPage, tripSortOptions);
   const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
   const { actionLoading, runAction } = useAsyncAction();
 
   const load = useCallback((signal: AbortSignal) => service.fetchAdminTrips({
-    search: appliedSearch, from, to, date, page, limit,
-  }, signal), [appliedSearch, from, to, date, page, limit]);
+    search: appliedSearch, from, to, date, page, limit, ...sort,
+  }, signal), [appliedSearch, from, to, date, page, limit, sort]);
   const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
   function resetFilters() {
@@ -82,7 +88,7 @@ export function useTrips(initialParams?: TripQueryParams) {
     trips: data.data,
     stats: data.stats,
     pagination: data.pagination,
-    loading, error, actionLoading,
+    loading, error, actionLoading, sort, setSort,
     filters: { search, from, to, date, page, limit },
     setSearch: changeSearch,
     setFrom: filterFrom,

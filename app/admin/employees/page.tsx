@@ -1,5 +1,8 @@
 "use client";
 
+import { TableSort } from "@/components/admin/TableSort";
+import { employeeSortOptions } from "@/lib/admin-table-sort";
+
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
@@ -28,6 +31,8 @@ function AdminEmployeesContent() {
     setPage,
     setLimit,
     resetFilters,
+    sort,
+    setSort,
     refresh,
     createEmployee,
     updateEmployee,
@@ -190,6 +195,8 @@ function AdminEmployeesContent() {
         />
 
         {/* Employees Table */}
+        <TableSort value={sort} options={employeeSortOptions} onChange={setSort} />
+
         <EmployeeTable
           employees={employees}
           loading={loading}

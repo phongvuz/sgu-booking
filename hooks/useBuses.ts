@@ -7,6 +7,8 @@ import * as service from "@/services/clientBusService";
 import { useDebouncedSearch } from "./useDebouncedSearch";
 import { useRemoteData } from "./useRemoteData";
 import { useAsyncAction } from "./useAsyncAction";
+import { useTableSort } from "./useTableSort";
+import { busSortOptions } from "@/lib/admin-table-sort";
 
 const INITIAL_DATA: BusListResponse = {
   success: true,
@@ -21,12 +23,16 @@ export function useBuses(initialParams?: BusQueryParams) {
   const [type, setType] = useState(initialParams?.type ?? "");
   const [status, setStatus] = useState(initialParams?.status ?? "");
   const resetPage = useCallback(() => setPage(1), []);
+  const { sort, setSort } = useTableSort<NonNullable<BusQueryParams["sortBy"]>>({
+    sortBy: initialParams?.sortBy ?? "createdAt",
+    sortOrder: initialParams?.sortOrder ?? "desc",
+  }, resetPage, busSortOptions);
   const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
   const { actionLoading, runAction } = useAsyncAction();
 
   const load = useCallback((signal: AbortSignal) => service.fetchBuses({
-    search: appliedSearch, type, status, page, limit,
-  }, signal), [appliedSearch, type, status, page, limit]);
+    search: appliedSearch, type, status, page, limit, ...sort,
+  }, signal), [appliedSearch, type, status, page, limit, sort]);
   const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
   function resetFilters() {
@@ -83,7 +89,7 @@ export function useBuses(initialParams?: BusQueryParams) {
     buses: data.data,
     stats: data.stats,
     pagination: data.pagination,
-    loading, error, actionLoading,
+    loading, error, actionLoading, sort, setSort,
     filters: { search, type, status, page, limit },
     setSearch: changeSearch,
     setType: filterType,

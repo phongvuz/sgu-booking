@@ -47,8 +47,8 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     date = "",
     page = 1,
     limit = 8,
-    sortBy = "time",
-    sortOrder = "asc",
+    sortBy = "createdAt",
+    sortOrder = "desc",
   } = params;
 
   const where: Prisma.tripWhereInput = {};
@@ -88,17 +88,17 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.tripOrderByWithRelationInput = {};
-  if (sortBy === "price" || sortBy === "availableSeats" || sortBy === "id" || sortBy === "time") {
+  if (sortBy === "createdAt" || sortBy === "price" || sortBy === "availableSeats" || sortBy === "id" || sortBy === "time") {
     orderBy[sortBy] = sortOrder === "desc" ? "desc" : "asc";
   } else {
-    orderBy = { time: "asc" };
+    orderBy = { createdAt: "desc" };
   }
 
   const { gte: startToday, lt: endToday } = getDepartureDayRange(formatDepartureDate(new Date()))!;
   const [trips, capacities, totalActiveBookings, departingToday] = await Promise.all([
     prisma.trip.findMany({
       where,
-      orderBy,
+      orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }],
       skip,
       take: numLimit,
       include: {

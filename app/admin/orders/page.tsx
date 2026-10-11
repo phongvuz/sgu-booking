@@ -1,5 +1,8 @@
 "use client";
 
+import { TableSort } from "@/components/admin/TableSort";
+import { orderSortOptions } from "@/lib/admin-table-sort";
+
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
@@ -28,6 +31,8 @@ export default function AdminOrdersPage() {
     setPage,
     setLimit,
     resetFilters,
+    sort,
+    setSort,
     refresh,
     createOfflineOrder,
     changeStatus,
@@ -153,6 +158,8 @@ export default function AdminOrdersPage() {
         />
 
         {/* Table */}
+        <TableSort value={sort} options={orderSortOptions} onChange={setSort} />
+
         <OrderTable
           orders={orders}
           loading={loading}

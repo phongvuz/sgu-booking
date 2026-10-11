@@ -7,6 +7,8 @@ import * as service from "@/services/clientOrderService";
 import { useDebouncedSearch } from "./useDebouncedSearch";
 import { useRemoteData } from "./useRemoteData";
 import { useAsyncAction } from "./useAsyncAction";
+import { useTableSort } from "./useTableSort";
+import { orderSortOptions } from "@/lib/admin-table-sort";
 
 const INITIAL_DATA: OrderListResponse = {
   success: true,
@@ -21,12 +23,16 @@ export function useOrders(initialParams?: OrderQueryParams) {
   const [status, setStatus] = useState(initialParams?.status ?? "");
   const [date, setDate] = useState(initialParams?.date ?? "");
   const resetPage = useCallback(() => setPage(1), []);
+  const { sort, setSort } = useTableSort<NonNullable<OrderQueryParams["sortBy"]>>({
+    sortBy: initialParams?.sortBy ?? "createdAt",
+    sortOrder: initialParams?.sortOrder ?? "desc",
+  }, resetPage, orderSortOptions);
   const { search, appliedSearch, changeSearch, resetSearch } = useDebouncedSearch(initialParams?.search ?? "", resetPage);
   const { actionLoading, runAction } = useAsyncAction();
 
   const load = useCallback((signal: AbortSignal) => service.fetchAdminOrders({
-    search: appliedSearch, status, date, page, limit,
-  }, signal), [appliedSearch, status, date, page, limit]);
+    search: appliedSearch, status, date, page, limit, ...sort,
+  }, signal), [appliedSearch, status, date, page, limit, sort]);
   const { data, loading, error, refresh } = useRemoteData(load, INITIAL_DATA);
 
   function resetFilters() {
@@ -75,7 +81,7 @@ export function useOrders(initialParams?: OrderQueryParams) {
     orders: data.data,
     stats: data.stats,
     pagination: data.pagination,
-    loading, error, actionLoading,
+    loading, error, actionLoading, sort, setSort,
     filters: { search, status, date, page, limit },
     setSearch: changeSearch,
     setStatus: filterStatus,
