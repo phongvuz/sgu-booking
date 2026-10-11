@@ -2,7 +2,7 @@
 
 import { FaRoad } from "react-icons/fa";
 import { FiArrowRight, FiX } from "react-icons/fi";
-import { TripAdminItem } from "@/types/trip";
+import type { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface TripDetailModalProps {
@@ -22,10 +22,18 @@ export function TripDetailModal({
 
   const timeInfo = formatTripTime(trip.time);
 
+  const activeBookings = trip.bookings.filter((booking) => booking.status !== "CANCELLED");
+
+  function handleEdit() {
+    if (!trip) return;
+    onClose();
+    onEdit(trip);
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-        {/* Header */}
+
         <div className="p-6 bg-slate-900 text-white relative">
           <button
             aria-label="Đóng"
@@ -52,9 +60,9 @@ export function TripDetailModal({
           </div>
         </div>
 
-        {/* Content */}
+   
         <div className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
-          {/* Stats Bar */}
+    
           <div className="grid grid-cols-3 gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200 text-center">
             <div>
               <span className="text-[11px] text-gray-500 block">Giá vé</span>
@@ -76,43 +84,42 @@ export function TripDetailModal({
             </div>
           </div>
 
-          {/* Bookings Passenger List */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <span className="font-bold text-gray-900 text-xs uppercase tracking-wider">
-                Danh sách hành khách đã đặt chỗ ({trip.bookings.filter((booking) => booking.status !== "CANCELLED").length} vé)
+                Danh sách hành khách đã đặt chỗ ({activeBookings.length} vé)
               </span>
             </div>
 
-            {trip.bookings.filter((booking) => booking.status !== "CANCELLED").length === 0 ? (
+            {activeBookings.length === 0 ? (
               <div className="text-center py-8 bg-gray-50 rounded-xl border border-dashed border-gray-300 text-gray-400">
                 Chưa có khách đặt vé cho chuyến xe này
               </div>
             ) : (
               <div className="divide-y divide-gray-100 border border-gray-200 rounded-xl overflow-hidden max-h-48 overflow-y-auto">
-                {trip.bookings.filter((booking) => booking.status !== "CANCELLED").map((b) => (
-                  <div key={b.id} className="p-3 flex items-center justify-between bg-white hover:bg-gray-50">
+                {activeBookings.map((booking) => (
+                  <div key={booking.id} className="p-3 flex items-center justify-between bg-white hover:bg-gray-50">
                     <div className="flex items-center gap-3">
                       <span className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 font-extrabold flex items-center justify-center text-xs">
-                        {b.seatNumber}
+                        {booking.seatNumber}
                       </span>
                       <div>
-                        <p className="font-bold text-gray-900 text-xs">{b.userName}</p>
-                        <p className="text-[11px] text-gray-400">{b.userPhone}</p>
+                        <p className="font-bold text-gray-900 text-xs">{booking.userName}</p>
+                        <p className="text-[11px] text-gray-400">{booking.userPhone}</p>
                       </div>
                     </div>
                     <div className="text-right">
                       <span className="font-bold text-gray-900 text-xs block">
-                        {formatPrice(b.totalPrice)}
+                        {formatPrice(booking.totalPrice)}
                       </span>
                       <span
                         className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          b.status === "CONFIRMED"
+                          booking.status === "CONFIRMED"
                             ? "bg-emerald-100 text-emerald-700"
                             : "bg-amber-100 text-amber-700"
                         }`}
                       >
-                        {b.status === "CONFIRMED" ? "Đã thu tiền" : "Chờ thu"}
+                        {booking.status === "CONFIRMED" ? "Đã thu tiền" : "Chờ thu"}
                       </span>
                     </div>
                   </div>
@@ -122,7 +129,6 @@ export function TripDetailModal({
           </div>
         </div>
 
-        {/* Footer */}
         <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
           <button
             onClick={onClose}
@@ -131,10 +137,7 @@ export function TripDetailModal({
             Đóng
           </button>
           <button
-            onClick={() => {
-              onClose();
-              onEdit(trip);
-            }}
+            onClick={handleEdit}
             className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
           >
             Chỉnh sửa chuyến xe

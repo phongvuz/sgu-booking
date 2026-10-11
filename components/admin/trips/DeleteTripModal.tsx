@@ -1,8 +1,8 @@
 "use client";
 
 import { FiAlertTriangle, FiArrowRight } from "react-icons/fi";
-import React from "react";
-import { TripAdminItem } from "@/types/trip";
+import { useState } from "react";
+import type { TripAdminItem } from "@/types/trip";
 
 interface DeleteTripModalProps {
   isOpen: boolean;
@@ -17,18 +17,29 @@ export function DeleteTripModal({
   trip,
   onConfirmDelete,
 }: DeleteTripModalProps) {
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   if (!isOpen || !trip) return null;
 
-  const handleDelete = async () => {
+  async function handleDelete() {
+    if (!trip || loading) return;
+    setError("");
     setLoading(true);
-    const res = await onConfirmDelete(trip.id);
-    setLoading(false);
-    if (res.success) {
-      onClose();
+    try {
+      const response = await onConfirmDelete(trip.id);
+      if (response.success) {
+        onClose();
+      } else {
+        setError(response.message || "Không thể xóa chuyến xe. Vui lòng thử lại.");
+      }
+    } catch {
+      setError("Không thể xóa chuyến xe. Vui lòng thử lại.");
+    } finally {
+      // Luôn mở lại nút thao tác, kể cả khi yêu cầu bị lỗi.
+      setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -47,6 +58,8 @@ export function DeleteTripModal({
             </span>
           )}
         </p>
+
+        {error && <p role="alert" className="mb-4 text-xs text-rose-600">{error}</p>}
 
         <div className="flex items-center justify-center gap-3">
           <button

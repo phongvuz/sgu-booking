@@ -7,6 +7,7 @@ interface TripStatsProps {
 }
 
 export function TripStats({ stats }: TripStatsProps) {
+
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-2xs">

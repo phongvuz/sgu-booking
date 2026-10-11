@@ -2,7 +2,7 @@
 
 import { FaRoad } from "react-icons/fa";
 import { FiArrowRight, FiEdit, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
-import { TripAdminItem } from "@/types/trip";
+import type { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
 
 interface TripTableProps {
@@ -11,6 +11,12 @@ interface TripTableProps {
   onEdit: (trip: TripAdminItem) => void;
   onDelete: (trip: TripAdminItem) => void;
   onView: (trip: TripAdminItem) => void;
+}
+
+function getOccupancyColor(occupancyRate: number) {
+  if (occupancyRate >= 80) return "bg-rose-500";
+  if (occupancyRate >= 50) return "bg-amber-500";
+  return "bg-emerald-500";
 }
 
 export function TripTable({
@@ -55,6 +61,8 @@ export function TripTable({
         <tbody className="divide-y divide-gray-100">
           {trips.map((trip) => {
             const timeInfo = formatTripTime(trip.time);
+            const occupancyColor = getOccupancyColor(trip.occupancyRate);
+            const progressWidth = Math.min(100, trip.occupancyRate) + "%";
             return (
               <tr key={trip.id} className="hover:bg-gray-50/80 transition-colors">
                 <td className="px-5 py-3.5 font-bold text-gray-900">
@@ -83,17 +91,10 @@ export function TripTable({
                     </span>
                     <span className="font-bold text-purple-700">{trip.occupancyRate}%</span>
                   </div>
-                  {/* Progress bar */}
                   <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
                     <div
-                      className={`h-full transition-all rounded-full ${
-                        trip.occupancyRate >= 80
-                          ? "bg-rose-500"
-                          : trip.occupancyRate >= 50
-                          ? "bg-amber-500"
-                          : "bg-emerald-500"
-                      }`}
-                      style={{ width: `${Math.min(100, trip.occupancyRate)}%` }}
+                      className={`h-full transition-all rounded-full ${occupancyColor}`}
+                      style={{ width: progressWidth }}
                     />
                   </div>
                 </td>

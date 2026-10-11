@@ -205,14 +205,17 @@ export default function AdminTripsPage() {
         />
       </div>
 
-      {/* Modals */}
-      <TripModal
-        isOpen={isFormModalOpen}
-        onClose={() => setIsFormModalOpen(false)}
-        onSubmit={handleFormSubmit}
-        initialData={selectedTrip}
-        mode={formMode}
-      />
+      {/* Chỉ tạo form khi mở để dữ liệu và lỗi được làm mới mỗi lần. */}
+      {isFormModalOpen && (
+        <TripModal
+          key={selectedTrip?.id ?? "create"}
+          isOpen={isFormModalOpen}
+          onClose={() => setIsFormModalOpen(false)}
+          onSubmit={handleFormSubmit}
+          initialData={selectedTrip}
+          mode={formMode}
+        />
+      )}
 
       <TripDetailModal
         isOpen={isDetailModalOpen}
@@ -221,12 +224,15 @@ export default function AdminTripsPage() {
         onEdit={(trip) => handleOpenEdit(trip)}
       />
 
-      <DeleteTripModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        trip={selectedTrip}
-        onConfirmDelete={handleConfirmDelete}
-      />
+      {isDeleteModalOpen && (
+        <DeleteTripModal
+          key={selectedTrip?.id}
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          trip={selectedTrip}
+          onConfirmDelete={handleConfirmDelete}
+        />
+      )}
     </div>
   );
 }
