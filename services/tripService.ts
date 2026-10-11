@@ -46,7 +46,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     to = "",
     date = "",
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "createdAt",
     sortOrder = "desc",
   } = params;
@@ -79,7 +79,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
     where.time = bookable ? { ...range, gt: new Date() } : range;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const total = await prisma.trip.count({ where });

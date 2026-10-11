@@ -13,13 +13,13 @@ import { employeeSortOptions } from "@/lib/admin-table-sort";
 const INITIAL_DATA: EmployeeListResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, active: 0, onLeave: 0, drivers: 0 },
 };
 
 export function useEmployees(initialParams?: EmployeeQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [role, setRole] = useState(initialParams?.role ?? "");
   const [department, setDepartment] = useState(initialParams?.department ?? "");
   const [status, setStatus] = useState(initialParams?.status ?? "");

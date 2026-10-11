@@ -23,7 +23,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
     date = "",
     tripId,
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "id",
     sortOrder = "desc",
   } = params;
@@ -58,7 +58,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
     where.createdAt = range;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const [total, statusCounts] = await Promise.all([

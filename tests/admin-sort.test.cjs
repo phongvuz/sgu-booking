@@ -92,7 +92,8 @@ test("payment sorting preserves review filters and sorting in pagination links",
   }) }));
   assert.deepEqual(pageQuery.where, { status: "REVIEW" });
   assert.deepEqual(pageQuery.orderBy, [{ amount: "asc" }, { id: "desc" }]);
-  assert.equal(pageQuery.skip, 20);
+  assert.equal(pageQuery.take, 10);
+  assert.equal(pageQuery.skip, 10);
   assert.deepEqual(sortProps.value, { sortBy: "amount", sortOrder: "asc" });
   assert.equal(new URLSearchParams(sortProps.query).get("review"), "1");
   assert.ok(html.includes("/admin/payments?sortBy=amount&amp;sortOrder=asc&amp;review=1&amp;page=3"));

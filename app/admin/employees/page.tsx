@@ -38,7 +38,7 @@ function AdminEmployeesContent() {
     updateEmployee,
     deleteEmployee,
     changeStatus,
-  } = useEmployees({ limit: 8 });
+  } = useEmployees();
 
   const { success, error: toastError, info } = useToast();
 

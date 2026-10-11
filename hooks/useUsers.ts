@@ -13,13 +13,13 @@ import { userSortOptions } from "@/lib/admin-table-sort";
 const INITIAL_DATA: UserListResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, users: 0, admins: 0, newThisMonth: 0 },
 };
 
 export function useUsers(initialParams?: UserQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [role, setRole] = useState(initialParams?.role ?? "");
   const resetPage = useCallback(() => setPage(1), []);
   const { sort, setSort } = useTableSort<NonNullable<UserQueryParams["sortBy"]>>({

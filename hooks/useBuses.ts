@@ -13,13 +13,13 @@ import { busSortOptions } from "@/lib/admin-table-sort";
 const INITIAL_DATA: BusListResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, active: 0, maintenance: 0, inactive: 0 },
 };
 
 export function useBuses(initialParams?: BusQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [type, setType] = useState(initialParams?.type ?? "");
   const [status, setStatus] = useState(initialParams?.status ?? "");
   const resetPage = useCallback(() => setPage(1), []);

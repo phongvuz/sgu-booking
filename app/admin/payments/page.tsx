@@ -8,6 +8,7 @@ import type { Prisma } from "@prisma/client";
 
 export const metadata = { title: "Thanh toán online | Quản trị" };
 const labels: Record<string, string> = { PENDING: "Chờ thanh toán", SUCCESS: "Thành công", FAILED: "Thất bại / đã hủy", REVIEW: "Cần đối soát" };
+const PAGE_SIZE = 10;
 
 export default async function PaymentsPage({ searchParams }: { searchParams: Promise<{ page?: string; review?: string; sortBy?: string; sortOrder?: string }> }) {
   await requireAdmin();
@@ -17,11 +18,11 @@ export default async function PaymentsPage({ searchParams }: { searchParams: Pro
   const sort = { sortBy, sortOrder };
   const where = params.review === "1" ? { status: "REVIEW" } : {};
   const count = await prisma.payment.count({ where });
-  const pages = Math.max(1, Math.ceil(count / 20));
+  const pages = Math.max(1, Math.ceil(count / PAGE_SIZE));
   const requestedPage = Number(params.page);
   const page = Number.isInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, pages) : 1;
   const orderBy: Prisma.PaymentOrderByWithRelationInput = { [sortBy]: sortOrder };
-  const payments = await prisma.payment.findMany({ where, orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }], take: 20, skip: (page - 1) * 20 });
+  const payments = await prisma.payment.findMany({ where, orderBy: sortBy === "id" ? orderBy : [orderBy, { id: "desc" }], take: PAGE_SIZE, skip: (page - 1) * PAGE_SIZE });
   const formatDate = (date: Date) => new Intl.DateTimeFormat("vi-VN", { dateStyle: "short", timeStyle: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(date);
   const query = new URLSearchParams({ sortBy, sortOrder });
   if (params.review === "1") query.set("review", "1");

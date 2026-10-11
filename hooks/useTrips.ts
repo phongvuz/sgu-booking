@@ -13,13 +13,13 @@ import { tripSortOptions } from "@/lib/admin-table-sort";
 const INITIAL_DATA: TripListAdminResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, departingToday: 0, totalBookings: 0, avgOccupancy: 0 },
 };
 
 export function useTrips(initialParams?: TripQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [from, setFrom] = useState(initialParams?.from ?? "");
   const [to, setTo] = useState(initialParams?.to ?? "");
   const [date, setDate] = useState(initialParams?.date ?? "");

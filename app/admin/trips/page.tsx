@@ -38,7 +38,7 @@ export default function AdminTripsPage() {
     createTrip,
     updateTrip,
     deleteTrip,
-  } = useTrips({ limit: 8 });
+  } = useTrips();
 
   const { success, error: toastError } = useToast();
 

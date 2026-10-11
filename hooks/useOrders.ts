@@ -13,13 +13,13 @@ import { orderSortOptions } from "@/lib/admin-table-sort";
 const INITIAL_DATA: OrderListResponse = {
   success: true,
   data: [],
-  pagination: { page: 1, limit: 8, total: 0, totalPages: 1 },
+  pagination: { page: 1, limit: 10, total: 0, totalPages: 1 },
   stats: { total: 0, confirmed: 0, pending: 0, cancelled: 0, totalRevenue: 0 },
 };
 
 export function useOrders(initialParams?: OrderQueryParams) {
   const [page, setPage] = useState(initialParams?.page ?? 1);
-  const [limit, setLimit] = useState(initialParams?.limit ?? 8);
+  const [limit, setLimit] = useState(initialParams?.limit ?? 10);
   const [status, setStatus] = useState(initialParams?.status ?? "");
   const [date, setDate] = useState(initialParams?.date ?? "");
   const resetPage = useCallback(() => setPage(1), []);

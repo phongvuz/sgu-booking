@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       date: searchParams.get("date") ?? "",
       tripId: searchParams.has("tripId") ? parseTripId(searchParams.get("tripId")!) : undefined,
       page: Number(searchParams.get("page") ?? 1),
-      limit: Number(searchParams.get("limit") ?? 8),
+      limit: Number(searchParams.get("limit") ?? 10),
       sortBy: readOption(searchParams.get("sortBy"), ["createdAt", "totalPrice", "id"] as const, "id"),
       sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };

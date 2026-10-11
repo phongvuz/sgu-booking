@@ -21,7 +21,7 @@ export async function queryEmployees(params: EmployeeQueryParams): Promise<{
     department = "",
     status = "",
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "createdAt",
     sortOrder = "desc",
   } = params;
@@ -54,7 +54,7 @@ export async function queryEmployees(params: EmployeeQueryParams): Promise<{
     where.status = status;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const [total, active, onLeave, drivers] = await Promise.all([

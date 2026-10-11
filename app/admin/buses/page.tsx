@@ -38,7 +38,7 @@ export default function AdminBusesPage() {
     updateBus,
     deleteBus,
     changeStatus,
-  } = useBuses({ limit: 8 });
+  } = useBuses();
 
   const { success, error: toastError, info } = useToast();
 

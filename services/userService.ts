@@ -20,7 +20,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     search = "",
     role = "",
     page = 1,
-    limit = 8,
+    limit = 10,
     sortBy = "id",
     sortOrder = "desc",
   } = params;
@@ -39,7 +39,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     where.role = role;
   }
 
-  const numLimit = positiveInteger(limit, 8, 100);
+  const numLimit = positiveInteger(limit, 10, 100);
   const numPage = positiveInteger(page, 1);
 
   const startOfMonth = getVietnamMonthStart(new Date());

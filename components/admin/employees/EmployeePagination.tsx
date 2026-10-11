@@ -55,7 +55,7 @@ export function EmployeePagination({
             onChange={(e) => onLimitChange(Number(e.target.value))}
             className="border border-gray-300 rounded px-2 py-1 text-xs text-gray-700 bg-white focus:outline-none focus:border-brand-primary cursor-pointer"
           >
-            <option value={8}>8</option>
+            <option value={10}>10</option>
             <option value={12}>12</option>
             <option value={20}>20</option>
             <option value={50}>50</option>

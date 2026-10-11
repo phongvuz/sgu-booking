@@ -36,7 +36,7 @@ test("admin sort controls reset pagination, preserve filters and refresh, and fi
       const url = new URL(route.request().url());
       if (!paths.has(url.pathname) || route.request().method() !== "GET") return route.continue();
       requests.push(url.pathname + url.search);
-      const limit = Number(url.searchParams.get("limit") || 8);
+      const limit = Number(url.searchParams.get("limit") || 10);
       await route.fulfill({ json: {
         success: true, data: [],
         pagination: { page: Number(url.searchParams.get("page") || 1), limit, total: 20, totalPages: Math.ceil(20 / limit) },

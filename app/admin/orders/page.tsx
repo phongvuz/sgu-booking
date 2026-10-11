@@ -37,7 +37,7 @@ export default function AdminOrdersPage() {
     createOfflineOrder,
     changeStatus,
     deleteOrder,
-  } = useOrders({ limit: 8 });
+  } = useOrders();
 
   const { success, error: toastError, info } = useToast();
 

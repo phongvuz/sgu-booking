@@ -37,7 +37,7 @@ export default function AdminUsersPage() {
     updateUser,
     deleteUser,
     changeRole,
-  } = useUsers({ limit: 8 });
+  } = useUsers();
 
   const { success, error: toastError, info } = useToast();
 
