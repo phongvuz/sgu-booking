@@ -16,16 +16,21 @@ export function EmployeePagination({
 }: EmployeePaginationProps) {
   const { page, limit, total, totalPages } = pagination;
 
-  const start = total === 0 ? 0 : (page - 1) * limit + 1;
+  let start = 0;
+  if (total !== 0) {
+    start = (page - 1) * limit + 1;
+  }
   const end = Math.min(page * limit, total);
 
   // Generate page numbers to show
-  const getPageNumbers = () => {
+  function getPageNumbers() {
     const pages: (number | string)[] = [];
     const maxVisible = 5;
 
     if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
+      for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) {
+        pages.push(pageNumber);
+      }
     } else {
       if (page <= 3) {
         pages.push(1, 2, 3, 4, "...", totalPages);
@@ -36,7 +41,7 @@ export function EmployeePagination({
       }
     }
     return pages;
-  };
+  }
 
   return (
     <div className="p-4 border-t border-gray-200 bg-white flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-600">
@@ -81,11 +86,10 @@ export function EmployeePagination({
               key={idx}
               type="button"
               onClick={() => onPageChange(p)}
-              className={`w-8 h-8 rounded text-xs font-semibold transition-colors cursor-pointer ${
-                p === page
-                  ? "bg-brand-primary text-white shadow-sm"
-                  : "border border-gray-200 text-gray-700 hover:bg-gray-100"
-              }`}
+              className={`w-8 h-8 rounded text-xs font-semibold transition-colors cursor-pointer ${p === page
+                ? "bg-brand-primary text-white shadow-sm"
+                : "border border-gray-200 text-gray-700 hover:bg-gray-100"
+                }`}
             >
               {p}
             </button>

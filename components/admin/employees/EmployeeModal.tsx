@@ -71,23 +71,38 @@ export function EmployeeModal({
 
   // Handle ESC key
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    function handleKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape" && isOpen && !isSubmitting) {
         onClose();
       }
-    };
+    }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, isSubmitting, onClose]);
 
   if (!isOpen) return null;
 
-  const handleFormSubmit = async (data: EmployeeFormValues) => {
+  async function handleFormSubmit(data: EmployeeFormValues) {
     const result = await onSubmit(data);
     if (result.success) {
       onClose();
     }
-  };
+  }
+
+  function renderSubmitContent() {
+    if (isSubmitting) {
+      return (
+        <>
+          <FaSpinner aria-hidden="true" className="animate-spin h-4 w-4 text-white" />
+          <span>Đang lưu...</span>
+        </>
+      );
+    }
+    if (mode === "create") {
+      return "Thêm nhân viên";
+    }
+    return "Lưu thay đổi";
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
@@ -165,16 +180,7 @@ export function EmployeeModal({
               disabled={isSubmitting}
               className="px-5 py-2 text-sm font-bold bg-brand-primary hover:bg-brand-dark text-white rounded-lg shadow-sm hover:shadow transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
             >
-              {isSubmitting ? (
-                <>
-                  <FaSpinner aria-hidden="true" className="animate-spin h-4 w-4 text-white" />
-                  <span>Đang lưu...</span>
-                </>
-              ) : mode === "create" ? (
-                "Thêm nhân viên"
-              ) : (
-                "Lưu thay đổi"
-              )}
+              {renderSubmitContent()}
             </button>
           </div>
         </form>

@@ -3,7 +3,7 @@
 import { TableSort } from "@/components/admin/TableSort";
 import { tripSortOptions } from "@/lib/admin-table-sort";
 
-import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
+import { FiAlertTriangle, FiPlus } from "react-icons/fi";
 import { useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useTrips } from "@/hooks/useTrips";
@@ -49,65 +49,64 @@ export default function AdminTripsPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleOpenCreate = () => {
+  function handleOpenCreate() {
     setSelectedTrip(null);
     setFormMode("create");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenEdit = (trip: TripAdminItem) => {
+  function handleOpenEdit(trip: TripAdminItem) {
     setSelectedTrip(trip);
     setFormMode("edit");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenDelete = (trip: TripAdminItem) => {
+  function handleOpenDelete(trip: TripAdminItem) {
     setSelectedTrip(trip);
     setIsDeleteModalOpen(true);
-  };
+  }
 
-  const handleOpenDetail = (trip: TripAdminItem) => {
+  function handleOpenDetail(trip: TripAdminItem) {
     setSelectedTrip(trip);
     setIsDetailModalOpen(true);
-  };
+  }
 
-  const handleFormSubmit = async (data: TripFormValues) => {
+  async function handleFormSubmit(data: TripFormValues) {
     if (formMode === "create") {
-      const res = await createTrip(data);
-      if (res.success) {
-        success(res.message || "Tạo chuyến xe mới thành công!", "Thêm chuyến");
+      const response = await createTrip(data);
+      if (response.success) {
+        success(response.message || "Tạo chuyến xe mới thành công!", "Thêm chuyến");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể tạo chuyến xe", "Lỗi tạo mới");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể tạo chuyến xe", "Lỗi tạo mới");
+      return { success: false, message: response.message };
     } else if (selectedTrip) {
-      const res = await updateTrip(selectedTrip.id, data);
-      if (res.success) {
-        success(res.message || "Cập nhật chuyến xe thành công!", "Cập nhật");
+      const response = await updateTrip(selectedTrip.id, data);
+      if (response.success) {
+        success(response.message || "Cập nhật chuyến xe thành công!", "Cập nhật");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể cập nhật chuyến xe", "Lỗi");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể cập nhật chuyến xe", "Lỗi");
+      return { success: false, message: response.message };
     }
     return { success: false };
-  };
+  }
 
-  const handleConfirmDelete = async (id: number) => {
-    const res = await deleteTrip(id);
-    if (res.success) {
-      success(res.message || "Đã xóa chuyến xe thành công!", "Đã xóa");
+  async function handleConfirmDelete(id: number) {
+    const response = await deleteTrip(id);
+    if (response.success) {
+      success(response.message || "Đã xóa chuyến xe thành công!", "Đã xóa");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể xóa chuyến xe", "Lỗi xóa");
-      return { success: false, message: res.message };
     }
-  };
+
+    toastError(response.message || "Không thể xóa chuyến xe", "Lỗi xóa");
+    return { success: false, message: response.message };
+  }
 
   return (
     <div className="pb-12">
-      {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
@@ -116,21 +115,6 @@ export default function AdminTripsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <button
-            onClick={() => refresh()}
-            disabled={loading}
-            className="p-2.5 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 rounded-lg shadow-2xs transition-colors text-xs font-semibold flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-            title="Làm mới dữ liệu"
-          >
-            <span className={loading ? "animate-spin" : ""}>
-              <FiRefreshCw
-                aria-hidden="true"
-                className="inline-block shrink-0 align-middle"
-              />
-            </span>
-            <span className="hidden sm:inline">Làm mới</span>
-          </button>
-
           <button
             type="button"
             onClick={handleOpenCreate}
@@ -147,7 +131,6 @@ export default function AdminTripsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
       <TripStats stats={stats} />
 
       {/* Error Banner */}

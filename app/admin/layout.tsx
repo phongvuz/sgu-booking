@@ -1,7 +1,12 @@
 import { requireAdmin } from "@/lib/admin-api";
 import AdminShell from "@/components/admin/AdminShell";
 
-export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+// Layout chạy trên máy chủ và kiểm tra quyền trước khi hiển thị trang admin.
+export default async function AdminLayout({ children }: AdminLayoutProps) {
   const admin = await requireAdmin();
   return <AdminShell admin={admin}>{children}</AdminShell>;
 }

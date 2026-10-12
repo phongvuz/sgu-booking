@@ -9,7 +9,8 @@ export function useAsyncAction() {
   async function runAction(action: () => Promise<string>) {
     setActionLoading(true);
     try {
-      return { success: true, message: await action() };
+      const message = await action();
+      return { success: true, message };
     } catch (error) {
       return { success: false, message: getErrorMessage(error) };
     } finally {

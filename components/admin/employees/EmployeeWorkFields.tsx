@@ -10,6 +10,13 @@ interface Props {
 
 export function EmployeeWorkFields({ register, errors, control }: Props) {
   const status = useWatch({ control, name: "status" });
+  let statusDotClassName = "text-rose-500";
+  if (status === "Đang làm việc") {
+    statusDotClassName = "text-emerald-500";
+  } else if (status === "Nghỉ phép") {
+    statusDotClassName = "text-amber-500";
+  }
+
   return (
     <>
       {/* Vai trò / Chức vụ */}
@@ -19,11 +26,10 @@ export function EmployeeWorkFields({ register, errors, control }: Props) {
         </label>
         <select
           {...register("role")}
-          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${
-            errors.role
-              ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-              : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
-          }`}
+          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${errors.role
+            ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
+            : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
+            }`}
         >
           <option value="Tài xế">Tài xế</option>
           <option value="Phụ xe">Phụ xe</option>
@@ -43,11 +49,10 @@ export function EmployeeWorkFields({ register, errors, control }: Props) {
         </label>
         <select
           {...register("department")}
-          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${
-            errors.department
-              ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-              : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
-          }`}
+          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 bg-white transition-colors cursor-pointer ${errors.department
+            ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
+            : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
+            }`}
         >
           <option value="Đội xe">Đội xe</option>
           <option value="Phòng vé">Phòng vé</option>
@@ -70,9 +75,7 @@ export function EmployeeWorkFields({ register, errors, control }: Props) {
         <div className="relative">
           <FaCircle
             aria-hidden="true"
-            className={`pointer-events-none absolute left-3.5 top-1/2 h-2 w-2 -translate-y-1/2 ${
-              status === "Đang làm việc" ? "text-emerald-500" : status === "Nghỉ phép" ? "text-amber-500" : "text-rose-500"
-            }`}
+            className={`pointer-events-none absolute left-3.5 top-1/2 h-2 w-2 -translate-y-1/2 ${statusDotClassName}`}
           />
           <select
             {...register("status")}
@@ -96,11 +99,10 @@ export function EmployeeWorkFields({ register, errors, control }: Props) {
         <input
           type="date"
           {...register("startDate")}
-          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
-            errors.startDate
-              ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
-              : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
-          }`}
+          className={`w-full px-3.5 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-colors ${errors.startDate
+            ? "border-rose-400 focus:ring-rose-200 bg-rose-50/30"
+            : "border-gray-300 focus:ring-orange-200 focus:border-brand-primary"
+            }`}
         />
         {errors.startDate && (
           <p className="text-xs text-rose-500 mt-1">{errors.startDate.message}</p>

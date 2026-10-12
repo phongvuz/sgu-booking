@@ -55,86 +55,89 @@ export function BusTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
-          {buses.map((bus) => (
-            <tr key={bus.id} className="hover:bg-gray-50/80 transition-colors">
-              <td className="px-5 py-3.5 font-bold text-gray-900">{bus.id}</td>
-              <td className="px-5 py-3.5">
-                <span className="font-extrabold text-sm text-gray-900 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
-                  {bus.plate}
-                </span>
-              </td>
-              <td className="px-5 py-3.5">
-                <p className="font-semibold text-gray-900">{bus.type}</p>
-                <p className="text-[11px] text-gray-400">{bus.brand || "Chưa cập nhật"}</p>
-              </td>
-              <td className="px-5 py-3.5">
-                <span className="font-bold text-gray-800">{bus.seats} chỗ</span>
-              </td>
-              <td className="px-5 py-3.5">
-                {bus.driverName ? (
-                  <div>
-                    <p className="font-semibold text-gray-900">{bus.driverName}</p>
-                    <p className="text-[11px] text-gray-400">{bus.driverPhone || ""}</p>
+          {buses.map((bus) => {
+            let statusClassName = "bg-rose-100 text-rose-800 hover:bg-rose-200";
+            if (bus.status === "Đang hoạt động") {
+              statusClassName = "bg-emerald-100 text-emerald-800 hover:bg-emerald-200";
+            } else if (bus.status === "Bảo dưỡng") {
+              statusClassName = "bg-amber-100 text-amber-800 hover:bg-amber-200";
+            }
+            let statusDotClassName = "text-rose-500";
+            if (bus.status === "Đang hoạt động") {
+              statusDotClassName = "text-emerald-500";
+            } else if (bus.status === "Bảo dưỡng") {
+              statusDotClassName = "text-amber-500";
+            }
+
+            return (
+              <tr key={bus.id} className="hover:bg-gray-50/80 transition-colors">
+                <td className="px-5 py-3.5 font-bold text-gray-900">{bus.id}</td>
+                <td className="px-5 py-3.5">
+                  <span className="font-extrabold text-sm text-gray-900 bg-gray-100 px-2 py-0.5 rounded border border-gray-200">
+                    {bus.plate}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5">
+                  <p className="font-semibold text-gray-900">{bus.type}</p>
+                  <p className="text-[11px] text-gray-400">{bus.brand || "Chưa cập nhật"}</p>
+                </td>
+                <td className="px-5 py-3.5">
+                  <span className="font-bold text-gray-800">{bus.seats} chỗ</span>
+                </td>
+                <td className="px-5 py-3.5">
+                  {bus.driverName ? (
+                    <div>
+                      <p className="font-semibold text-gray-900">{bus.driverName}</p>
+                      <p className="text-[11px] text-gray-400">{bus.driverPhone || ""}</p>
+                    </div>
+                  ) : (
+                    <span className="text-gray-400 italic">Chưa phân công</span>
+                  )}
+                </td>
+                <td className="px-5 py-3.5">
+                  <button
+                    onClick={() => onToggleStatus(bus)}
+                    title="Nhấp để đổi trạng thái"
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform active:scale-95 ${statusClassName}`}
+                  >
+                    <FaCircle
+                      aria-hidden="true"
+                      className={`w-1.5 h-1.5 shrink-0 ${statusDotClassName}`}
+                    />
+                    <span>{bus.status}</span>
+                  </button>
+                </td>
+                <td className="px-5 py-3.5 text-right">
+                  <div className="flex items-center justify-end gap-2">
+                    <button
+                      aria-label="Xem chi tiết"
+                      onClick={() => onView(bus)}
+                      className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
+                      title="Xem chi tiết"
+                    >
+                      <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
+                    </button>
+                    <button
+                      aria-label="Chỉnh sửa"
+                      onClick={() => onEdit(bus)}
+                      className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                      title="Chỉnh sửa"
+                    >
+                      <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
+                    </button>
+                    <button
+                      aria-label="Xóa xe"
+                      onClick={() => onDelete(bus)}
+                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                      title="Xóa xe"
+                    >
+                      <FiTrash2 aria-hidden="true" className="inline-block shrink-0 align-middle" />
+                    </button>
                   </div>
-                ) : (
-                  <span className="text-gray-400 italic">Chưa phân công</span>
-                )}
-              </td>
-              <td className="px-5 py-3.5">
-                <button
-                  onClick={() => onToggleStatus(bus)}
-                  title="Nhấp để đổi trạng thái"
-                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform active:scale-95 ${
-                    bus.status === "Đang hoạt động"
-                      ? "bg-emerald-100 text-emerald-800 hover:bg-emerald-200"
-                      : bus.status === "Bảo dưỡng"
-                      ? "bg-amber-100 text-amber-800 hover:bg-amber-200"
-                      : "bg-rose-100 text-rose-800 hover:bg-rose-200"
-                  }`}
-                >
-                  <FaCircle
-                    aria-hidden="true"
-                    className={`w-1.5 h-1.5 shrink-0 ${
-                      bus.status === "Đang hoạt động"
-                        ? "text-emerald-500"
-                        : bus.status === "Bảo dưỡng"
-                        ? "text-amber-500"
-                        : "text-rose-500"
-                    }`}
-                  />
-                  <span>{bus.status}</span>
-                </button>
-              </td>
-              <td className="px-5 py-3.5 text-right">
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    aria-label="Xem chi tiết"
-                    onClick={() => onView(bus)}
-                    className="p-1.5 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
-                    title="Xem chi tiết"
-                  >
-                    <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
-                  </button>
-                  <button
-                    aria-label="Chỉnh sửa"
-                    onClick={() => onEdit(bus)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="Chỉnh sửa"
-                  >
-                    <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
-                  </button>
-                  <button
-                    aria-label="Xóa xe"
-                    onClick={() => onDelete(bus)}
-                    className="p-1.5 text-rose-600 hover:bg-rose-50 rounded transition-colors"
-                    title="Xóa xe"
-                  >
-                    <FiTrash2 aria-hidden="true" className="inline-block shrink-0 align-middle" />
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

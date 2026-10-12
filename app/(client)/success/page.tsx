@@ -35,7 +35,7 @@ export default async function SuccessPage({ searchParams }: {
       <h1 className="mb-3 text-center text-3xl font-bold text-gray-800">Thông tin đặt vé</h1>
       <p className="mb-6 text-center text-gray-600">Lượt đặt chỗ của bạn đã được lưu vào hệ thống.</p>
       <dl className="mb-6 space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-5 text-sm">
-        <div><dt className="text-gray-500">Mã đặt chỗ (PNR)</dt><dd className="break-all font-bold text-blue-700">{params.pnr}</dd></div>
+        <div><dt className="text-gray-500">Mã đặt chỗ</dt><dd className="break-all font-bold text-blue-700">{params.pnr}</dd></div>
         <div><dt className="text-gray-500">Hành khách</dt><dd className="font-semibold">{first.passengerName ?? first.user.fullName}</dd></div>
         <div><dt className="text-gray-500">Chuyến xe</dt><dd className="font-semibold">#{first.tripId} · {first.trip.from} → {first.trip.to}</dd></div>
         <div><dt className="text-gray-500">Khởi hành</dt><dd className="font-semibold">{departure}</dd></div>

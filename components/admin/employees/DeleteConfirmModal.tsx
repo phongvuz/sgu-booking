@@ -23,20 +23,25 @@ export function DeleteConfirmModal({
   const [isDeactivating, setIsDeactivating] = useState(false);
 
   if (!isOpen || !employee) return null;
+  const employeeId = employee.id;
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     setIsDeleting(true);
-    const res = await onConfirmDelete(employee.id);
+    const response = await onConfirmDelete(employeeId);
     setIsDeleting(false);
-    if (res.success) onClose();
-  };
+    if (response.success) {
+      onClose();
+    }
+  }
 
-  const handleDeactivate = async () => {
+  async function handleDeactivate() {
     setIsDeactivating(true);
-    const res = await onConfirmDeactivate(employee.id);
+    const response = await onConfirmDeactivate(employeeId);
     setIsDeactivating(false);
-    if (res.success) onClose();
-  };
+    if (response.success) {
+      onClose();
+    }
+  }
 
   const isBusy = isDeleting || isDeactivating;
 

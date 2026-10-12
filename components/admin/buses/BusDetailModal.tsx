@@ -19,6 +19,13 @@ export function BusDetailModal({
 }: BusDetailModalProps) {
   if (!isOpen || !bus) return null;
 
+  let statusClassName = "bg-rose-500/20 text-rose-300";
+  if (bus.status === "Đang hoạt động") {
+    statusClassName = "bg-emerald-500/20 text-emerald-300";
+  } else if (bus.status === "Bảo dưỡng") {
+    statusClassName = "bg-amber-500/20 text-amber-300";
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden">
@@ -41,13 +48,7 @@ export function BusDetailModal({
               </span>
               <h2 className="text-xl font-extrabold tracking-tight">{bus.plate}</h2>
               <span
-                className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  bus.status === "Đang hoạt động"
-                    ? "bg-emerald-500/20 text-emerald-300"
-                    : bus.status === "Bảo dưỡng"
-                    ? "bg-amber-500/20 text-amber-300"
-                    : "bg-rose-500/20 text-rose-300"
-                }`}
+                className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${statusClassName}`}
               >
                 {bus.status}
               </span>

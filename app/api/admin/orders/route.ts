@@ -17,11 +17,15 @@ export async function GET(request: NextRequest) {
     await requireAdmin(request);
 
     const { searchParams } = new URL(request.url);
+    let tripId: number | undefined;
+    if (searchParams.has("tripId")) {
+      tripId = parseTripId(searchParams.get("tripId")!);
+    }
     const params: OrderQueryParams = {
       search: searchParams.get("search") ?? "",
       status: searchParams.get("status") ?? "",
       date: searchParams.get("date") ?? "",
-      tripId: searchParams.has("tripId") ? parseTripId(searchParams.get("tripId")!) : undefined,
+      tripId,
       page: Number(searchParams.get("page") ?? 1),
       limit: Number(searchParams.get("limit") ?? 10),
       sortBy: readOption(searchParams.get("sortBy"), ["createdAt", "totalPrice", "id"] as const, "id"),
@@ -60,7 +64,7 @@ export async function POST(request: NextRequest) {
       {
         success: true,
         data: bookingResult,
-        message: `Đã tạo vé thành công! Mã vé (PNR): ${bookingResult.pnr}`,
+        message: `Đã tạo vé thành công! Mã vé: ${bookingResult.pnr}`,
       },
       { status: 201 }
     );

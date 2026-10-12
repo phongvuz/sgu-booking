@@ -24,6 +24,13 @@ export function EmployeeFilters({
 }: EmployeeFiltersProps) {
   const hasActiveFilters = Boolean(search || role || status);
 
+  let statusDotClassName = "text-rose-500";
+  if (status === "Đang làm việc") {
+    statusDotClassName = "text-emerald-500";
+  } else if (status === "Nghỉ phép") {
+    statusDotClassName = "text-amber-500";
+  }
+
   return (
     <div className="p-4 border-b border-gray-200 bg-white flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
       {/* Search & Select Filters */}
@@ -71,9 +78,7 @@ export function EmployeeFilters({
           {status && (
             <FaCircle
               aria-hidden="true"
-              className={`pointer-events-none absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 ${
-                status === "Đang làm việc" ? "text-emerald-500" : status === "Nghỉ phép" ? "text-amber-500" : "text-rose-500"
-              }`}
+              className={`pointer-events-none absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 ${statusDotClassName}`}
             />
           )}
           <select

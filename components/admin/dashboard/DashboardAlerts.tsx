@@ -11,31 +11,34 @@ export function DashboardAlerts({ stats }: { stats: DashboardStats | null }) {
         </div>
 
         <div className="space-y-4 mt-4">
-          {stats?.systemAlerts?.map((alert) => (
-            <div key={alert.id} className="flex items-start gap-3">
-              <FaCircle
-                aria-hidden="true"
-                className={`w-2.5 h-2.5 mt-1 shrink-0 ${
-                  alert.type === "warning"
-                    ? "text-amber-500"
-                    : alert.type === "success"
-                    ? "text-emerald-500"
-                    : alert.type === "danger"
-                    ? "text-rose-500"
-                    : "text-blue-500"
-                }`}
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-bold text-gray-800">{alert.title}</p>
-                <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">
-                  {alert.message}
-                </p>
-                <span className="text-[10px] text-gray-400 mt-1 block">
-                  {alert.time}
-                </span>
+          {stats?.systemAlerts?.map((alert) => {
+            let iconClassName = "text-blue-500";
+            if (alert.type === "warning") {
+              iconClassName = "text-amber-500";
+            } else if (alert.type === "success") {
+              iconClassName = "text-emerald-500";
+            } else if (alert.type === "danger") {
+              iconClassName = "text-rose-500";
+            }
+
+            return (
+              <div key={alert.id} className="flex items-start gap-3">
+                <FaCircle
+                  aria-hidden="true"
+                  className={`w-2.5 h-2.5 mt-1 shrink-0 ${iconClassName}`}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-bold text-gray-800">{alert.title}</p>
+                  <p className="text-[11px] text-gray-500 leading-relaxed mt-0.5">
+                    {alert.message}
+                  </p>
+                  <span className="text-[10px] text-gray-400 mt-1 block">
+                    {alert.time}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

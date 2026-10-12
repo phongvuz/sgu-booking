@@ -20,15 +20,16 @@ export function DeleteUserModal({
   const [loading, setLoading] = React.useState(false);
 
   if (!isOpen || !user) return null;
+  const userId = user.id;
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     setLoading(true);
-    const res = await onConfirmDelete(user.id);
+    const response = await onConfirmDelete(userId);
     setLoading(false);
-    if (res.success) {
+    if (response.success) {
       onClose();
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">

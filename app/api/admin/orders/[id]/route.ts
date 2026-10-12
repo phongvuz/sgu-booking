@@ -1,4 +1,5 @@
 import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { getOrderById, updateOrderStatus, deleteOrder } from "@/services/orderService";
 import { NextRequest, NextResponse } from "next/server";
 import type { BookingStatus } from "@/types";
 
@@ -16,13 +17,28 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
     await requireAdmin(request);
     const { id } = await params;
 
-    // TODO R2: Kiểm tra id là số nguyên dương hợp lệ trước khi gọi service.
-    // TODO R2: Gọi getOrderById(id) trong services/orderService.ts.
-    // TODO R2: Không tìm thấy -> { success: false, message: ... }, HTTP 404.
-    // TODO R2: Tìm thấy -> { success: true, data: order }, HTTP 200.
+    // 1. ID chỉ gồm chữ số, có giá trị từ 1 đến 2147483647 (giới hạn của database).
+    const orderId = Number(id);
+    if (!/^[0-9]+$/.test(id) || !Number.isInteger(orderId) || orderId <= 0 || orderId > 2147483647) {
+      return NextResponse.json(
+        { success: false, message: "ID đơn hàng không hợp lệ." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Tìm đơn hàng theo ID; không tìm thấy thì trả lỗi 404.
+    const order = await getOrderById(orderId);
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy đơn hàng." },
+        { status: 404 }
+      );
+    }
+
+    // 3. Trả thông tin đơn hàng cho phía gọi API.
     return NextResponse.json(
-      { success: false, message: `Bài R2: Bạn chưa viết API xem đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, data: order },
+      { status: 200 }
     );
   } catch (error) {
     return apiError(error, "Không thể lấy chi tiết đơn hàng. Vui lòng thử lại.");
@@ -34,10 +50,22 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
     await requireAdmin(request);
     const { id } = await params;
+
+    // 1. Kiểm tra ID trước khi đọc dữ liệu cần cập nhật.
+    const orderId = Number(id);
+    if (!/^[0-9]+$/.test(id) || !Number.isInteger(orderId) || orderId <= 0 || orderId > 2147483647) {
+      return NextResponse.json(
+        { success: false, message: "ID đơn hàng không hợp lệ." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Đọc JSON và kiểm tra trạng thái mới.
     const body = await readJson(request);
-    const status = body && typeof body === "object" && "status" in body
-      ? body.status
-      : undefined;
+    let status: unknown;
+    if (body && typeof body === "object" && "status" in body) {
+      status = body.status;
+    }
     const allowedStatuses: BookingStatus[] = ["CONFIRMED", "PENDING", "CANCELLED"];
 
     if (typeof status !== "string" || !allowedStatuses.includes(status as BookingStatus)) {
@@ -47,14 +75,27 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    // TODO U: Kiểm tra id; tìm đơn bằng getOrderById(id); trả 404 nếu không có.
-    // TODO U: Gọi updateOrderStatus(id, status as BookingStatus).
-    // TODO U: Nếu service trả null (đơn không còn tồn tại), trả 404.
-    // TODO U: Trả { success: true, data: updated, message: ... }, HTTP 200.
-    // Service giữ quy tắc thanh toán, thời gian xuất bến và số ghế; apiError xử lý lỗi.
+    // 3. Kiểm tra đơn hàng có tồn tại trước khi cập nhật.
+    const order = await getOrderById(orderId);
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy đơn hàng." },
+        { status: 404 }
+      );
+    }
+
+    // 4. Service kiểm tra quy tắc thanh toán, thời gian xuất bến và số ghế.
+    const updated = await updateOrderStatus(orderId, status as BookingStatus);
+    if (!updated) {
+      return NextResponse.json(
+        { success: false, message: "Đơn hàng không còn tồn tại." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
-      { success: false, message: `Bài U: Bạn chưa viết API đổi trạng thái đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, data: updated, message: "Cập nhật trạng thái đơn hàng thành công." },
+      { status: 200 }
     );
   } catch (error) {
     return apiError(error, "Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
@@ -67,14 +108,36 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
     await requireAdmin(request);
     const { id } = await params;
 
-    // TODO D: Kiểm tra id; tìm đơn bằng getOrderById(id); trả 404 nếu không có.
-    // TODO D: Gọi deleteOrder(id) trong services/orderService.ts.
-    // TODO D: Nếu service trả false (đơn không còn tồn tại), trả 404.
-    // TODO D: Trả { success: true, message: ... }, HTTP 200.
-    // deleteOrder chuyển vé sang CANCELLED, trả ghế đúng một lần và giữ lịch sử.
+    // 1. Kiểm tra ID đơn hàng.
+    const orderId = Number(id);
+    if (!/^[0-9]+$/.test(id) || !Number.isInteger(orderId) || orderId <= 0 || orderId > 2147483647) {
+      return NextResponse.json(
+        { success: false, message: "ID đơn hàng không hợp lệ." },
+        { status: 400 }
+      );
+    }
+
+    // 2. Kiểm tra đơn hàng có tồn tại trước khi hủy.
+    const order = await getOrderById(orderId);
+    if (!order) {
+      return NextResponse.json(
+        { success: false, message: "Không tìm thấy đơn hàng." },
+        { status: 404 }
+      );
+    }
+
+    // 3. Hủy vé bằng service: chuyển sang CANCELLED, trả ghế và giữ lịch sử.
+    const deleted = await deleteOrder(orderId);
+    if (!deleted) {
+      return NextResponse.json(
+        { success: false, message: "Đơn hàng không còn tồn tại." },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(
-      { success: false, message: `Bài D: Bạn chưa viết API hủy đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, message: "Hủy đơn hàng thành công." },
+      { status: 200 }
     );
   } catch (error) {
     return apiError(error, "Không thể hủy đơn hàng. Vui lòng thử lại.");

@@ -7,27 +7,32 @@ export function useDebouncedSearch(initialValue: string, onApply: () => void) {
   const [appliedSearch, setAppliedSearch] = useState(initialValue);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const cancel = useCallback(() => {
-    if (timer.current !== null) clearTimeout(timer.current);
+  const cancel = useCallback(function cancelSearchTimer() {
+    if (timer.current !== null) {
+      clearTimeout(timer.current);
+    }
     timer.current = null;
   }, []);
 
-  const changeSearch = useCallback((value: string) => {
+  const changeSearch = useCallback(function changeSearch(value: string) {
     setSearch(value);
     cancel();
-    timer.current = setTimeout(() => {
+    // Chờ 350ms sau lần gõ cuối rồi mới gửi từ khóa đến API.
+    timer.current = setTimeout(function applySearch() {
       setAppliedSearch(value);
       onApply();
       timer.current = null;
     }, 350);
   }, [cancel, onApply]);
 
-  const resetSearch = useCallback(() => {
+  const resetSearch = useCallback(function resetSearch() {
     cancel();
     setSearch("");
     setAppliedSearch("");
   }, [cancel]);
 
-  useEffect(() => cancel, [cancel]);
+  useEffect(function cleanupSearch() {
+    return cancel;
+  }, [cancel]);
   return { search, appliedSearch, changeSearch, resetSearch };
 }

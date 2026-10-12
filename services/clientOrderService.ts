@@ -7,7 +7,10 @@ export function fetchAdminOrders(params: OrderQueryParams = {}, signal?: AbortSi
 }
 
 export function createOfflineOrder(payload: OfflineOrderFormValues) {
-  return requestJson<OrderDetailResponse>("/api/admin/orders", { method: "POST", body: JSON.stringify(payload) });
+  return requestJson<OrderDetailResponse>("/api/admin/orders", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteOrder(id: number | string) {
@@ -15,5 +18,8 @@ export function deleteOrder(id: number | string) {
 }
 
 export function updateOrderStatus(id: number | string, status: BookingStatus) {
-  return requestJson<OrderDetailResponse>(`/api/admin/orders/${encodeURIComponent(id)}`, { method: "PATCH", body: JSON.stringify({ status }) });
+  return requestJson<OrderDetailResponse>(`/api/admin/orders/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }

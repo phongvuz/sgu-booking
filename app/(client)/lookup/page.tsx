@@ -58,7 +58,7 @@ export default function Lookup() {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">TRA CỨU THÔNG TIN VÉ</h2>
         <p className="text-gray-500">
-          Nhập số điện thoại hành khách hoặc mã đặt chỗ (PNR) để tra cứu vé từ hệ thống
+          Nhập số điện thoại hành khách hoặc mã đặt chỗ để tra cứu vé từ hệ thống
         </p>
       </div>
 

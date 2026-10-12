@@ -20,13 +20,17 @@ export function UserDetailModal(props: UserDetailModalProps) {
   return <UserDetailContent key={props.user.id} {...props} user={props.user} />;
 }
 
+type UserDetails = NonNullable<UserDetailResponse["data"]>;
+
 function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { user: UserAccount }) {
-  const load = useCallback(async (signal: AbortSignal) => {
+  const load = useCallback(async function loadUserDetails(signal: AbortSignal) {
     const response = await fetchUserById(user.id, signal);
-    if (!response.data) throw new Error("Không thể tải thông tin tài khoản.");
+    if (!response.data) {
+      throw new Error("Không thể tải thông tin tài khoản.");
+    }
     return response.data;
   }, [user.id]);
-  const { data: detailedData, loading, error, refresh } = useRemoteData<NonNullable<UserDetailResponse["data"]> | null>(load, null);
+  const { data: detailedData, loading, error, refresh } = useRemoteData<UserDetails | null>(load, null);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -50,11 +54,10 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
               </span>
               <h2 className="text-xl font-extrabold tracking-tight">{user.fullName}</h2>
               <span
-                className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                  user.role === "ADMIN"
+                className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${user.role === "ADMIN"
                     ? "bg-purple-500/20 text-purple-300"
                     : "bg-emerald-500/20 text-emerald-300"
-                }`}
+                  }`}
               >
                 {user.role === "ADMIN" ? <FaCrown aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" />}{" "}
                 {user.role === "ADMIN" ? "QUẢN TRỊ VIÊN" : "KHÁCH HÀNG"}
@@ -125,13 +128,12 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
                         {formatPrice(b.totalPrice)}
                       </span>
                       <span
-                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                          b.status === "CONFIRMED"
+                        className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${b.status === "CONFIRMED"
                             ? "bg-emerald-100 text-emerald-700"
                             : b.status === "PENDING"
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-rose-100 text-rose-700"
-                        }`}
+                              ? "bg-amber-100 text-amber-700"
+                              : "bg-rose-100 text-rose-700"
+                          }`}
                       >
                         {b.status}
                       </span>

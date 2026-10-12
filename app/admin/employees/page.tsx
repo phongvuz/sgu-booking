@@ -51,78 +51,78 @@ function AdminEmployeesContent() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // Open Create Modal
-  const handleOpenCreate = () => {
+  function handleOpenCreate() {
     setSelectedEmployee(null);
     setFormMode("create");
     setIsFormModalOpen(true);
-  };
+  }
 
   // Open Edit Modal
-  const handleOpenEdit = (emp: Employee) => {
-    setSelectedEmployee(emp);
+  function handleOpenEdit(employee: Employee) {
+    setSelectedEmployee(employee);
     setFormMode("edit");
     setIsFormModalOpen(true);
-  };
+  }
 
   // Open Delete / Deactivate Modal
-  const handleOpenDelete = (emp: Employee) => {
-    setSelectedEmployee(emp);
+  function handleOpenDelete(employee: Employee) {
+    setSelectedEmployee(employee);
     setIsDeleteModalOpen(true);
-  };
+  }
 
   // Open Details Modal
-  const handleOpenDetail = (emp: Employee) => {
-    setSelectedEmployee(emp);
+  function handleOpenDetail(employee: Employee) {
+    setSelectedEmployee(employee);
     setIsDetailModalOpen(true);
-  };
+  }
 
   // Handle Form Submit (Create or Update)
-  const handleFormSubmit = async (data: EmployeeFormValues) => {
+  async function handleFormSubmit(data: EmployeeFormValues) {
     if (formMode === "create") {
-      const res = await createEmployee(data);
-      if (res.success) {
-        success(res.message || "Đã thêm nhân viên thành công!", "Thêm mới");
+      const response = await createEmployee(data);
+      if (response.success) {
+        success(response.message || "Đã thêm nhân viên thành công!", "Thêm mới");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể thêm nhân viên", "Lỗi tạo mới");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể thêm nhân viên", "Lỗi tạo mới");
+      return { success: false, message: response.message };
     } else if (selectedEmployee) {
-      const res = await updateEmployee(selectedEmployee.id, data);
-      if (res.success) {
-        success(res.message || "Cập nhật nhân viên thành công!", "Cập nhật");
+      const response = await updateEmployee(selectedEmployee.id, data);
+      if (response.success) {
+        success(response.message || "Cập nhật nhân viên thành công!", "Cập nhật");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể cập nhật nhân viên", "Lỗi cập nhật");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể cập nhật nhân viên", "Lỗi cập nhật");
+      return { success: false, message: response.message };
     }
     return { success: false };
-  };
+  }
 
   // Handle Confirm Permanent Delete
-  const handleConfirmDelete = async (id: string) => {
-    const res = await deleteEmployee(id);
-    if (res.success) {
-      success(res.message || "Đã xóa nhân viên thành công!", "Đã xóa");
+  async function handleConfirmDelete(id: string) {
+    const response = await deleteEmployee(id);
+    if (response.success) {
+      success(response.message || "Đã xóa nhân viên thành công!", "Đã xóa");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể xóa nhân viên", "Lỗi xóa");
-      return { success: false, message: res.message };
     }
-  };
+
+    toastError(response.message || "Không thể xóa nhân viên", "Lỗi xóa");
+    return { success: false, message: response.message };
+  }
 
   // Handle Confirm Deactivate
-  const handleConfirmDeactivate = async (id: string) => {
-    const res = await changeStatus(id, "Đã nghỉ việc");
-    if (res.success) {
-      info(res.message || "Đã chuyển trạng thái sang Đã nghỉ việc", "Đã cập nhật");
+  async function handleConfirmDeactivate(id: string) {
+    const response = await changeStatus(id, "Đã nghỉ việc");
+    if (response.success) {
+      info(response.message || "Đã chuyển trạng thái sang Đã nghỉ việc", "Đã cập nhật");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể cập nhật trạng thái", "Lỗi");
-      return { success: false, message: res.message };
     }
-  };
+
+    toastError(response.message || "Không thể cập nhật trạng thái", "Lỗi");
+    return { success: false, message: response.message };
+  }
 
   return (
     <div className="pb-12">
@@ -237,7 +237,7 @@ function AdminEmployeesContent() {
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         employee={selectedEmployee}
-        onEdit={(emp) => handleOpenEdit(emp)}
+        onEdit={(employee) => handleOpenEdit(employee)}
       />
     </div>
   );
