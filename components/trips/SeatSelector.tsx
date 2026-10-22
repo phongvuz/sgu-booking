@@ -1,9 +1,8 @@
 "use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import SeatMap from "./SeatMap";
 import BookingForm from "./BookingForm";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import generateSeats from "./seatUtils";
 import { getErrorMessage, requestJson } from "@/lib/api-client";
 import { useSeatRealtime } from "@/hooks/useSeatRealtime";

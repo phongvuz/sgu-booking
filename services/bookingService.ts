@@ -39,7 +39,8 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
     if (trip.time <= new Date()) throw new BusinessError("Chuyến xe đã xuất bến, không thể đặt thêm vé.", 409);
     const validSeats = getSeatCodes(trip.capacity);
     if (seats.some((seat) => !validSeats.includes(seat))) throw new BusinessError("Ghế đã chọn không thuộc sơ đồ ghế của chuyến xe.");
-    const booked = await tx.booking.findMany({ where: { tripId: trip.id, status: { not: "CANCELLED" }, seatNumber: { in: seats } }, select: { seatNumber: true } });
+    const booked = await tx.booking.findMany({ where: { tripId: trip.id, status: { not: "CANCELLED" }, 
+      seatNumber: { in: seats } }, select: { seatNumber: true } });
     const held = await tx.seatHold.findMany({ where: {
       tripId: trip.id, seatNumber: { in: seats }, expiresAt: { gt: new Date() },
       ...(input.clientId ? { clientId: { not: input.clientId } } : {}),
@@ -48,7 +49,8 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
     if (conflicts.length) throw new BookingConflictError(conflicts);
 
     // Điều kiện gte giữ số ghế trống không bao giờ âm.
-    const reserved = await tx.trip.updateMany({ where: { id: trip.id, availableSeats: { gte: seats.length } }, data: { availableSeats: { decrement: seats.length } } });
+    const reserved = await tx.trip.updateMany({ where: { id: trip.id, availableSeats: { gte: seats.length } }, 
+      data: { availableSeats: { decrement: seats.length } } });
     if (reserved.count !== 1) throw new BusinessError("Chuyến xe không còn đủ ghế trống.", 409);
     let user = input.ownerId
       ? await tx.user.findUnique({ where: { id: input.ownerId } })

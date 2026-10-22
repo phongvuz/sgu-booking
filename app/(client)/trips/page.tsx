@@ -18,11 +18,15 @@ export default async function TripsPage({
   const fromCity = resolveLocationName(fromQuery);
   const toCity = resolveLocationName(toQuery);
 
+  console.time("[SERVER] getTrips");
+
   const trips = await getTrips({
     fromCity,
     toCity,
     date: params.date,
   });
+
+  console.timeEnd("[SERVER] getTrips");
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">

@@ -222,3 +222,4 @@ export function useSeatRealtime(tripId: number, capacity: number) {
     connectionError, viewerCount, sendError, toggleSeat, reconnect,
   };
 }
+
