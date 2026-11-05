@@ -1,6 +1,7 @@
 "use client";
 
 import { FiSearch, FiX } from "react-icons/fi";
+import { mergeTripLocations } from "@/lib/trip-locations";
 
 interface TripFiltersProps {
   search: string;
@@ -12,6 +13,7 @@ interface TripFiltersProps {
   date: string;
   onDateChange: (value: string) => void;
   onReset: () => void;
+  locations?: string[];
 }
 
 export function TripFilters({
@@ -24,7 +26,9 @@ export function TripFilters({
   date,
   onDateChange,
   onReset,
+  locations = [],
 }: TripFiltersProps) {
+  const locationOptions = mergeTripLocations(locations, [from, to]);
 
   const hasFilters = search !== "" || from !== "" || to !== "" || date !== "";
 
@@ -58,23 +62,25 @@ export function TripFilters({
           )}
         </div>
 
-        <input
-          type="text"
+        <select
           value={from}
           onChange={(event) => onFromChange(event.target.value)}
           aria-label="Điểm đi"
-          placeholder="Điểm đi (VD: Hồ Chí Minh)..."
           className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-        />
+        >
+          <option value="">Tất cả điểm đi</option>
+          {locationOptions.map((location) => <option key={location} value={location}>{location}</option>)}
+        </select>
 
-        <input
-          type="text"
+        <select
           value={to}
           onChange={(event) => onToChange(event.target.value)}
           aria-label="Điểm đến"
-          placeholder="Điểm đến (VD: Đà Lạt)..."
           className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-        />
+        >
+          <option value="">Tất cả điểm đến</option>
+          {locationOptions.map((location) => <option key={location} value={location}>{location}</option>)}
+        </select>
 
         <input
           type="date"

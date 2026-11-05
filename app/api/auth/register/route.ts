@@ -6,8 +6,17 @@ import { nextCustomerId } from "@/lib/customer-id";
 import { NextResponse } from "next/server";
 import { createSessionToken, ensureSessionConfigured, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { isSameOriginRequest } from "@/lib/request-origin";
+import { createGuestPhone } from "@/lib/guest-account";
+import { BusinessError } from "@/lib/business-error";
 
 export const runtime = "nodejs";
+
+const duplicateMessage = "Email hoặc số điện thoại đã được đăng ký!";
+const accountSelect = { id: true, fullName: true, role: true, isActive: true } as const;
+
+function isLegacyGuest(user: { role: string; isActive: boolean } | null) {
+  return user?.role === "USER" && user.isActive;
+}
 
 export async function POST(request: Request) {
   if (!isSameOriginRequest(request)) return Response.json({ success: false, message: "Nguồn yêu cầu không hợp lệ!" }, { status: 403 });
@@ -26,11 +35,11 @@ export async function POST(request: Request) {
   const { fullName, email, phone, address, password } = parsed.data;
   try {
     const [existingUser, existingCustomer] = await Promise.all([
-      prisma.user.findUnique({ where: { phone }, select: { id: true } }),
+      prisma.user.findUnique({ where: { phone }, select: accountSelect }),
       prisma.customer.findFirst({ where: { OR: [{ email }, { phone }] }, select: { id: true } }),
     ]);
-    if (existingUser || existingCustomer) {
-      return Response.json({ success: false, message: "Email hoặc số điện thoại đã được đăng ký!" }, { status: 409 });
+    if (existingCustomer || (existingUser && !isLegacyGuest(existingUser))) {
+      return Response.json({ success: false, message: duplicateMessage }, { status: 409 });
     }
 
     const passwordHash = await hashPassword(password);
@@ -41,6 +50,19 @@ export async function POST(request: Request) {
     for (let attempt = 0; ; attempt++) {
       try {
         sessionToken = await prisma.$transaction(async (tx) => {
+          const [currentUser, currentCustomer] = await Promise.all([
+            tx.user.findUnique({ where: { phone }, select: accountSelect }),
+            tx.customer.findFirst({ where: { OR: [{ email }, { phone }] }, select: { id: true } }),
+          ]);
+          if (currentCustomer || (currentUser && !isLegacyGuest(currentUser))) {
+            throw new BusinessError(duplicateMessage, 409);
+          }
+          if (currentUser) {
+            // Keep past bookings with the guest, never grant them to an unverified registrant.
+            await tx.booking.updateMany({ where: { userId: currentUser.id, passengerPhone: null }, data: { passengerPhone: phone } });
+            await tx.booking.updateMany({ where: { userId: currentUser.id, passengerName: null }, data: { passengerName: currentUser.fullName } });
+            await tx.user.update({ where: { id: currentUser.id }, data: { phone: createGuestPhone() } });
+          }
           const id = await nextCustomerId(tx);
           const user = await tx.user.create({
             data: { fullName, phone, password: passwordHash, role: "CUSTOMER" },
@@ -66,8 +88,11 @@ export async function POST(request: Request) {
     response.cookies.set(SESSION_COOKIE, sessionToken, sessionCookieOptions);
     return response;
   } catch (error) {
+    if (error instanceof BusinessError) {
+      return Response.json({ success: false, message: error.message }, { status: error.status });
+    }
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      return Response.json({ success: false, message: "Email hoặc số điện thoại đã được đăng ký!" }, { status: 409 });
+      return Response.json({ success: false, message: duplicateMessage }, { status: 409 });
     }
     return Response.json({ success: false, message: "Không thể đăng ký lúc này. Vui lòng thử lại sau!" }, { status: 500 });
   }

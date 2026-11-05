@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { OrderItem, OrderQueryParams, PaginationMeta, OrderStats, BookingStatus } from "@/types";
 import { toOrderItem } from "@/lib/record-mappers";
+import { broadcastSeatRefresh } from "@/lib/sse";
 
 /**
  * Tra cứu danh sách đơn hàng cho giao diện quản trị Admin
@@ -115,7 +116,7 @@ export async function queryOrdersAdmin(params: OrderQueryParams): Promise<{
  */
 export async function getOrderById(id: number | string): Promise<OrderItem | null> {
   const numId = Number(id);
-  if (isNaN(numId)) return null;
+  if (!Number.isInteger(numId) || numId <= 0 || numId > 2147483647) return null;
 
   const b = await prisma.booking.findUnique({
     where: { id: numId },
@@ -131,9 +132,12 @@ export async function getOrderById(id: number | string): Promise<OrderItem | nul
 }
 
 export async function updateOrderStatus(id: number | string, newStatus: BookingStatus): Promise<OrderItem | null> {
+  const orderId = Number(id);
+  if (!Number.isInteger(orderId) || orderId <= 0 || orderId > 2147483647) throw new BusinessError("ID đơn hàng không hợp lệ.");
   if (!["CONFIRMED", "PENDING", "CANCELLED"].includes(newStatus)) throw new BusinessError("Trạng thái vé không hợp lệ.");
+  let changedTripId: number | undefined;
   const changed = await runTransaction(async (tx) => {
-    const existing = await tx.booking.findUnique({ where: { id: Number(id) }, include: { trip: true } });
+    const existing = await tx.booking.findUnique({ where: { id: orderId }, include: { trip: true } });
     if (!existing) return false;
     if (existing.status === newStatus) return true;
     if (existing.status === "CONFIRMED" && newStatus === "PENDING") throw new BusinessError("Vé đã thanh toán không thể chuyển về chờ thanh toán.", 409);
@@ -147,6 +151,16 @@ export async function updateOrderStatus(id: number | string, newStatus: BookingS
       const reserved = await tx.trip.updateMany({ where: { id: existing.tripId, availableSeats: { gt: 0 } }, data: { availableSeats: { decrement: 1 } } });
       if (reserved.count !== 1) throw new BusinessError("Chuyến xe đã hết ghế. Không thể khôi phục vé.", 409);
     }
+    if (
+      newStatus !== "CANCELLED" &&
+      existing.expiresAt &&
+      existing.expiresAt <= new Date()
+    ) {
+      throw new BusinessError(
+        "Vé đã hết hạn thanh toán. Vui lòng tạo lượt đặt mới.",
+        409,
+      );
+}
     await tx.booking.update({ where: { id: existing.id }, data: {
       status: newStatus, activeSeat: newStatus === "CANCELLED" ? null : `${existing.tripId}:${existing.seatNumber}`,
       confirmedAt: newStatus === "CONFIRMED" ? new Date() : newStatus === "PENDING" ? null : existing.confirmedAt,
@@ -154,8 +168,10 @@ export async function updateOrderStatus(id: number | string, newStatus: BookingS
     if (existing.status !== "CANCELLED" && newStatus === "CANCELLED") {
       await tx.trip.update({ where: { id: existing.tripId }, data: { availableSeats: { increment: 1 } } });
     }
+    changedTripId = existing.tripId;
     return true;
   });
+  if (changed && changedTripId !== undefined) broadcastSeatRefresh(changedTripId);
   return changed ? getOrderById(id) : null;
 }
 

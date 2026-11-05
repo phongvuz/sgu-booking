@@ -39,8 +39,24 @@ export async function confirmDemoPayment(pnr: string) {
       }
       throw new BusinessError("Lượt đặt chỗ đã có thanh toán. Vui lòng liên hệ nhà xe để đối soát.", 409);
     }
-    if (bookings.some((b) => b.status !== "PENDING" || b.trip.time <= new Date())) {
-      throw new BusinessError("Chỉ xác nhận được lượt đặt chỗ đang chờ thanh toán và chưa xuất bến.", 409);
+    const now = new Date();
+
+    if (bookings.some((b) => b.expiresAt && b.expiresAt <= now)) {
+      throw new BusinessError(
+        "Vé đã hết hạn thanh toán. Vui lòng đặt vé mới.",
+        409,
+      );
+    }
+
+    if (
+      bookings.some(
+        (b) => b.status !== "PENDING" || b.trip.time <= now,
+      )
+    ) {
+      throw new BusinessError(
+        "Chỉ xác nhận được lượt đặt chỗ đang chờ thanh toán và chưa xuất bến.",
+        409,
+      );
     }
     // Backend tự tính tiền, không nhận giá hoặc trạng thái từ trình duyệt.
     const amount = bookings.reduce((sum, booking) => sum + booking.totalPrice, 0);
@@ -53,7 +69,29 @@ export async function confirmDemoPayment(pnr: string) {
       providerTransactionId: `DEMO-${id}`, checkoutUrl: qrUrl,
       createdAt: paidAt, paidAt, expiresAt: bookings[0].trip.time,
     } });
-    await tx.booking.updateMany({ where: { pnr, status: "PENDING" }, data: { status: "CONFIRMED", confirmedAt: paidAt } });
+    const updated = await tx.booking.updateMany({
+      where: {
+        id: { in: bookings.map((booking) => booking.id) },
+        pnr,
+        status: "PENDING",
+        trip: { time: { gt: paidAt } },
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: paidAt } },
+        ],
+      },
+      data: {
+        status: "CONFIRMED",
+        confirmedAt: paidAt,
+      },
+    });
+
+    if (updated.count !== bookings.length) {
+      throw new BusinessError(
+        "Vé đã hết hạn hoặc thay đổi trạng thái. Vui lòng tải lại trang.",
+        409,
+      );
+    }
     // Ghế đã trừ khi đặt vé nên không trừ lần nữa khi thanh toán.
     return { status: "SUCCESS", bookingStatus: "CONFIRMED" };
   });

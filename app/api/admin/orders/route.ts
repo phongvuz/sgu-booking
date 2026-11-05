@@ -7,7 +7,6 @@ import { queryOrdersAdmin } from "@/services/orderService";
 import { createBooking } from "@/services/bookingService";
 import type { OrderQueryParams } from "@/types";
 
-// Bài thực hành: docs/exercises/orders/README.md
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 

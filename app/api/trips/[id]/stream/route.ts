@@ -5,6 +5,7 @@ import { apiError } from "@/lib/admin-api";
 import { BusinessError } from "@/lib/business-error";
 import { realtimeClientIdSchema } from "@/lib/validations/seat-realtime";
 import { prisma } from "@/lib/prisma";
+import { deriveSeatOwner, ensureSeatSession } from "@/lib/seat-session";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -19,8 +20,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       throw new BusinessError("Mã client không hợp lệ.");
     }
     const clientId = parsedClientId.success ? parsedClientId.data : undefined;
-    const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true } });
+    const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { id: true, booking: { where: { status: { not: "CANCELLED" } }, select: { seatNumber: true } } } });
     if (!trip) throw new BusinessError("Không tìm thấy chuyến xe.", 404);
+    const session = ensureSeatSession(request);
+    const ownerKey = clientId ? deriveSeatOwner(session.id, clientId) : undefined;
 
     let cleanup = () => {};
     const stream = new ReadableStream<Uint8Array>({
@@ -40,7 +43,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
           }
         };
 
-        addClient(tripId, controller, { clientId, cleanup });
+        addClient(tripId, controller, { clientId, ownerKey, cleanup });
         request.signal.addEventListener("abort", cleanup, { once: true });
         if (request.signal.aborted) {
           cleanup();
@@ -49,7 +52,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
         try {
           // Gửi ngay để EventSource mở kết nối và nhận trạng thái ban đầu.
-          controller.enqueue(encodeRealtimeMessage(getSeatSnapshot(tripId)));
+          controller.enqueue(encodeRealtimeMessage(getSeatSnapshot(tripId, trip.booking.map((booking) => booking.seatNumber))));
           broadcastViewerCount(tripId);
           const encoder = new TextEncoder();
           heartbeatTimer = setInterval(() => {
@@ -74,6 +77,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         "Cache-Control": "no-cache, no-store, no-transform",
         "Connection": "keep-alive",
         "X-Accel-Buffering": "no",
+        ...(session.cookie ? { "Set-Cookie": session.cookie } : {}),
       },
     });
   } catch (error) {

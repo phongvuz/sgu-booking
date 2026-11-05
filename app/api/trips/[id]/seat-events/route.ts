@@ -6,6 +6,8 @@ import { getSeatCodes } from "@/lib/seats";
 import { applySeatInteraction, synchronizeClientSeats } from "@/lib/sse";
 import { parseTripId } from "@/lib/trip-id";
 import { seatInteractionRequestSchema, seatSyncRequestSchema } from "@/lib/validations/seat-realtime";
+import { requireSeatOwner } from "@/lib/seat-session";
+import { isSameOriginRequest } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
 type RouteContext = { params: Promise<{ id: string }> };
@@ -32,6 +34,7 @@ function validateTripMatch(urlTripId: number, bodyTripId: number) {
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
   try {
+    if (!isSameOriginRequest(request)) throw new BusinessError("Nguồn yêu cầu không hợp lệ.", 403);
     const { id } = await params;
     const tripId = parseTripId(id);
     const parsedRequest = seatInteractionRequestSchema.safeParse(await readJson(request));
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
     const seatEvent = parsedRequest.data;
     validateTripMatch(tripId, seatEvent.tripId);
     await validateTripSeats(tripId, [seatEvent.seatNumber], seatEvent.type === "SEAT_SELECTED");
-    applySeatInteraction({ ...seatEvent, timestamp: new Date().toISOString() });
+    applySeatInteraction({ ...seatEvent, timestamp: new Date().toISOString() }, requireSeatOwner(request, seatEvent.clientId));
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiError(error, "Không thể gửi thao tác chọn ghế.");
@@ -49,6 +52,7 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 // Chỉ dùng khi mở hoặc khôi phục kết nối, không gửi mỗi lần React state đổi.
 export async function PUT(request: NextRequest, { params }: RouteContext) {
   try {
+    if (!isSameOriginRequest(request)) throw new BusinessError("Nguồn yêu cầu không hợp lệ.", 403);
     const { id } = await params;
     const tripId = parseTripId(id);
     const parsedRequest = seatSyncRequestSchema.safeParse(await readJson(request));
@@ -56,7 +60,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const { clientId, selectedSeats, tripId: bodyTripId } = parsedRequest.data;
     validateTripMatch(tripId, bodyTripId);
     await validateTripSeats(tripId, selectedSeats, selectedSeats.length > 0);
-    synchronizeClientSeats(tripId, clientId, selectedSeats);
+    synchronizeClientSeats(tripId, clientId, selectedSeats, requireSeatOwner(request, clientId));
     return NextResponse.json({ success: true });
   } catch (error) {
     return apiError(error, "Không thể đồng bộ lựa chọn ghế.");

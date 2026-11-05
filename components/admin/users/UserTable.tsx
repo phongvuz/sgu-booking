@@ -69,12 +69,12 @@ export function UserTable({
                   <span className="font-bold text-gray-900">{user.fullName}</span>
                 </div>
               </td>
-              <td className="px-5 py-3.5 font-semibold text-gray-700">{user.phone}</td>
+              <td className="px-5 py-3.5 font-semibold text-gray-700">{user.phone || "—"}</td>
               <td className="px-5 py-3.5">
                 <button
-                  disabled={user.role === "CUSTOMER"}
+                  disabled={user.role === "CUSTOMER" || user.isGuest}
                   onClick={() => onToggleRole(user)}
-                  title="Nhấp để đổi quyền giữa USER và ADMIN"
+                  title={user.isGuest ? "Khách đặt vé khi chưa đăng nhập" : "Nhấp để đổi quyền giữa USER và ADMIN"}
                   className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold cursor-pointer transition-transform active:scale-95 ${
                     user.role === "ADMIN"
                       ? "bg-purple-100 text-purple-800 hover:bg-purple-200"
@@ -82,7 +82,7 @@ export function UserTable({
                   }`}
                 >
                   {user.role === "ADMIN" ? <FaCrown aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" />}
-                  <span>{user.role}</span>
+                  <span>{user.isGuest ? "Khách vãng lai" : user.role}</span>
                 </button>
               </td>
               <td className="px-5 py-3.5">{user.isActive ? "Đang hoạt động" : "Đã khóa"}</td>
@@ -109,9 +109,10 @@ export function UserTable({
                   </button>
                   <button
                     aria-label="Chỉnh sửa tài khoản"
+                    disabled={user.isGuest}
                     onClick={() => onEdit(user)}
-                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                    title="Chỉnh sửa tài khoản"
+                    className="p-1.5 text-blue-600 hover:bg-blue-50 rounded transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    title={user.isGuest ? "Hồ sơ khách vãng lai chỉ lưu lịch sử vé" : "Chỉnh sửa tài khoản"}
                   >
                     <FiEdit aria-hidden="true" className="inline-block shrink-0 align-middle" />
                   </button>

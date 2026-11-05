@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { tripIdSchema } from "@/lib/trip-id";
+import { realtimeClientIdSchema } from "@/lib/validations/seat-realtime";
 
 export const offlineOrderSchema = z.object({
   tripId: tripIdSchema,
@@ -20,7 +21,7 @@ export const offlineOrderSchema = z.object({
 });
 
 export const onlineOrderSchema = offlineOrderSchema.omit({ status: true }).extend({
-  clientId: z.string().min(1).max(191).optional(),
+  clientId: realtimeClientIdSchema.optional(),
 });
 
 export type OfflineOrderFormValues = z.infer<typeof offlineOrderSchema>;

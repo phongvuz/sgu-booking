@@ -60,7 +60,7 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
                   }`}
               >
                 {user.role === "ADMIN" ? <FaCrown aria-hidden="true" className="inline-block shrink-0 align-middle" /> : <FiUser aria-hidden="true" className="inline-block shrink-0 align-middle" />}{" "}
-                {user.role === "ADMIN" ? "QUẢN TRỊ VIÊN" : "KHÁCH HÀNG"}
+                {user.role === "ADMIN" ? "QUẢN TRỊ VIÊN" : user.isGuest ? "KHÁCH VÃNG LAI" : "KHÁCH HÀNG"}
               </span>
             </div>
           </div>
@@ -72,7 +72,7 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
           <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
             <div>
               <span className="text-gray-400 block text-[11px]">Số điện thoại</span>
-              <span className="font-bold text-gray-900 text-sm">{user.phone}</span>
+              <span className="font-bold text-gray-900 text-sm">{user.phone || "—"}</span>
             </div>
             <div>
               <span className="text-gray-400 block text-[11px]">Ngày đăng ký</span>
@@ -154,11 +154,12 @@ function UserDetailContent({ onClose, user, onEdit }: UserDetailModalProps & { u
             Đóng
           </button>
           <button
+            disabled={user.isGuest}
             onClick={() => {
               onClose();
               onEdit(user);
             }}
-            className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer"
+            className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Chỉnh sửa tài khoản
           </button>

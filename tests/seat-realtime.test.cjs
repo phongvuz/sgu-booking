@@ -2,7 +2,18 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { load } = require("./load-ts.cjs");
 
-const realtime = load("lib/sse.ts");
+process.env.SESSION_SECRET = "seat-test-secret-".repeat(4);
+const seatSession = load("lib/seat-session.ts");
+const sessionToken = seatSession.createSeatSessionToken();
+const sessionId = seatSession.verifySeatSessionToken(sessionToken);
+const cookie = `${seatSession.SEAT_SESSION_COOKIE}=${sessionToken}`;
+const owner = (clientId) => seatSession.deriveSeatOwner(sessionId, clientId);
+const realtimeModule = load("lib/sse.ts");
+const realtime = {
+  ...realtimeModule,
+  applySeatInteraction: (event, ownerKey = owner(event.clientId)) => realtimeModule.applySeatInteraction(event, ownerKey),
+  synchronizeClientSeats: (tripId, clientId, seats, ownerKey = owner(clientId)) => realtimeModule.synchronizeClientSeats(tripId, clientId, seats, ownerKey),
+};
 const schemas = load("lib/validations/seat-realtime.ts");
 let nextTripId = 1000000;
 
@@ -20,7 +31,7 @@ function connect(tripId, clientId) {
     realtime.removeClient(tripId, controller);
     controller.close();
   }
-  realtime.addClient(tripId, controller, { clientId, cleanup });
+  realtime.addClient(tripId, controller, { clientId, ownerKey: clientId ? owner(clientId) : undefined, cleanup });
   return { reader: stream.getReader(), cleanup };
 }
 
@@ -154,6 +165,7 @@ test("failed writes clean their connection and server limits each client to five
   const brokenController = { enqueue() { throw new Error("closed"); } };
   realtime.addClient(tripId, brokenController, {
     clientId: "broken",
+    ownerKey: owner("broken"),
     cleanup() {
       cleanupCount += 1;
       realtime.removeClient(tripId, brokenController);
@@ -191,6 +203,7 @@ test("HTTP rejects mismatched trips, unknown seats, booked seats and missing con
   async function post(body) {
     return route.POST(new Request("http://localhost/api/trips/" + tripId + "/seat-events", {
       method: "POST", body: JSON.stringify(body),
+      headers: { cookie },
     }), context(tripId));
   }
   const input = { tripId, clientId: "one", seatNumber: "A01", type: "SEAT_SELECTED" };
@@ -222,7 +235,7 @@ test("stream sends an immediate snapshot and cancel/abort clear heartbeat exactl
   });
   const route = load("app/api/trips/[id]/stream/route.ts", {
     "@/lib/admin-api": apiHelpers,
-    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ id: tripId }) } } },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ id: tripId, booking: [] }) } } },
   });
   const abortController = new AbortController();
   const response = await route.GET(new Request("http://localhost/api/trips/" + tripId + "/stream?clientId=one", {
@@ -233,9 +246,82 @@ test("stream sends an immediate snapshot and cancel/abort clear heartbeat exactl
   const reader = response.body.getReader();
   const snapshot = JSON.parse(new TextDecoder().decode((await reader.read()).value).slice(6).trim());
   assert.equal(snapshot.type, "SEAT_SNAPSHOT");
+  assert.deepEqual(snapshot.bookedSeats, []);
+  assert.match(response.headers.get("set-cookie"), /HttpOnly/);
   assert.equal(timers.size, 1);
   await reader.cancel();
   abortController.abort();
   assert.equal(timers.size, 0);
   assert.equal(globalThis.seatRealtimeStore.trips.has(tripId), false);
+});
+
+test("seat session rejects forged and expired cookies and isolates identical public tab IDs", () => {
+  const token = seatSession.createSeatSessionToken(1000);
+  assert.ok(seatSession.verifySeatSessionToken(token, 1001));
+  assert.equal(seatSession.verifySeatSessionToken(token, 1000 + 86400000), null);
+  const forged = `${token.slice(0, -1)}${token.endsWith("a") ? "b" : "a"}`;
+  assert.equal(seatSession.verifySeatSessionToken(forged, 1001), null);
+  const otherSession = seatSession.verifySeatSessionToken(seatSession.createSeatSessionToken());
+  assert.notEqual(owner("same-tab"), seatSession.deriveSeatOwner(otherSession, "same-tab"));
+});
+
+test("knowing a public client ID cannot take over its stream or deselect its seats", () => {
+  const tripId = nextTripId++;
+  const connection = connect(tripId, "victim");
+  try {
+    realtime.applySeatInteraction(event(tripId, "victim", "A01"));
+    assert.throws(() => realtimeModule.applySeatInteraction(event(tripId, "victim", "A01", "SEAT_DESELECTED"), "attacker-owner"), { status: 409 });
+    assert.throws(() => realtimeModule.synchronizeClientSeats(tripId, "victim", [], "attacker-owner"), { status: 409 });
+    assert.throws(() => realtimeModule.addClient(tripId, {}, { clientId: "victim", ownerKey: "attacker-owner", cleanup() {} }), { status: 409 });
+    assert.deepEqual(realtime.getSeatSnapshot(tripId).selections, [{ clientId: "victim", seatNumber: "A01" }]);
+    assert.equal(JSON.stringify(realtime.getSeatSnapshot(tripId)).includes(owner("victim")), false);
+  } finally { connection.cleanup(); }
+});
+
+test("HTTP rejects a second browser claiming the victim's public ID", async () => {
+  const tripId = nextTripId++;
+  const connection = connect(tripId, "victim");
+  const route = load("app/api/trips/[id]/seat-events/route.ts", {
+    "@/lib/admin-api": apiHelpers,
+    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ capacity: 6, time: new Date(Date.now() + 86400000) }) }, booking: { findFirst: async () => null } } },
+  });
+  const attackerCookie = `${seatSession.SEAT_SESSION_COOKIE}=${seatSession.createSeatSessionToken()}`;
+  const body = JSON.stringify({ tripId, clientId: "victim", seatNumber: "A01", type: "SEAT_DESELECTED" });
+  try {
+    realtime.applySeatInteraction(event(tripId, "victim", "A01"));
+    for (const headers of [{ cookie: attackerCookie }, {}, { cookie, origin: "https://attacker.example" }]) {
+      const response = await route.POST(new Request(`http://localhost/api/trips/${tripId}/seat-events`, { method: "POST", headers, body }), context(tripId));
+      assert.ok([403, 409].includes(response.status));
+    }
+    assert.equal(realtime.getSeatSnapshot(tripId).selections.length, 1);
+  } finally { connection.cleanup(); }
+});
+
+test("hold mutations derive private ownership and public snapshots never expose it", async () => {
+  const tripId = nextTripId++;
+  const calls = [];
+  const route = load("app/api/seats/hold/route.ts", {
+    "@/lib/admin-api": apiHelpers,
+    "@/lib/sse": { broadcastSeatRefresh() {} },
+    "@/services/seatService": { holdSeat: async (...args) => calls.push(args), releaseSeat: async (...args) => calls.push(args) },
+  });
+  const publicClientId = "victim";
+  const attackerCookie = `${seatSession.SEAT_SESSION_COOKIE}=${seatSession.createSeatSessionToken()}`;
+  for (const browserCookie of [cookie, attackerCookie]) {
+    const response = await route.POST(new Request("http://localhost/api/seats/hold", { method: "POST", headers: { cookie: browserCookie }, body: JSON.stringify({ tripId, clientId: publicClientId, seatNumber: "A01", action: "release" }) }));
+    assert.equal(response.status, 200);
+  }
+  assert.notEqual(calls[0][2], publicClientId);
+  assert.notEqual(calls[0][2], calls[1][2]);
+  const { getActiveSeatHolds } = load("services/seatService.ts", { "@/lib/prisma": { prisma: { seatHold: { findMany: async () => [{ seatNumber: "A01", clientId: calls[0][2] }] } } } });
+  assert.deepEqual(await getActiveSeatHolds(tripId, calls[1][2]), [{ seatNumber: "A01", isOwn: false }]);
+  assert.deepEqual(await getActiveSeatHolds(tripId, calls[0][2]), [{ seatNumber: "A01", isOwn: true }]);
+});
+
+test("reconnect removes sold, foreign-held and removed seats, and cancellation frees the map", () => {
+  const { availableSeatSelection } = load("lib/seat-selection.ts");
+  const state = { capacity: 6, bookedSeats: ["A01"], holds: [{ seatNumber: "B01", isOwn: false }], selections: [{ seatNumber: "C01", clientId: "other" }] };
+  assert.deepEqual(availableSeatSelection(["A01", "B01", "C01", "A02", "C99"], state, "mine"), ["A02"]);
+  const cancelled = { ...state, bookedSeats: [] };
+  assert.deepEqual(availableSeatSelection(["A01", "A02"], cancelled, "mine"), ["A01", "A02"]);
 });

@@ -29,7 +29,13 @@ export const seatRealtimeMessageSchema = z.discriminatedUnion("type", [
     tripId: tripIdSchema,
     type: z.literal("SEAT_SNAPSHOT"),
     selections: z.array(seatSelectionSchema),
+    bookedSeats: z.array(realtimeSeatNumberSchema),
     viewerCount: z.number().int().nonnegative(),
+    timestamp: z.iso.datetime(),
+  }).strict(),
+  z.object({
+    tripId: tripIdSchema,
+    type: z.literal("SEATS_CHANGED"),
     timestamp: z.iso.datetime(),
   }).strict(),
   z.object({

@@ -1,9 +1,10 @@
 import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
-import { readOption } from "@/lib/query-params";
+import { positiveInteger, readOption } from "@/lib/query-params";
 import { NextRequest, NextResponse } from "next/server";
 import { resolveLocationName } from "@/lib/trip-display";
-import { getTrips, createTrip, queryTripsAdmin } from "@/services/tripService";
+import { queryPublicTrips, createTrip, queryTripsAdmin } from "@/services/tripService";
 import { tripSchema } from "@/lib/validations/trip";
+import { parsePublicTripFilters } from "@/lib/public-trip-search";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,7 +13,7 @@ export const revalidate = 0;
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const isAdminMode = searchParams.get("admin") === "true" || searchParams.has("page") || searchParams.has("limit");
+    const isAdminMode = searchParams.get("admin") === "true";
 
     if (isAdminMode) {
       await requireAdmin(request);
@@ -37,24 +38,29 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const fromParam = searchParams.get("from")?.trim() || "";
-    const toParam = searchParams.get("to")?.trim() || "";
-    const dateParam = searchParams.get("date")?.trim() || "";
-
-    const fromCity = resolveLocationName(fromParam);
-    const toCity = resolveLocationName(toParam);
-
-    const trips = await getTrips({
-      fromCity,
-      toCity,
-      date: dateParam || undefined,
-      includeBookings: true,
+    const filters = parsePublicTripFilters({
+      from: searchParams.getAll("from"),
+      to: searchParams.getAll("to"),
+      date: searchParams.getAll("date"),
+      times: searchParams.getAll("times"),
+      vehicles: searchParams.getAll("vehicles"),
+      page: searchParams.getAll("page"),
+    });
+    const result = await queryPublicTrips({
+      fromCity: resolveLocationName(filters.from),
+      toCity: resolveLocationName(filters.to),
+      date: filters.date,
+      times: filters.times,
+      vehicles: filters.vehicles,
+      page: filters.page,
+      limit: positiveInteger(searchParams.get("limit"), 10, 100),
     });
 
     return NextResponse.json({
       success: true,
-      count: trips.length,
-      data: trips,
+      count: result.data.length,
+      data: result.data,
+      pagination: result.pagination,
     });
   } catch (error) {
     return apiError(error, "Không thể xử lý yêu cầu lúc này. Vui lòng thử lại.");

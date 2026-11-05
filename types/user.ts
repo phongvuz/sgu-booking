@@ -4,6 +4,7 @@ export interface UserAccount {
   id: number;
   fullName: string;
   phone: string;
+  isGuest?: boolean;
   role: string;
   isActive: boolean;
   createdAt: string;

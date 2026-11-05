@@ -7,6 +7,7 @@ import { formatDepartureDate, formatVietnamDateTime } from "@/lib/trip-search";
 import { tripSchema } from "@/lib/validations/trip";
 import type { TripFormValues } from "@/lib/validations/trip";
 import type { TripAdminItem } from "@/types/trip";
+import { mergeTripLocations, sameTripLocation } from "@/lib/trip-locations";
 
 interface TripModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface TripModalProps {
   onSubmit: (data: TripFormValues) => Promise<{ success: boolean; message?: string }>;
   initialData?: TripAdminItem | null;
   mode: "create" | "edit";
+  locations?: string[];
 }
 
 export function TripModal({
@@ -22,6 +24,7 @@ export function TripModal({
   onSubmit,
   initialData,
   mode,
+  locations = [],
 }: TripModalProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
@@ -49,6 +52,9 @@ export function TripModal({
       capacity: 30,
     };
   });
+  const [from, setFrom] = useState(defaultValues.from);
+  const [to, setTo] = useState(defaultValues.to);
+  const locationOptions = mergeTripLocations(locations, [from, to]);
 
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -79,6 +85,10 @@ export function TripModal({
     }
 
     const data = result.data;
+    if (mode === "edit" && initialData) {
+      if (from === initialData.from) data.from = initialData.from;
+      if (to === initialData.to) data.to = initialData.to;
+    }
     if (mode === "edit" && initialData && data.time === defaultValues.time) {
       data.time = initialData.time;
     }
@@ -141,15 +151,17 @@ export function TripModal({
               <label htmlFor="trip-from" className="block text-xs font-semibold text-gray-700 mb-1">
                 Điểm khởi hành <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="VD: Hồ Chí Minh"
+              <select
                 id="trip-from"
                 name="from"
-                defaultValue={defaultValues.from}
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              />
+              >
+                <option value="">Chọn điểm khởi hành</option>
+                {locationOptions.map((location) => <option key={location} value={location} disabled={sameTripLocation(location, to)}>{location}</option>)}
+              </select>
               {errors.from && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.from}</p>
               )}
@@ -159,15 +171,17 @@ export function TripModal({
               <label htmlFor="trip-to" className="block text-xs font-semibold text-gray-700 mb-1">
                 Điểm đến <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="VD: Đà Lạt"
+              <select
                 id="trip-to"
                 name="to"
-                defaultValue={defaultValues.to}
+                value={to}
+                onChange={(event) => setTo(event.target.value)}
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              />
+              >
+                <option value="">Chọn điểm đến</option>
+                {locationOptions.map((location) => <option key={location} value={location} disabled={sameTripLocation(location, from)}>{location}</option>)}
+              </select>
               {errors.to && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.to}</p>
               )}
