@@ -46,46 +46,46 @@ export default function AdminOrdersPage() {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
 
-  const handleOpenDetail = (order: OrderItem) => {
+  function handleOpenDetail(order: OrderItem) {
     setSelectedOrder(order);
     setIsDetailModalOpen(true);
-  };
+  }
 
-  const handleOpenCancel = (order: OrderItem) => {
+  function handleOpenCancel(order: OrderItem) {
     setSelectedOrder(order);
     setIsCancelModalOpen(true);
-  };
+  }
 
-  const handleCreateOffline = async (data: OfflineOrderFormValues) => {
-    const res = await createOfflineOrder(data);
-    if (res.success) {
-      success(res.message || "Tạo vé thành công!", "Xuất vé quầy");
+  async function handleCreateOffline(data: OfflineOrderFormValues) {
+    const response = await createOfflineOrder(data);
+    if (response.success) {
+      success(response.message || "Tạo vé thành công!", "Xuất vé quầy");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể tạo vé", "Lỗi");
-      return { success: false, message: res.message };
     }
-  };
 
-  const handleUpdateStatus = async (order: OrderItem, newStatus: BookingStatus) => {
-    const res = await changeStatus(order.id, newStatus);
-    if (res.success) {
-      success(res.message || "Cập nhật trạng thái thành công!", "Thành công");
+    toastError(response.message || "Không thể tạo vé", "Lỗi");
+    return { success: false, message: response.message };
+  }
+
+  async function handleUpdateStatus(order: OrderItem, newStatus: BookingStatus) {
+    const response = await changeStatus(order.id, newStatus);
+    if (response.success) {
+      success(response.message || "Cập nhật trạng thái thành công!", "Thành công");
     } else {
-      toastError(res.message || "Không thể cập nhật trạng thái", "Lỗi");
+      toastError(response.message || "Không thể cập nhật trạng thái", "Lỗi");
     }
-  };
+  }
 
-  const handleConfirmCancel = async (id: number) => {
-    const res = await deleteOrder(id);
-    if (res.success) {
-      info(res.message || "Đã hủy đơn vé và hoàn trả ghế trống!", "Đã hủy vé");
+  async function handleConfirmCancel(id: number) {
+    const response = await deleteOrder(id);
+    if (response.success) {
+      info(response.message || "Đã hủy đơn vé và hoàn trả ghế trống!", "Đã hủy vé");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể hủy vé", "Lỗi");
-      return { success: false, message: res.message };
     }
-  };
+
+    toastError(response.message || "Không thể hủy vé", "Lỗi");
+    return { success: false, message: response.message };
+  }
 
   return (
     <div className="pb-12">

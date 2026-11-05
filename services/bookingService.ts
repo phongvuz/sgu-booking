@@ -13,7 +13,10 @@ import type { CreateBookingInput, BookingResult } from "@/types";
 
 class BookingConflictError extends BusinessError {
   constructor(public conflictingSeats: string[]) {
-    super(`Ghế ${conflictingSeats.join(", ")} đã được đặt hoặc đang được giữ. Vui lòng chọn ghế khác.`, 409);
+    super(
+      `Ghế ${conflictingSeats.join(", ")} đã được đặt hoặc đang được giữ. Vui lòng chọn ghế khác.`,
+      409,
+    );
     this.name = "BookingConflictError";
   }
 }
@@ -24,14 +27,21 @@ class TripNotFoundError extends BusinessError {
   }
 }
 
-export async function createBooking(input: CreateBookingInput): Promise<BookingResult> {
+export async function createBooking(
+  input: CreateBookingInput,
+): Promise<BookingResult> {
   const id = assertTripId(input.tripId);
   const seats = input.seats.map(normalizeSeat);
-  if (!seats.length || seats.length > 5 || new Set(seats).size !== seats.length) {
+  if (
+    !seats.length ||
+    seats.length > 5 ||
+    new Set(seats).size !== seats.length
+  ) {
     throw new BusinessError("Mỗi lượt đặt từ 1 đến 5 ghế khác nhau.");
   }
   const status = input.status ?? "PENDING";
-  if (status === "CANCELLED") throw new BusinessError("Vé mới phải chờ thanh toán hoặc đã thanh toán.");
+  if (status === "CANCELLED")
+    throw new BusinessError("Vé mới phải chờ thanh toán hoặc đã thanh toán.");
   const fullName = input.fullName.trim();
   const phone = input.phone.trim();
   const guestPassword = await hashPassword(randomBytes(32).toString("hex"));
@@ -87,10 +97,21 @@ export async function createBooking(input: CreateBookingInput): Promise<BookingR
     }
     // Một lượt đặt nhiều ghế dùng chung mã PNR, không thay đổi theo tài khoản.
     const pnr = `NHAXE-${trip.id}-${randomBytes(8).toString("hex").toUpperCase()}`;
-    await tx.booking.updateMany({ where: { id: { in: bookings.map((booking) => booking.id) } }, data: { pnr } });
-    await tx.seatHold.deleteMany({ where: { tripId: trip.id, seatNumber: { in: seats } } });
-    return { pnr, tripId: trip.id, passenger: { name: fullName, phone }, seats,
-      totalPrice: trip.price * seats.length, bookingIds: bookings.map((booking) => booking.id) };
+    await tx.booking.updateMany({
+      where: { id: { in: bookings.map((booking) => booking.id) } },
+      data: { pnr },
+    });
+    await tx.seatHold.deleteMany({
+      where: { tripId: trip.id, seatNumber: { in: seats } },
+    });
+    return {
+      pnr,
+      tripId: trip.id,
+      passenger: { name: fullName, phone },
+      seats,
+      totalPrice: trip.price * seats.length,
+      bookingIds: bookings.map((booking) => booking.id),
+    };
   });
   broadcastSeatRefresh(result.tripId);
   return result;
@@ -107,12 +128,21 @@ export async function getBookings({ pnr = "", phone = "", limit = 50 }: GetBooki
     where: { pnr: reference, passengerPhone },
     orderBy: { createdAt: "desc" }, take: positiveInteger(limit, 50, 100),
     select: {
-      id: true, pnr: true, seatNumber: true, status: true, totalPrice: true, createdAt: true,
-      passengerName: true, passengerPhone: true,
-      trip: { select: { id: true, from: true, to: true, time: true, price: true } },
+      id: true,
+      pnr: true,
+      seatNumber: true,
+      status: true,
+      totalPrice: true,
+      createdAt: true,
+      passengerName: true,
+      passengerPhone: true,
+      trip: {
+        select: { id: true, from: true, to: true, time: true, price: true },
+      },
     },
   });
   return bookings.map(({ passengerName, passengerPhone, ...booking }) => ({
-    ...booking, user: { fullName: passengerName, phone: passengerPhone },
+    ...booking,
+    user: { fullName: passengerName, phone: passengerPhone },
   }));
 }

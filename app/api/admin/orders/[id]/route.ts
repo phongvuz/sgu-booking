@@ -1,4 +1,5 @@
 import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
+import { getOrderById, updateOrderStatus, deleteOrder } from "@/services/orderService";
 import { NextRequest, NextResponse } from "next/server";
 import type { BookingStatus } from "@/types";
 import { BusinessError } from "@/lib/business-error";
@@ -47,9 +48,10 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
     const { id } = await params;
     const orderId = parseOrderId(id);
     const body = await readJson(request);
-    const status = body && typeof body === "object" && "status" in body
-      ? body.status
-      : undefined;
+    let status: unknown;
+    if (body && typeof body === "object" && "status" in body) {
+      status = body.status;
+    }
     const allowedStatuses: BookingStatus[] = ["CONFIRMED", "PENDING", "CANCELLED"];
 
     if (typeof status !== "string" || !allowedStatuses.includes(status as BookingStatus)) {

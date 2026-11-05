@@ -20,6 +20,13 @@ export function EmployeeDetailModal({
 }: EmployeeDetailModalProps) {
   if (!isOpen || !employee) return null;
 
+  let statusClassName = "bg-rose-500/20 text-rose-300 border border-rose-500/30";
+  if (employee.status === "Đang làm việc") {
+    statusClassName = "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
+  } else if (employee.status === "Nghỉ phép") {
+    statusClassName = "bg-amber-500/20 text-amber-300 border border-amber-500/30";
+  }
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div
@@ -64,13 +71,7 @@ export function EmployeeDetailModal({
               </p>
               <div className="mt-1">
                 <span
-                  className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${
-                    employee.status === "Đang làm việc"
-                      ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
-                      : employee.status === "Nghỉ phép"
-                      ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                      : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                  }`}
+                  className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${statusClassName}`}
                 >
                   {employee.status}
                 </span>

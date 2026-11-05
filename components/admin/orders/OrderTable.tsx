@@ -44,7 +44,7 @@ export function OrderTable({
       <table className="w-full text-xs text-left">
         <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
           <tr>
-            <th className="px-5 py-3.5">Mã Vé (PNR)</th>
+            <th className="px-5 py-3.5">Mã Vé</th>
             <th className="px-5 py-3.5">Khách hàng</th>
             <th className="px-5 py-3.5">Tuyến & Giờ đi</th>
             <th className="px-5 py-3.5">Số ghế</th>
@@ -56,6 +56,25 @@ export function OrderTable({
         <tbody className="divide-y divide-gray-100">
           {orders.map((order) => {
             const timeInfo = formatTripTime(order.trip.time);
+            let statusClassName = "bg-rose-100 text-rose-800";
+            if (order.status === "CONFIRMED") {
+              statusClassName = "bg-emerald-100 text-emerald-800";
+            } else if (order.status === "PENDING") {
+              statusClassName = "bg-amber-100 text-amber-800";
+            }
+            let statusDotClassName = "bg-rose-500";
+            if (order.status === "CONFIRMED") {
+              statusDotClassName = "bg-emerald-500";
+            } else if (order.status === "PENDING") {
+              statusDotClassName = "bg-amber-500";
+            }
+            let statusLabel = "Đã hủy";
+            if (order.status === "CONFIRMED") {
+              statusLabel = "Đã xác nhận";
+            } else if (order.status === "PENDING") {
+              statusLabel = "Chờ thanh toán";
+            }
+
             return (
               <tr key={order.id} className="hover:bg-gray-50/80 transition-colors">
                 <td className="px-5 py-3.5">
@@ -84,29 +103,13 @@ export function OrderTable({
                 </td>
                 <td className="px-5 py-3.5">
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                      order.status === "CONFIRMED"
-                        ? "bg-emerald-100 text-emerald-800"
-                        : order.status === "PENDING"
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-rose-100 text-rose-800"
-                    }`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${statusClassName}`}
                   >
                     <span
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        order.status === "CONFIRMED"
-                          ? "bg-emerald-500"
-                          : order.status === "PENDING"
-                          ? "bg-amber-500"
-                          : "bg-rose-500"
-                      }`}
+                      className={`w-1.5 h-1.5 rounded-full ${statusDotClassName}`}
                     />
                     <span>
-                      {order.status === "CONFIRMED"
-                        ? "Đã xác nhận"
-                        : order.status === "PENDING"
-                        ? "Chờ thanh toán"
-                        : "Đã hủy"}
+                      {statusLabel}
                     </span>
                   </span>
                 </td>

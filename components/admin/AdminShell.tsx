@@ -35,12 +35,12 @@ export default function AdminShell({
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isActive = (item: NavItem) => {
+  function isActive(item: NavItem) {
     if (item.exact) {
       return pathname === item.href;
     }
     return pathname.startsWith(item.href);
-  };
+  }
 
   return (
     <ToastProvider>
@@ -66,11 +66,10 @@ export default function AdminShell({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    active
-                      ? "bg-brand-primary text-white shadow-sm font-semibold"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${active
+                    ? "bg-brand-primary text-white shadow-sm font-semibold"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800"
+                    }`}
                 >
                   <item.icon aria-hidden="true" className="text-lg shrink-0" />
                   <span>{item.label}</span>
@@ -109,9 +108,8 @@ export default function AdminShell({
         )}
 
         <div
-          className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col md:hidden transition-transform duration-300 ease-in-out ${
-            mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col md:hidden transition-transform duration-300 ease-in-out ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
         >
           <div className="p-4 border-b border-slate-800 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -134,11 +132,10 @@ export default function AdminShell({
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    active
-                      ? "bg-brand-primary text-white shadow-sm font-semibold"
-                      : "text-slate-300 hover:text-white hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-all ${active
+                    ? "bg-brand-primary text-white shadow-sm font-semibold"
+                    : "text-slate-300 hover:text-white hover:bg-slate-800"
+                    }`}
                 >
                   <item.icon aria-hidden="true" className="text-lg shrink-0" />
                   <span>{item.label}</span>

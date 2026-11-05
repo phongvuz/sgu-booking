@@ -11,19 +11,26 @@ export async function requireAdmin(request?: Request) {
     throw new BusinessError("Nguồn yêu cầu không hợp lệ.", 403);
   }
   if (!user) {
-    if (!request) redirect("/admin/login");
+    if (!request) {
+      redirect("/admin/login");
+    }
     throw new BusinessError("Vui lòng đăng nhập để tiếp tục!", 401);
   }
   if (user.role !== "ADMIN") {
-    if (!request) redirect("/admin/login");
+    if (!request) {
+      redirect("/admin/login");
+    }
     throw new BusinessError("Bạn không có quyền quản trị!", 403);
   }
   return user;
 }
 
 export async function readJson(request: Request): Promise<unknown> {
-  try { return await request.json(); }
-  catch { throw new BusinessError("Dữ liệu JSON không hợp lệ."); }
+  try {
+    return await request.json();
+  } catch {
+    throw new BusinessError("Dữ liệu JSON không hợp lệ.");
+  }
 }
 
 export function apiError(error: unknown, fallback: string) {

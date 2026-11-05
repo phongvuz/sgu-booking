@@ -7,11 +7,17 @@ export function fetchEmployees(params: EmployeeQueryParams = {}, signal?: AbortS
 }
 
 export function createEmployee(payload: EmployeeFormValues) {
-  return requestJson<EmployeeDetailResponse>("/api/employees", { method: "POST", body: JSON.stringify(payload) });
+  return requestJson<EmployeeDetailResponse>("/api/employees", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function updateEmployee(id: string, payload: EmployeeFormValues) {
-  return requestJson<EmployeeDetailResponse>(`/api/employees/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(payload) });
+  return requestJson<EmployeeDetailResponse>(`/api/employees/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteEmployee(id: string) {
@@ -19,5 +25,8 @@ export function deleteEmployee(id: string) {
 }
 
 export function changeEmployeeStatus(id: string, status: string) {
-  return requestJson<EmployeeDetailResponse>(`/api/employees/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+  return requestJson<EmployeeDetailResponse>(`/api/employees/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }

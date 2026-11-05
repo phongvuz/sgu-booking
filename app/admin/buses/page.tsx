@@ -49,61 +49,61 @@ export default function AdminBusesPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleOpenCreate = () => {
+  function handleOpenCreate() {
     setSelectedBus(null);
     setFormMode("create");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenEdit = (bus: Bus) => {
+  function handleOpenEdit(bus: Bus) {
     setSelectedBus(bus);
     setFormMode("edit");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenDelete = (bus: Bus) => {
+  function handleOpenDelete(bus: Bus) {
     setSelectedBus(bus);
     setIsDeleteModalOpen(true);
-  };
+  }
 
-  const handleOpenDetail = (bus: Bus) => {
+  function handleOpenDetail(bus: Bus) {
     setSelectedBus(bus);
     setIsDetailModalOpen(true);
-  };
+  }
 
-  const handleFormSubmit = async (data: BusFormValues) => {
+  async function handleFormSubmit(data: BusFormValues) {
     if (formMode === "create") {
-      const res = await createBus(data);
-      if (res.success) {
-        success(res.message || "Đã thêm phương tiện thành công!", "Thêm mới xe");
+      const response = await createBus(data);
+      if (response.success) {
+        success(response.message || "Đã thêm phương tiện thành công!", "Thêm mới xe");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể thêm xe", "Lỗi tạo mới");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể thêm xe", "Lỗi tạo mới");
+      return { success: false, message: response.message };
     } else if (selectedBus) {
-      const res = await updateBus(selectedBus.id, data);
-      if (res.success) {
-        success(res.message || "Cập nhật phương tiện thành công!", "Cập nhật");
+      const response = await updateBus(selectedBus.id, data);
+      if (response.success) {
+        success(response.message || "Cập nhật phương tiện thành công!", "Cập nhật");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể cập nhật xe", "Lỗi cập nhật");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể cập nhật xe", "Lỗi cập nhật");
+      return { success: false, message: response.message };
     }
     return { success: false };
-  };
+  }
 
-  const handleConfirmDelete = async (id: string) => {
-    const res = await deleteBus(id);
-    if (res.success) {
-      success(res.message || "Đã xóa xe thành công!", "Đã xóa");
+  async function handleConfirmDelete(id: string) {
+    const response = await deleteBus(id);
+    if (response.success) {
+      success(response.message || "Đã xóa xe thành công!", "Đã xóa");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể xóa xe", "Lỗi xóa");
-      return { success: false, message: res.message };
     }
-  };
+
+    toastError(response.message || "Không thể xóa xe", "Lỗi xóa");
+    return { success: false, message: response.message };
+  }
 
   return (
     <div className="pb-12">
@@ -189,8 +189,8 @@ export default function AdminBusesPage() {
               bus.status === "Đang hoạt động"
                 ? "Bảo dưỡng"
                 : bus.status === "Bảo dưỡng"
-                ? "Ngừng hoạt động"
-                : "Đang hoạt động";
+                  ? "Ngừng hoạt động"
+                  : "Đang hoạt động";
             changeStatus(bus.id, nextStatus);
             info(`Đã đổi trạng thái xe ${bus.plate} sang ${nextStatus}`);
           }}

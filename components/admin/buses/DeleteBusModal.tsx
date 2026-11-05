@@ -20,15 +20,16 @@ export function DeleteBusModal({
   const [loading, setLoading] = React.useState(false);
 
   if (!isOpen || !bus) return null;
+  const busId = bus.id;
 
-  const handleDelete = async () => {
+  async function handleDelete() {
     setLoading(true);
-    const res = await onConfirmDelete(bus.id);
+    const response = await onConfirmDelete(busId);
     setLoading(false);
-    if (res.success) {
+    if (response.success) {
       onClose();
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">

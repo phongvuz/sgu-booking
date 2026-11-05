@@ -7,11 +7,17 @@ export function fetchBuses(params: BusQueryParams = {}, signal?: AbortSignal) {
 }
 
 export function createBus(payload: BusFormValues) {
-  return requestJson<BusDetailResponse>("/api/buses", { method: "POST", body: JSON.stringify(payload) });
+  return requestJson<BusDetailResponse>("/api/buses", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function updateBus(id: string, payload: BusFormValues) {
-  return requestJson<BusDetailResponse>(`/api/buses/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(payload) });
+  return requestJson<BusDetailResponse>(`/api/buses/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteBus(id: string) {
@@ -19,5 +25,8 @@ export function deleteBus(id: string) {
 }
 
 export function changeBusStatus(id: string, status: string) {
-  return requestJson<BusDetailResponse>(`/api/buses/${encodeURIComponent(id)}/status`, { method: "PATCH", body: JSON.stringify({ status }) });
+  return requestJson<BusDetailResponse>(`/api/buses/${encodeURIComponent(id)}/status`, {
+    method: "PATCH",
+    body: JSON.stringify({ status }),
+  });
 }

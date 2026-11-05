@@ -10,7 +10,7 @@ import { RecentOrders } from "@/components/admin/dashboard/RecentOrders";
 import { DashboardAlerts } from "@/components/admin/dashboard/DashboardAlerts";
 
 export default function AdminDashboardPage() {
-  const load = useCallback(async (signal: AbortSignal) => {
+  const load = useCallback(async function loadDashboard(signal: AbortSignal) {
     const response = await requestJson<DashboardResponse>("/api/admin/stats", { signal });
     return response.data;
   }, []);

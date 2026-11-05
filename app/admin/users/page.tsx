@@ -48,76 +48,76 @@ export default function AdminUsersPage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  const handleOpenCreate = () => {
+  function handleOpenCreate() {
     setSelectedUser(null);
     setFormMode("create");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenEdit = (user: UserAccount) => {
+  function handleOpenEdit(user: UserAccount) {
     setSelectedUser(user);
     setFormMode("edit");
     setIsFormModalOpen(true);
-  };
+  }
 
-  const handleOpenDelete = (user: UserAccount) => {
+  function handleOpenDelete(user: UserAccount) {
     setSelectedUser(user);
     setIsDeleteModalOpen(true);
-  };
+  }
 
-  const handleOpenDetail = (user: UserAccount) => {
+  function handleOpenDetail(user: UserAccount) {
     setSelectedUser(user);
     setIsDetailModalOpen(true);
-  };
+  }
 
-  const handleFormSubmit = async (data: UserFormValues) => {
+  async function handleFormSubmit(data: UserFormValues) {
     if (formMode === "create") {
-      const res = await createUser(data);
-      if (res.success) {
-        success(res.message || "Tạo tài khoản thành công!", "Tạo tài khoản");
+      const response = await createUser(data);
+      if (response.success) {
+        success(response.message || "Tạo tài khoản thành công!", "Tạo tài khoản");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể tạo tài khoản", "Lỗi");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể tạo tài khoản", "Lỗi");
+      return { success: false, message: response.message };
     } else if (selectedUser) {
-      const res = await updateUser(selectedUser.id, data);
-      if (res.success) {
-        success(res.message || "Cập nhật tài khoản thành công!", "Cập nhật");
+      const response = await updateUser(selectedUser.id, data);
+      if (response.success) {
+        success(response.message || "Cập nhật tài khoản thành công!", "Cập nhật");
         return { success: true };
-      } else {
-        toastError(res.message || "Không thể cập nhật tài khoản", "Lỗi");
-        return { success: false, message: res.message };
       }
+
+      toastError(response.message || "Không thể cập nhật tài khoản", "Lỗi");
+      return { success: false, message: response.message };
     }
     return { success: false };
-  };
+  }
 
-  const handleConfirmDelete = async (id: number) => {
-    const res = await deleteUser(id);
-    if (res.success) {
-      success(res.message || "Đã xóa tài khoản thành công!", "Đã xóa");
+  async function handleConfirmDelete(id: number) {
+    const response = await deleteUser(id);
+    if (response.success) {
+      success(response.message || "Đã xóa tài khoản thành công!", "Đã xóa");
       return { success: true };
-    } else {
-      toastError(res.message || "Không thể xóa tài khoản", "Lỗi");
-      return { success: false, message: res.message };
     }
-  };
 
-  const handleToggleRole = async (user: UserAccount) => {
+    toastError(response.message || "Không thể xóa tài khoản", "Lỗi");
+    return { success: false, message: response.message };
+  }
+
+  async function handleToggleRole(user: UserAccount) {
     if (user.role === "USER") {
       handleOpenEdit(user);
       info("Chọn quyền ADMIN và nhập mật khẩu mới để cấp quyền quản trị.", "Phân quyền");
       return;
     }
     const nextRole = user.role === "ADMIN" ? "USER" : "ADMIN";
-    const res = await changeRole(user.id, nextRole);
-    if (res.success) {
-      info(res.message || `Đã chuyển vai trò sang ${nextRole}!`, "Phân quyền");
+    const response = await changeRole(user.id, nextRole);
+    if (response.success) {
+      info(response.message || `Đã chuyển vai trò sang ${nextRole}!`, "Phân quyền");
     } else {
-      toastError(res.message || "Không thể đổi vai trò", "Lỗi");
+      toastError(response.message || "Không thể đổi vai trò", "Lỗi");
     }
-  };
+  }
 
   return (
     <div className="pb-12">

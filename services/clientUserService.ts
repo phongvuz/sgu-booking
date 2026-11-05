@@ -11,11 +11,17 @@ export function fetchUserById(id: number | string, signal?: AbortSignal) {
 }
 
 export function createUser(payload: UserFormValues) {
-  return requestJson<UserDetailResponse>("/api/users", { method: "POST", body: JSON.stringify(payload) });
+  return requestJson<UserDetailResponse>("/api/users", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function updateUser(id: number | string, payload: Partial<UserFormValues>) {
-  return requestJson<UserDetailResponse>(`/api/users/${encodeURIComponent(id)}`, { method: "PUT", body: JSON.stringify(payload) });
+  return requestJson<UserDetailResponse>(`/api/users/${encodeURIComponent(id)}`, {
+    method: "PUT",
+    body: JSON.stringify(payload),
+  });
 }
 
 export function deleteUser(id: number | string) {
@@ -23,5 +29,8 @@ export function deleteUser(id: number | string) {
 }
 
 export function changeUserRole(id: number | string, role: "USER" | "ADMIN") {
-  return requestJson<UserDetailResponse>(`/api/users/${encodeURIComponent(id)}/role`, { method: "PATCH", body: JSON.stringify({ role }) });
+  return requestJson<UserDetailResponse>(`/api/users/${encodeURIComponent(id)}/role`, {
+    method: "PATCH",
+    body: JSON.stringify({ role }),
+  });
 }

@@ -20,15 +20,16 @@ export function CancelOrderModal({
   const [loading, setLoading] = React.useState(false);
 
   if (!isOpen || !order) return null;
+  const orderId = order.id;
 
-  const handleCancel = async () => {
+  async function handleCancel() {
     setLoading(true);
-    const res = await onConfirmCancel(order.id);
+    const response = await onConfirmCancel(orderId);
     setLoading(false);
-    if (res.success) {
+    if (response.success) {
       onClose();
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">

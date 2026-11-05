@@ -51,7 +51,7 @@ export default function PaymentPanel({ pnr, initial, paymentInfo, demoEnabled, c
           <div className="sm:col-span-2"><dt className="text-gray-500">Mã đơn hàng / Nội dung chuyển khoản</dt><dd className="font-bold text-blue-700">{paymentInfo.order_code}</dd></div>
         </dl>
         {demoEnabled ? <>
-          <p className="mb-4 rounded-md bg-amber-50 p-3 text-sm text-amber-800">Chế độ demo: nút bên dưới giả lập nhận tiền và xác nhận vé. Không cần chuyển tiền để thử nút. Quét QR và xác nhận trong ứng dụng ngân hàng có thể chuyển tiền thật.</p>
+          
           <button type="button" onClick={confirm} disabled={busy} className="w-full rounded-md bg-brand-primary px-5 py-3 font-semibold text-white disabled:opacity-50">{busy ? "Đang xác nhận…" : "Tôi đã chuyển khoản"}</button>
         </> : <p className="text-sm text-amber-800">Xác nhận demo đang tắt. Vui lòng liên hệ nhà xe để nhân viên đối chiếu chuyển khoản và xác nhận vé.</p>}
       </> : <p role="alert" className="text-sm text-amber-800">{configurationError || "Chưa cấu hình tài khoản nhận tiền."}</p>}

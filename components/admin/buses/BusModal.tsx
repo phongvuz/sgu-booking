@@ -17,6 +17,9 @@ interface BusModalProps {
   mode: "create" | "edit";
 }
 
+// Form nhận giá trị từ input, schema kiểm tra và chuyển sang BusFormValues.
+type BusFormInput = z.input<typeof busSchema>;
+
 export function BusModal({
   isOpen,
   onClose,
@@ -29,7 +32,7 @@ export function BusModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<z.input<typeof busSchema>, unknown, BusFormValues>({
+  } = useForm<BusFormInput, unknown, BusFormValues>({
     resolver: zodResolver(busSchema),
     defaultValues: {
       plate: "",
@@ -77,12 +80,19 @@ export function BusModal({
 
   if (!isOpen) return null;
 
-  const handleFormSubmit = async (data: BusFormValues) => {
-    const res = await onSubmit(data);
-    if (res.success) {
+  async function handleFormSubmit(data: BusFormValues) {
+    const response = await onSubmit(data);
+    if (response.success) {
       onClose();
     }
-  };
+  }
+
+  let submitLabel = "Lưu thay đổi";
+  if (isSubmitting) {
+    submitLabel = "Đang lưu...";
+  } else if (mode === "create") {
+    submitLabel = "Tạo xe mới";
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -273,7 +283,7 @@ export function BusModal({
               disabled={isSubmitting}
               className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? "Đang lưu..." : mode === "create" ? "Tạo xe mới" : "Lưu thay đổi"}
+              {submitLabel}
             </button>
           </div>
         </form>

@@ -20,6 +20,19 @@ export function OrderDetailModal({
 
   const timeInfo = formatTripTime(order.trip.time);
 
+  let statusClassName = "bg-rose-100 text-rose-800";
+  if (order.status === "CONFIRMED") {
+    statusClassName = "bg-emerald-100 text-emerald-800";
+  } else if (order.status === "PENDING") {
+    statusClassName = "bg-amber-100 text-amber-800";
+  }
+  let statusLabel = "Đã hủy vé";
+  if (order.status === "CONFIRMED") {
+    statusLabel = "Đã xác nhận & thanh toán";
+  } else if (order.status === "PENDING") {
+    statusLabel = "Chờ thanh toán";
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-xl border border-gray-200 w-full max-w-md overflow-hidden flex flex-col">
@@ -60,19 +73,9 @@ export function OrderDetailModal({
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <span className="text-gray-500 font-medium">Trạng thái vé:</span>
             <span
-              className={`px-2.5 py-1 rounded-full font-bold text-[11px] ${
-                order.status === "CONFIRMED"
-                  ? "bg-emerald-100 text-emerald-800"
-                  : order.status === "PENDING"
-                  ? "bg-amber-100 text-amber-800"
-                  : "bg-rose-100 text-rose-800"
-              }`}
+              className={`px-2.5 py-1 rounded-full font-bold text-[11px] ${statusClassName}`}
             >
-              {order.status === "CONFIRMED"
-                ? "Đã xác nhận & thanh toán"
-                : order.status === "PENDING"
-                ? "Chờ thanh toán"
-                : "Đã hủy vé"}
+              {statusLabel}
             </span>
           </div>
 
@@ -120,10 +123,6 @@ export function OrderDetailModal({
               <span className="text-xl font-black text-brand-primary">
                 {formatPrice(order.totalPrice)}
               </span>
-            </div>
-            <div className="text-right">
-              <span className="text-gray-400 block text-[11px]">Loại thanh toán:</span>
-              <span className="font-semibold text-gray-800">Thu tại quầy</span>
             </div>
           </div>
         </div>

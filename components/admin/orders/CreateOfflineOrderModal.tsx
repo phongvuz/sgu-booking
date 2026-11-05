@@ -20,6 +20,8 @@ interface CreateOfflineOrderModalProps {
   onSubmit: (data: OfflineOrderFormValues) => Promise<{ success: boolean; message?: string }>;
 }
 
+type OfflineOrderFormInput = z.input<typeof offlineOrderSchema>;
+
 export function CreateOfflineOrderModal(props: CreateOfflineOrderModalProps) {
   if (!props.isOpen) return null;
   return <OfflineOrderForm {...props} />;
@@ -32,7 +34,7 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
     setValue,
     control,
     formState: { errors, isSubmitting },
-  } = useForm<z.input<typeof offlineOrderSchema>, unknown, OfflineOrderFormValues>({
+  } = useForm<OfflineOrderFormInput, unknown, OfflineOrderFormValues>({
     resolver: zodResolver(offlineOrderSchema),
     defaultValues: {
       tripId: 0,
@@ -45,20 +47,52 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
 
   const currentTripId = useWatch({ control, name: "tripId" });
   const seatsWatched = useWatch({ control, name: "seats" });
-  const load = useCallback(async (signal: AbortSignal) => {
+  const load = useCallback(async function loadBookableTrips(signal: AbortSignal) {
     const response = await fetchAdminTrips({ limit: 100, bookable: true }, signal);
-    if (!signal.aborted && response.data.length > 0) setValue("tripId", response.data[0].id);
+    if (!signal.aborted && response.data.length > 0) {
+      setValue("tripId", response.data[0].id);
+    }
     return response.data;
   }, [setValue]);
   const { data: trips, loading: loadingTrips, error, refresh } = useRemoteData<TripAdminItem[]>(load, []);
   const selectedTrip = trips.find((trip) => trip.id === currentTripId) ?? null;
 
-  const handleFormSubmit = async (data: OfflineOrderFormValues) => {
-    const res = await onSubmit(data);
-    if (res.success) {
+  // Chỉ những vé chưa hủy mới chiếm ghế trên sơ đồ.
+  const bookedSeatNumbers: string[] = [];
+  if (selectedTrip) {
+    for (const booking of selectedTrip.bookings) {
+      if (booking.status !== "CANCELLED") {
+        bookedSeatNumbers.push(booking.seatNumber);
+      }
+    }
+  }
+
+  function resetSelectedSeats() {
+    setValue("seats", []);
+  }
+
+  function handleToggleSeat(seat: string, booked: boolean) {
+    if (booked) {
+      return;
+    }
+
+    const currentSeats = seatsWatched ?? [];
+    let nextSeats: string[];
+    if (currentSeats.includes(seat)) {
+      nextSeats = currentSeats.filter((value) => value !== seat);
+    } else {
+      nextSeats = [...currentSeats, seat];
+    }
+
+    setValue("seats", nextSeats, { shouldValidate: true });
+  }
+
+  async function handleFormSubmit(data: OfflineOrderFormValues) {
+    const response = await onSubmit(data);
+    if (response.success) {
       onClose();
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -96,14 +130,14 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
               <p className="text-xs text-gray-400">Đang tải danh sách chuyến...</p>
             ) : (
               <select
-                {...register("tripId", { valueAsNumber: true, onChange: () => setValue("seats", []) })}
+                {...register("tripId", { valueAsNumber: true, onChange: resetSelectedSeats })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               >
-                {trips.map((t) => {
-                  const time = formatTripTime(t.time);
+                {trips.map((trip) => {
+                  const time = formatTripTime(trip.time);
                   return (
-                    <option key={t.id} value={t.id}>
-                      [{t.id}] {t.from} &rarr; {t.to} ({time.departureTime} {time.dateFormatted}) - {formatPrice(t.price)}
+                    <option key={trip.id} value={trip.id}>
+                      [{trip.id}] {trip.from} &rarr; {trip.to} ({time.departureTime} {time.dateFormatted}) - {formatPrice(trip.price)}
                     </option>
                   );
                 })}
@@ -117,15 +151,10 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
 
           {selectedTrip && <div>
             <SeatMap
-              seats={generateSeats(selectedTrip.bookings.filter((booking) => booking.status !== "CANCELLED").map((booking) => booking.seatNumber), selectedTrip.totalSeats)}
+              seats={generateSeats(bookedSeatNumbers, selectedTrip.totalSeats)}
               selectedSeats={seatsWatched ?? []}
               isSubmitting={isSubmitting}
-              onToggleSeat={(seat, booked) => {
-                if (booked) return;
-                const current = seatsWatched ?? [];
-                const next = current.includes(seat) ? current.filter((value) => value !== seat) : [...current, seat];
-                setValue("seats", next, { shouldValidate: true });
-              }}
+              onToggleSeat={handleToggleSeat}
             />
             {errors.seats && <p className="text-xs text-rose-500 mt-1">{errors.seats.message}</p>}
             <p className="text-xs text-gray-500 mt-2">Còn {selectedTrip.availableSeats} ghế trống. Mỗi lượt xuất tối đa 5 vé.</p>

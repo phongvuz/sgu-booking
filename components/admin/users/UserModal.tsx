@@ -4,6 +4,7 @@ import { FiX } from "react-icons/fi";
 import type { z } from "zod";
 
 import { useEffect } from "react";
+import type { ChangeEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userSchema, UserFormValues } from "@/lib/validations/user";
@@ -17,6 +18,9 @@ interface UserModalProps {
   mode: "create" | "edit";
 }
 
+// Kiểu dữ liệu nhập vào form; schema tạo ra UserFormValues sau khi kiểm tra.
+type UserFormInput = z.input<typeof userSchema>;
+
 export function UserModal({
   isOpen,
   onClose,
@@ -29,7 +33,7 @@ export function UserModal({
     handleSubmit,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<z.input<typeof userSchema>, unknown, UserFormValues>({
+  } = useForm<UserFormInput, unknown, UserFormValues>({
     resolver: zodResolver(userSchema),
     defaultValues: {
       fullName: "",
@@ -60,14 +64,30 @@ export function UserModal({
     }
   }, [initialData, mode, reset, isOpen]);
 
+  function handleRoleChange(event: ChangeEvent<HTMLSelectElement>) {
+    if (initialData?.role === "CUSTOMER") {
+      event.target.value = "CUSTOMER";
+    } else {
+      register("role").onChange(event);
+    }
+  }
+
   if (!isOpen) return null;
 
-  const handleFormSubmit = async (data: UserFormValues) => {
-    const res = await onSubmit(data);
-    if (res.success) {
+  let submitLabel = "Cập nhật tài khoản";
+  if (mode === "create") {
+    submitLabel = "Tạo tài khoản";
+  }
+  if (isSubmitting) {
+    submitLabel = "Đang lưu...";
+  }
+
+  async function handleFormSubmit(data: UserFormValues) {
+    const response = await onSubmit(data);
+    if (response.success) {
       onClose();
     }
-  };
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
@@ -148,7 +168,7 @@ export function UserModal({
               {...register("role")}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               aria-readonly={initialData?.role === "CUSTOMER"}
-              onChange={(event) => { if (initialData?.role === "CUSTOMER") event.target.value = "CUSTOMER"; else register("role").onChange(event); }}
+              onChange={handleRoleChange}
             >
               {initialData?.role === "CUSTOMER" && <option value="CUSTOMER">Khách hàng đã đăng ký (CUSTOMER)</option>}
               <option value="USER">Hồ sơ khách mua vé (USER)</option>
@@ -175,7 +195,7 @@ export function UserModal({
               disabled={isSubmitting}
               className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
-              {isSubmitting ? "Đang lưu..." : mode === "create" ? "Tạo tài khoản" : "Cập nhật tài khoản"}
+              {submitLabel}
             </button>
           </div>
         </form>
