@@ -4,7 +4,9 @@ import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes } from "@/lib/seats";
 import { formatDepartureDate, getDepartureDayRange, parseVietnamDateTime } from "@/lib/trip-search";
 import { positiveInteger } from "@/lib/query-params";
-import type { Prisma } from "@prisma/client";
+import { assertTripPrice } from "@/lib/money";
+import { Prisma } from "@prisma/client";
+import { tripTimeSlots, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
 import { prisma } from "@/lib/prisma";
 import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
 
@@ -13,6 +15,33 @@ interface GetTripsFilter {
   toCity?: string;
   date?: string; // Định dạng YYYY-MM-DD
   includeBookings?: boolean;
+  page?: number;
+  limit?: number;
+}
+
+interface PublicTripQuery extends Omit<GetTripsFilter, "includeBookings"> {
+  times?: TripTimeSlot[];
+  vehicles?: TripVehicleFilter[];
+}
+
+function bookableTripWhere({ fromCity, toCity, date }: GetTripsFilter, now: Date): Prisma.tripWhereInput {
+  const dayRange = date ? getDepartureDayRange(date) : null;
+  if (date && !dayRange) throw new BusinessError("Ngày lọc không hợp lệ.");
+  return {
+    from: fromCity ? { contains: fromCity } : undefined,
+    to: toCity ? { contains: toCity } : undefined,
+    time: { ...dayRange, gt: now },
+    availableSeats: { gt: 0 },
+  };
+}
+
+function vehicleWhere(vehicles: TripVehicleFilter[]): Prisma.tripWhereInput {
+  if (!vehicles.length || vehicles.length === 3) return {};
+  const capacities = vehicles.flatMap((vehicle) => vehicle === "limousine" ? [22] : vehicle === "sleeper" ? [34] : []);
+  return { OR: [
+    ...(capacities.length ? [{ capacity: { in: capacities } }] : []),
+    ...(vehicles.includes("other") ? [{ capacity: { notIn: [22, 34] } }] : []),
+  ] };
 }
 
 interface CreateTripInput {
@@ -175,16 +204,16 @@ export async function getTrips({
   toCity,
   date,
   includeBookings = false,
+  page = 1,
+  limit = 20,
 }: GetTripsFilter) {
-  const timeFilter = date ? getDepartureDayRange(date) : null;
+  const take = positiveInteger(limit, 20, 100);
 
   return await prisma.trip.findMany({
-    where: {
-      from: fromCity ? { contains: fromCity } : undefined,
-      to: toCity ? { contains: toCity } : undefined,
-      ...(timeFilter ? { time: timeFilter } : {}),
-    },
-    orderBy: { time: "asc" },
+    where: bookableTripWhere({ fromCity, toCity, date }, new Date()),
+    orderBy: [{ time: "asc" }, { id: "asc" }],
+    take,
+    skip: (positiveInteger(page, 1, Math.floor(2147483647 / take) + 1) - 1) * take,
     include: includeBookings
       ? {
           booking: {
@@ -197,6 +226,50 @@ export async function getTrips({
         }
       : undefined,
   });
+}
+
+export async function queryPublicTrips({
+  fromCity, toCity, date, page = 1, limit = 10, times = [], vehicles = [],
+}: PublicTripQuery) {
+  times = [...new Set(times)].filter((time) => Object.hasOwn(tripTimeSlots, time));
+  vehicles = [...new Set(vehicles)].filter((vehicle) => ["limousine", "sleeper", "other"].includes(vehicle));
+  const now = new Date();
+  const where = { ...bookableTripWhere({ fromCity, toCity, date }, now), ...vehicleWhere(vehicles) };
+  const take = positiveInteger(limit, 10, 100);
+
+  // MySQL stores Prisma DateTimes in UTC. Use the same Vietnam hours as the UI,
+  // and filter before LIMIT so the total and every page share the same filters.
+  const conditions = [Prisma.sql`time > ${now}`, Prisma.sql`availableSeats > 0`];
+  if (fromCity) conditions.push(Prisma.sql`\`from\` LIKE ${`%${fromCity}%`}`);
+  if (toCity) conditions.push(Prisma.sql`\`to\` LIKE ${`%${toCity}%`}`);
+  const dayRange = date ? getDepartureDayRange(date) : null;
+  if (dayRange) conditions.push(Prisma.sql`time >= ${dayRange.gte} AND time < ${dayRange.lt}`);
+  if (vehicles.length && vehicles.length < 3) {
+    const vehicleConditions = vehicles.map((vehicle) => vehicle === "limousine"
+      ? Prisma.sql`capacity = ${22}`
+      : vehicle === "sleeper" ? Prisma.sql`capacity = ${34}` : Prisma.sql`capacity NOT IN (${22}, ${34})`);
+    conditions.push(Prisma.sql`(${Prisma.join(vehicleConditions, " OR ")})`);
+  }
+  if (times.length) conditions.push(Prisma.sql`(${Prisma.join(times.map((time) => {
+    const slot = tripTimeSlots[time];
+    return Prisma.sql`(HOUR(DATE_ADD(time, INTERVAL 7 HOUR)) >= ${slot.start} AND HOUR(DATE_ADD(time, INTERVAL 7 HOUR)) < ${slot.end})`;
+  }), " OR ")})`);
+  const predicate = Prisma.join(conditions, " AND ");
+  const total = times.length
+    ? Number((await prisma.$queryRaw<Array<{ total: bigint }>>(Prisma.sql`SELECT COUNT(*) AS total FROM trip WHERE ${predicate}`))[0].total)
+    : await prisma.trip.count({ where });
+  const totalPages = Math.max(1, Math.ceil(total / take));
+  const validPage = Math.min(positiveInteger(page, 1, Math.floor(2147483647 / take) + 1), totalPages);
+  const skip = (validPage - 1) * take;
+  const ids = times.length
+    ? await prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`SELECT id FROM trip WHERE ${predicate} ORDER BY time ASC, id ASC LIMIT ${take} OFFSET ${skip}`)
+    : null;
+  const data = await prisma.trip.findMany({
+    where: ids ? { AND: [where, { id: { in: ids.map(({ id }) => id) } }] } : where,
+    orderBy: [{ time: "asc" }, { id: "asc" }],
+    ...(ids ? {} : { skip, take }),
+  });
+  return { data, pagination: { page: validPage, limit: take, total, totalPages } };
 }
 
 /**
@@ -237,6 +310,7 @@ export async function getBookedSeats(tripId: number): Promise<string[]> {
 }
 
 export async function createTrip(data: CreateTripInput) {
+  assertTripPrice(data.price);
   const time = parseVietnamDateTime(data.time);
   if (!Number.isFinite(time.getTime()) || time <= new Date()) throw new BusinessError("Chọn thời gian xuất bến trong tương lai.");
   return prisma.trip.create({ data: {
@@ -247,6 +321,7 @@ export async function createTrip(data: CreateTripInput) {
 
 export async function updateTrip(tripId: number, data: UpdateTripInput) {
   const id = assertTripId(tripId);
+  if (data.price !== undefined) assertTripPrice(data.price);
   return runTransaction(async (tx) => {
     const trip = await tx.trip.findUnique({ where: { id }, include: { booking: { where: { status: { not: "CANCELLED" } } } } });
     if (!trip) return null;
@@ -284,6 +359,7 @@ export async function deleteTrip(tripId: number) {
 
 export async function getTripSearchOptions(): Promise<TripSearchOption[]> {
   const trips = await prisma.trip.findMany({
+    where: { time: { gt: new Date() }, availableSeats: { gt: 0 } },
     select: { from: true, to: true, time: true },
     distinct: ["from", "to", "time"],
     orderBy: { time: "asc" },

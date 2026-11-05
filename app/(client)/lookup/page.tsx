@@ -27,7 +27,8 @@ interface BookingResult {
 }
 
 export default function Lookup() {
-  const [keyword, setKeyword] = useState("");
+  const [pnr, setPnr] = useState("");
+  const [phone, setPhone] = useState("");
   const [results, setResults] = useState<BookingResult[] | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -35,15 +36,17 @@ export default function Lookup() {
 
   const handleSearch = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    const q = keyword.trim();
-    if (!q || isLoading) return;
+    const reference = pnr.trim();
+    const passengerPhone = phone.trim();
+    if (!reference || !passengerPhone || isLoading) return;
 
     try {
       setIsLoading(true);
       setSearched(true);
       setError("");
       setResults(null);
-      const response = await requestJson<{ success: boolean; data: BookingResult[] }>(`/api/bookings?query=${encodeURIComponent(q)}`);
+      const params = new URLSearchParams({ pnr: reference, phone: passengerPhone });
+      const response = await requestJson<{ success: boolean; data: BookingResult[] }>(`/api/bookings?${params}`);
       if (!Array.isArray(response.data)) throw new Error("Dữ liệu tra cứu không hợp lệ.");
       setResults(response.data);
     } catch (error) {
@@ -58,24 +61,47 @@ export default function Lookup() {
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-2">TRA CỨU THÔNG TIN VÉ</h2>
         <p className="text-gray-500">
-          Nhập số điện thoại hành khách hoặc mã đặt chỗ (PNR) để tra cứu vé từ hệ thống
+          Nhập mã đặt chỗ (PNR) và số điện thoại hành khách để tra cứu vé.
         </p>
       </div>
 
       <div className="bg-white p-6 rounded-2xl shadow-md border border-gray-100 mb-8">
-        <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-3">
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Nhập số điện thoại (VD: 0901234567) hoặc mã vé..."
-            className="flex-1 border border-gray-300 rounded-xl p-3.5 focus:outline-none focus:border-brand-primary text-gray-700 bg-gray-50"
-          />
+        <form onSubmit={handleSearch} className="flex flex-col gap-4">
+          <div>
+            <label htmlFor="lookup-pnr" className="mb-1 block text-sm font-semibold text-gray-700">Mã đặt chỗ (PNR)</label>
+            <input
+              id="lookup-pnr"
+              name="pnr"
+              type="text"
+              required
+              maxLength={191}
+              autoComplete="off"
+              value={pnr}
+              onChange={(e) => setPnr(e.target.value)}
+              placeholder="NHAXE-..."
+              className="w-full border border-gray-300 rounded-xl p-3.5 focus:outline-none focus:border-brand-primary text-gray-700 bg-gray-50"
+            />
+          </div>
+          <div>
+            <label htmlFor="lookup-phone" className="mb-1 block text-sm font-semibold text-gray-700">Số điện thoại hành khách</label>
+            <input
+              id="lookup-phone"
+              name="phone"
+              type="tel"
+              required
+              maxLength={12}
+              autoComplete="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Số điện thoại đã dùng khi đặt vé"
+              className="w-full border border-gray-300 rounded-xl p-3.5 focus:outline-none focus:border-brand-primary text-gray-700 bg-gray-50"
+            />
+          </div>
           <button
             type="submit"
-            disabled={isLoading || !keyword.trim()}
+            disabled={isLoading || !pnr.trim() || !phone.trim()}
             className={`font-bold px-8 py-3.5 rounded-xl transition shadow-sm ${
-              isLoading || !keyword.trim()
+              isLoading || !pnr.trim() || !phone.trim()
                 ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                 : "bg-brand-primary hover:bg-orange-600 text-white cursor-pointer"
             }`}
@@ -170,8 +196,7 @@ export default function Lookup() {
           ) : (
             <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200 text-center">
               <p className="text-gray-500">
-                Không tìm thấy thông tin vé nào khớp với từ khóa{" "}
-                <span className="font-semibold text-gray-800">&ldquo;{keyword}&rdquo;</span> trong cơ sở dữ liệu.
+                Không tìm thấy vé khớp với mã đặt chỗ và số điện thoại đã nhập. Vui lòng kiểm tra lại cả hai thông tin.
               </p>
               <Link
                 href="/trips"

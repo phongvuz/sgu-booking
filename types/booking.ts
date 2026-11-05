@@ -6,8 +6,9 @@ export interface CreateBookingInput {
   fullName: string;
   phone: string;
   status?: BookingStatus;
-  clientId?: string;
+  holdOwnerKey?: string;
   ownerId?: number;
+  isOnline?: boolean;
 }
 
 export interface BookingResult {

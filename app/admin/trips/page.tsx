@@ -4,7 +4,7 @@ import { TableSort } from "@/components/admin/TableSort";
 import { tripSortOptions } from "@/lib/admin-table-sort";
 
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useTrips } from "@/hooks/useTrips";
 import { TripTable } from "@/components/admin/trips/TripTable";
@@ -16,6 +16,8 @@ import { DeleteTripModal } from "@/components/admin/trips/DeleteTripModal";
 import { EmployeePagination } from "@/components/admin/employees/EmployeePagination";
 import { TripAdminItem } from "@/types/trip";
 import { TripFormValues } from "@/lib/validations/trip";
+import { mergeTripLocations } from "@/lib/trip-locations";
+import { requestJson } from "@/lib/api-client";
 
 export default function AdminTripsPage() {
   const {
@@ -41,6 +43,18 @@ export default function AdminTripsPage() {
   } = useTrips();
 
   const { success, error: toastError } = useToast();
+  const [locations, setLocations] = useState<string[]>(() => mergeTripLocations());
+  useEffect(() => {
+    const controller = new AbortController();
+    void requestJson<{ data: string[] }>("/api/trips/locations", { signal: controller.signal })
+      .then(({ data }) => {
+        if (Array.isArray(data) && data.every((value) => typeof value === "string")) {
+          setLocations(mergeTripLocations(data));
+        }
+      })
+      .catch(() => { /* Defaults and the trip's current route remain selectable. */ });
+    return () => controller.abort();
+  }, []);
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [formMode, setFormMode] = useState<"create" | "edit">("create");
@@ -175,6 +189,7 @@ export default function AdminTripsPage() {
       <div className="bg-white rounded-xl shadow-2xs border border-gray-200 overflow-hidden">
         {/* Filters */}
         <TripFilters
+          locations={locations}
           search={filters.search}
           onSearchChange={setSearch}
           from={filters.from}
@@ -208,6 +223,7 @@ export default function AdminTripsPage() {
       {/* Chỉ tạo form khi mở để dữ liệu và lỗi được làm mới mỗi lần. */}
       {isFormModalOpen && (
         <TripModal
+          locations={locations}
           key={selectedTrip?.id ?? "create"}
           isOpen={isFormModalOpen}
           onClose={() => setIsFormModalOpen(false)}

@@ -32,7 +32,7 @@ export default function PaymentPanel({ pnr, initial, paymentInfo, demoEnabled, c
     <p role="status" className="mb-4 text-sm text-gray-700">
       {state.status === "REVIEW" ? "Thanh toán cần đối soát. Vui lòng liên hệ nhà xe."
         : state.bookingStatus === "CONFIRMED" ? "Thanh toán đã được xác nhận. Đặt vé hoàn tất."
-        : !pending ? "Lượt đặt chỗ đã hủy hoặc chuyến đã xuất bến, không thể thanh toán."
+        : !pending ? "Lượt đặt chỗ đã hết hạn, bị hủy hoặc chuyến đã xuất bến, không thể thanh toán."
         : "Quét mã QR bằng ứng dụng ngân hàng. Số tiền và mã đơn hàng đã được điền sẵn."}
     </p>
     {pending && <>

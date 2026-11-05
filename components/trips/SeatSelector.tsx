@@ -22,13 +22,13 @@ export default function SeatSelector({
 }: SeatSelectorProps) {
   const router = useRouter();
 
-  const seats = generateSeats(bookedSeats, capacity);
-
   const {
     selectedSeats, remoteSeats, isConnected, isSending,
     connectionError, viewerCount, sendError, toggleSeat: sendSeatInteraction, reconnect,
-  } = useSeatRealtime(tripId, capacity);
-  const remoteSeatNumbers = [...new Set(remoteSeats.map((selection) => selection.seatNumber))];
+    bookedSeats: liveBookedSeats, heldSeatNumbers, capacity: liveCapacity, getClientId,
+  } = useSeatRealtime(tripId, capacity, bookedSeats);
+  const seats = generateSeats(liveBookedSeats, liveCapacity);
+  const remoteSeatNumbers = [...new Set([...heldSeatNumbers, ...remoteSeats.map((selection) => selection.seatNumber)])];
   const [passengerName, setPassengerName] = useState("");
   const [passengerPhone, setPassengerPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +65,7 @@ export default function SeatSelector({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tripId,
+          clientId: getClientId(),
           seats: selectedSeats,
           fullName: passengerName.trim(),
           phone: passengerPhone.trim(),

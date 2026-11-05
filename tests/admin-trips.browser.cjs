@@ -39,6 +39,10 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     await page.route("**/api/trips**", async (route) => {
       const request = route.request();
       if (request.method() === "GET") {
+        if (new URL(request.url()).pathname === "/api/trips/locations") {
+          await route.fulfill({ json: { success: true, data: [trip.from, trip.to] } });
+          return;
+        }
         await route.fulfill({ json: {
           success: true, data: [trip], pagination: { page: 1, limit: 10, total: 1, totalPages: 1 },
           stats: { total: 1, departingToday: 0, totalBookings: 2, avgOccupancy: 7 },
@@ -64,12 +68,10 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
     await page.getByText("Điểm khởi hành không được để trống", { exact: true }).waitFor();
     assert.equal(writes.length, 0);
-    await page.getByLabel("Điểm khởi hành").fill(" Sài Gòn ");
-    await page.getByLabel("Điểm đến", { exact: false }).last().fill("SÀI GÒN");
-    await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
-    await page.getByText("Điểm đi và điểm đến phải khác nhau.", { exact: true }).waitFor();
+    await page.locator("#trip-from").selectOption("Sài Gòn");
+    assert.equal(await page.locator('#trip-to option[value="Sài Gòn"]').isDisabled(), true);
     assert.equal(writes.length, 0);
-    await page.locator("#trip-to").fill("Đà Lạt");
+    await page.locator("#trip-to").selectOption("Đà Lạt");
     await page.locator("#trip-capacity").fill("22.5");
     await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
     await page.getByText("Sức chứa phải là số nguyên", { exact: true }).waitFor();

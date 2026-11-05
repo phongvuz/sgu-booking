@@ -1,9 +1,12 @@
 "use client";
 
 import { FaCircle } from "react-icons/fa";
-import { useState } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatTripTime, formatPrice } from "@/lib/trip-display";
+import { publicTripUrl, tripVehicleLabel, type PublicTripFilters, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
+import type { PaginationMeta } from "@/types/common";
 
 interface TripItem {
   id: number;
@@ -12,59 +15,41 @@ interface TripItem {
   time: Date | string;
   price: number;
   availableSeats: number;
+  capacity: number;
 }
 
 interface TripListWithFilterProps {
   initialTrips: TripItem[];
+  filters: PublicTripFilters;
+  pagination: PaginationMeta;
 }
 
-export default function TripListWithFilter({ initialTrips }: TripListWithFilterProps) {
-  const [selectedTimes, setSelectedTimes] = useState<string[]>([]);
-  const [selectedVehicles, setSelectedVehicles] = useState<string[]>([]);
+export default function TripListWithFilter({ initialTrips, filters, pagination }: TripListWithFilterProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const selectedTimes = filters.times;
+  const selectedVehicles = filters.vehicles;
 
-  const toggleTimeFilter = (slot: string) => {
-    setSelectedTimes((prev) =>
-      prev.includes(slot) ? prev.filter((item) => item !== slot) : [...prev, slot]
-    );
+  const updateFilters = (nextFilters: PublicTripFilters) => {
+    startTransition(() => router.push(publicTripUrl(nextFilters, 1), { scroll: false }));
   };
 
-  const toggleVehicleFilter = (type: string) => {
-    setSelectedVehicles((prev) =>
-      prev.includes(type) ? prev.filter((item) => item !== type) : [...prev, type]
-    );
+  const toggleTimeFilter = (slot: TripTimeSlot) => {
+    updateFilters({ ...filters, times: selectedTimes.includes(slot)
+      ? selectedTimes.filter((item) => item !== slot) : [...selectedTimes, slot] });
   };
 
-  const clearFilters = () => {
-    setSelectedTimes([]);
-    setSelectedVehicles([]);
+  const toggleVehicleFilter = (type: TripVehicleFilter) => {
+    updateFilters({ ...filters, vehicles: selectedVehicles.includes(type)
+      ? selectedVehicles.filter((item) => item !== type) : [...selectedVehicles, type] });
   };
 
-  const filteredTrips = initialTrips.filter((trip) => {
-    const tripDate = new Date(trip.time);
-    const hours = tripDate.getHours();
-    const isLimousine = trip.availableSeats <= 22;
-
-    let matchTime = selectedTimes.length === 0;
-    if (!matchTime) {
-      if (selectedTimes.includes("early") && hours >= 0 && hours < 6) matchTime = true;
-      if (selectedTimes.includes("morning") && hours >= 6 && hours < 12) matchTime = true;
-      if (selectedTimes.includes("afternoon") && hours >= 12 && hours < 18) matchTime = true;
-      if (selectedTimes.includes("night") && hours >= 18 && hours < 24) matchTime = true;
-    }
-
-    let matchVehicle = selectedVehicles.length === 0;
-    if (!matchVehicle) {
-      if (selectedVehicles.includes("limousine") && isLimousine) matchVehicle = true;
-      if (selectedVehicles.includes("sleeper") && !isLimousine) matchVehicle = true;
-    }
-
-    return matchTime && matchVehicle;
-  });
+  const clearFilters = () => updateFilters({ ...filters, times: [], vehicles: [] });
 
   const hasActiveFilters = selectedTimes.length > 0 || selectedVehicles.length > 0;
 
   return (
-    <div className="flex flex-col md:flex-row gap-8">
+    <div className="flex flex-col md:flex-row gap-8" aria-busy={isPending}>
       <aside className="w-full md:w-1/4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sticky top-24">
           <div className="flex justify-between items-center mb-4 border-b pb-2">
@@ -72,6 +57,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
+                disabled={isPending}
                 className="text-xs text-red-500 hover:underline font-medium"
               >
                 Xóa lọc
@@ -79,7 +65,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             )}
           </div>
 
-          <div className="mb-6">
+          <fieldset className="mb-6" disabled={isPending}>
             <h4 className="font-semibold mb-3 text-sm text-gray-700">Giờ đi</h4>
             <div className="space-y-2 text-sm text-gray-600">
               <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
@@ -119,9 +105,9 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                 Tối (18:00 - 24:00)
               </label>
             </div>
-          </div>
+          </fieldset>
 
-          <div className="mb-6">
+          <fieldset className="mb-6" disabled={isPending}>
             <h4 className="font-semibold mb-3 text-sm text-gray-700">Loại xe</h4>
             <div className="space-y-2 text-sm text-gray-600">
               <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
@@ -142,18 +128,29 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
                 />
                 Limousine
               </label>
+              <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900">
+                <input
+                  type="checkbox"
+                  checked={selectedVehicles.includes("other")}
+                  onChange={() => toggleVehicleFilter("other")}
+                  className="rounded text-brand-primary focus:ring-brand-primary"
+                />
+                Loại xe khác
+              </label>
             </div>
-          </div>
+          </fieldset>
         </div>
       </aside>
 
       {/* Danh sách chuyến xe sau khi lọc */}
       <div className="w-full md:w-3/4 flex flex-col space-y-4">
-        {filteredTrips.length > 0 ? (
-          filteredTrips.map((trip) => {
+        <p className="text-sm text-gray-600" role="status">
+          {isPending ? "Đang tìm chuyến xe…" : `Tìm thấy ${pagination.total} chuyến xe còn đặt được.`}
+        </p>
+        {initialTrips.length > 0 ? (
+          initialTrips.map((trip) => {
             const { departureTime, arrivalTime, dateFormatted } = formatTripTime(trip.time);
-            const vehicleType =
-              trip.availableSeats <= 22 ? "Limousine 22 phòng" : "Giường nằm 34 chỗ";
+            const vehicleType = tripVehicleLabel(trip.capacity);
 
             return (
               <div
@@ -218,6 +215,7 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             {hasActiveFilters && (
               <button
                 onClick={clearFilters}
+                disabled={isPending}
                 className="mt-3 text-sm text-brand-primary font-semibold hover:underline"
               >
                 Đặt lại bộ lọc
@@ -225,6 +223,11 @@ export default function TripListWithFilter({ initialTrips }: TripListWithFilterP
             )}
           </div>
         )}
+        {pagination.totalPages > 1 && <nav aria-label="Phân trang chuyến xe" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-gray-200 bg-white p-4 text-sm">
+          {pagination.page > 1 ? <Link href={publicTripUrl(filters, pagination.page - 1)} className="font-semibold text-blue-700 hover:underline">← Trang trước</Link> : <span className="text-gray-400">← Trang trước</span>}
+          <span>Trang {pagination.page} / {pagination.totalPages}</span>
+          {pagination.page < pagination.totalPages ? <Link href={publicTripUrl(filters, pagination.page + 1)} className="font-semibold text-blue-700 hover:underline">Trang sau →</Link> : <span className="text-gray-400">Trang sau →</span>}
+        </nav>}
       </div>
     </div>
   );

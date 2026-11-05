@@ -20,7 +20,17 @@ export default async function SuccessPage({ searchParams }: {
   if (!bookings.length) notFound();
   const first = bookings[0];
   const state = await getPaymentStatus(params.pnr);
-  const canPay = bookings.every((booking) => booking.status === "PENDING" && booking.trip.time > new Date());
+  const now = new Date();
+
+  const canPay = bookings.every(
+    (booking) =>
+      booking.status === "PENDING" &&
+      booking.trip.time > now &&
+      (
+        booking.expiresAt === null ||
+        booking.expiresAt > now
+      ),
+  );
   let paymentInfo: VietqrPaymentInfo | null = null;
   let configurationError = "";
   if (canPay) {

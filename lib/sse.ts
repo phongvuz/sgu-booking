@@ -4,6 +4,7 @@ import type { SeatHoldEvent, SeatInteractionEvent, SeatRealtimeMessage, SeatSnap
 
 interface SeatConnection {
   clientId?: string;
+  ownerKey?: string;
   cleanup: () => void;
 }
 
@@ -35,20 +36,29 @@ export function addClient(
     tripState = { connections: new Map(), selectedSeatsByClient: new Map() };
     realtimeStore.trips.set(tripId, tripState);
   }
+  if (connection.clientId) {
+    if (!connection.ownerKey) throw new BusinessError("Phiên chọn ghế không hợp lệ.", 403);
+    const existingOwner = [...tripState.connections.values()].find((current) => current.clientId === connection.clientId)?.ownerKey;
+    if (existingOwner && existingOwner !== connection.ownerKey) throw new BusinessError("Mã kết nối đang được sử dụng. Vui lòng kết nối lại.", 409);
+  }
   tripState.connections.set(controller, connection);
 }
 
-export function getSeatSnapshot(tripId: number): SeatSnapshotEvent {
+export function getSeatSnapshot(tripId: number, bookedSeats: string[] = []): SeatSnapshotEvent {
   const selections: SeatSnapshotEvent["selections"] = [];
   const tripState = realtimeStore.trips.get(tripId);
   if (tripState) {
     for (const [clientId, selectedSeats] of tripState.selectedSeatsByClient) {
       for (const seatNumber of selectedSeats) {
-        selections.push({ seatNumber, clientId });
+        if (!bookedSeats.includes(seatNumber)) selections.push({ seatNumber, clientId });
       }
     }
   }
-  return { type: "SEAT_SNAPSHOT", tripId, selections, viewerCount: getViewerCount(tripId), timestamp: new Date().toISOString() };
+  return { type: "SEAT_SNAPSHOT", tripId, selections, bookedSeats, viewerCount: getViewerCount(tripId), timestamp: new Date().toISOString() };
+}
+
+export function broadcastSeatRefresh(tripId: number) {
+  broadcast(tripId, { type: "SEATS_CHANGED", tripId, timestamp: new Date().toISOString() });
 }
 
 export function getViewerCount(tripId: number): number {
@@ -144,10 +154,10 @@ function assertSeatsAvailable(tripState: TripRealtimeState, clientId: string, se
   }
 }
 
-function requireClientConnection(tripId: number, clientId: string): TripRealtimeState {
+function requireClientConnection(tripId: number, clientId: string, ownerKey: string): TripRealtimeState {
   const tripState = realtimeStore.trips.get(tripId);
   const isConnected = tripState && [...tripState.connections.values()].some(
-    (connection) => connection.clientId === clientId,
+    (connection) => connection.clientId === clientId && connection.ownerKey === ownerKey,
   );
   if (!tripState || !isConnected) {
     throw new BusinessError("Kết nối Realtime đã mất. Vui lòng kết nối lại.", 409);
@@ -155,9 +165,9 @@ function requireClientConnection(tripId: number, clientId: string): TripRealtime
   return tripState;
 }
 
-export function applySeatInteraction(event: SeatInteractionEvent) {
+export function applySeatInteraction(event: SeatInteractionEvent, ownerKey: string) {
   seatRealtimeMessageSchema.parse(event);
-  const tripState = requireClientConnection(event.tripId, event.clientId);
+  const tripState = requireClientConnection(event.tripId, event.clientId, ownerKey);
   const selectedSeats = tripState.selectedSeatsByClient.get(event.clientId) ?? new Set<string>();
 
   if (event.type === "SEAT_SELECTED") {
@@ -177,8 +187,8 @@ export function applySeatInteraction(event: SeatInteractionEvent) {
   broadcast(event.tripId, event);
 }
 
-export function synchronizeClientSeats(tripId: number, clientId: string, selectedSeats: string[]) {
-  const tripState = requireClientConnection(tripId, clientId);
+export function synchronizeClientSeats(tripId: number, clientId: string, selectedSeats: string[], ownerKey: string) {
+  const tripState = requireClientConnection(tripId, clientId, ownerKey);
   assertSeatsAvailable(tripState, clientId, selectedSeats);
   const previousSeats = tripState.selectedSeatsByClient.get(clientId) ?? new Set<string>();
   const nextSeats = new Set(selectedSeats);

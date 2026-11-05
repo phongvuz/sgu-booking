@@ -12,6 +12,7 @@
     "db:upgrade": "node scripts/upgrade-database.cjs",
     "db:deploy": "prisma migrate deploy",
     "db:payments": "node scripts/setup-payments.cjs",
+    "db:trips": "node scripts/setup-trips.cjs",
     "test:admin-db": "node tests/admin-db.cjs"
   },
   "dependencies": {

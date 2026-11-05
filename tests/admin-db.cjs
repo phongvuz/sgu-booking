@@ -100,7 +100,7 @@ async function main() {
   assert.equal((await prisma.trip.findUnique({ where: { id: trip.id } })).availableSeats, 2);
   const firstId = first.bookingIds[0];
   assert.equal((await prisma.booking.findUnique({ where: { id: firstId } })).status, "PENDING");
-  const lookup = await bookings.getBookings({ query: first.pnr });
+  const lookup = await bookings.getBookings({ pnr: first.pnr, phone: input.phone });
   assert.equal(lookup.length, 1);
   assert.equal(lookup[0].user.fullName, "Passenger One");
   assert.equal("password" in lookup[0].user, false);
@@ -134,10 +134,11 @@ async function main() {
   console.log("✓ Cancel/restore: idempotency, occupied-seat rejection, payment transitions, history and revenue.");
 
   const multi = await bookings.createBooking({ ...input, seats: ["B01", "C01"] });
-  assert.equal((await bookings.getBookings({ query: multi.pnr })).length, 2);
+  assert.equal((await bookings.getBookings({ pnr: multi.pnr, phone: input.phone })).length, 2);
   await fails(() => trips.updateTrip(trip.id, { capacity: 2 }), 409);
   const snapshot = await prisma.booking.findUnique({ where: { id: multi.bookingIds[0] } });
-  await users.updateUser(snapshot.userId, { fullName: "Renamed Account", phone: "0999000005" }, admin.id);
+  await users.updateUser(snapshot.userId, { fullName: "Renamed Account" }, admin.id);
+  await fails(() => users.updateUser(snapshot.userId, { phone: "0999000005" }, admin.id), 409);
   assert.equal((await orders.getOrderById(snapshot.id)).user.fullName, "Passenger One");
   assert.equal((await orders.getOrderById(snapshot.id)).user.phone, "0999000004");
   const tripStats = await trips.queryTripsAdmin({ search: String(trip.id) });
@@ -151,7 +152,7 @@ async function main() {
   await fails(() => holds.holdSeat(heldTrip.id, "A01", "client-two"), 409);
   await fails(() => bookings.createBooking({ ...input, tripId: heldTrip.id }), 409);
   await fails(() => holds.holdSeat(heldTrip.id, "A02", "client-one"), 400);
-  const owned = await bookings.createBooking({ ...input, tripId: heldTrip.id, clientId: "client-one" });
+  const owned = await bookings.createBooking({ ...input, tripId: heldTrip.id, holdOwnerKey: "client-one" });
   assert.equal(await prisma.seatHold.count({ where: { tripId: heldTrip.id } }), 0);
   await orders.updateOrderStatus(owned.bookingIds[0], "CANCELLED");
   await holds.holdSeat(heldTrip.id, "C01", "client-one");

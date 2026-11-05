@@ -16,6 +16,7 @@ export const tripSchema = z.object({
     .refine((value) => !Number.isNaN(parseVietnamDateTime(value).getTime()), "Thời gian không hợp lệ"),
   price: z.coerce
     .number()
+    .int("Giá vé phải là số nguyên đồng")
     .min(10000, "Giá vé tối thiểu 10.000 đ")
     .max(10000000, "Giá vé không hợp lệ"),
   capacity: z.coerce

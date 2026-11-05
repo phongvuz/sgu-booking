@@ -3,7 +3,8 @@ import type { TripSearchParams } from "@/types";
 import { resolveLocationName } from "@/lib/trip-display";
 import Link from "next/link";
 import TripListWithFilter from "@/components/trips/TripFilter";
-import { getTrips } from "@/services/tripService";
+import { queryPublicTrips } from "@/services/tripService";
+import { parsePublicTripFilters } from "@/lib/public-trip-search";
 
 
 export default async function TripsPage({
@@ -11,22 +12,21 @@ export default async function TripsPage({
 }: {
   searchParams: Promise<TripSearchParams>;
 }) {
-  const params = await searchParams;
-  const fromQuery = params.from?.trim() || "";
-  const toQuery = params.to?.trim() || "";
+  const filters = parsePublicTripFilters(await searchParams);
+  const fromQuery = filters.from;
+  const toQuery = filters.to;
 
   const fromCity = resolveLocationName(fromQuery);
   const toCity = resolveLocationName(toQuery);
 
-  console.time("[SERVER] getTrips");
-
-  const trips = await getTrips({
+  const { data: trips, pagination } = await queryPublicTrips({
     fromCity,
     toCity,
-    date: params.date,
+    date: filters.date,
+    times: filters.times,
+    vehicles: filters.vehicles,
+    page: filters.page,
   });
-
-  console.timeEnd("[SERVER] getTrips");
 
   return (
     <div className="bg-gray-100 min-h-screen py-8">
@@ -45,7 +45,7 @@ export default async function TripsPage({
                 {toCity || toQuery || "Tất cả điểm đến"}
               </span>
               <span className="mx-2">|</span>
-              Ngày đi: <span className="font-bold">{params.date || "Tất cả ngày"}</span>
+              Ngày đi: <span className="font-bold">{filters.date || "Tất cả ngày"}</span>
             </p>
           </div>
           <Link
@@ -56,7 +56,7 @@ export default async function TripsPage({
           </Link>
         </div>
 
-        <TripListWithFilter initialTrips={trips} />
+        <TripListWithFilter initialTrips={trips} filters={filters} pagination={pagination} />
       </div>
     </div>
   );

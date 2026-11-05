@@ -1,8 +1,9 @@
 import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { NextRequest, NextResponse } from "next/server";
 import type { BookingStatus } from "@/types";
+import { BusinessError } from "@/lib/business-error";
+import { getOrderById, updateOrderStatus, deleteOrder } from "@/services/orderService";
 
-// Bài thực hành: docs/exercises/orders/README.md
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -10,19 +11,29 @@ type ParamsContext = {
   params: Promise<{ id: string }>;
 };
 
+function parseOrderId(value: string) {
+  const id = Number(value);
+  if (!/^\d+$/.test(value) || !Number.isSafeInteger(id) || id <= 0 || id > 2147483647) {
+    throw new BusinessError("ID đơn hàng phải là số nguyên dương hợp lệ.");
+  }
+  return id;
+}
+
+function notFoundResponse() {
+  return NextResponse.json({ success: false, message: "Không tìm thấy đơn hàng." }, { status: 404 });
+}
+
 // READ: GET /api/admin/orders/[id]
 export async function GET(request: NextRequest, { params }: ParamsContext) {
   try {
     await requireAdmin(request);
     const { id } = await params;
 
-    // TODO R2: Kiểm tra id là số nguyên dương hợp lệ trước khi gọi service.
-    // TODO R2: Gọi getOrderById(id) trong services/orderService.ts.
-    // TODO R2: Không tìm thấy -> { success: false, message: ... }, HTTP 404.
-    // TODO R2: Tìm thấy -> { success: true, data: order }, HTTP 200.
+    const order = await getOrderById(parseOrderId(id));
+    if (!order) return notFoundResponse();
     return NextResponse.json(
-      { success: false, message: `Bài R2: Bạn chưa viết API xem đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, data: order, message: "Lấy chi tiết đơn hàng thành công." },
+      { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {
     return apiError(error, "Không thể lấy chi tiết đơn hàng. Vui lòng thử lại.");
@@ -34,6 +45,7 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
     await requireAdmin(request);
     const { id } = await params;
+    const orderId = parseOrderId(id);
     const body = await readJson(request);
     const status = body && typeof body === "object" && "status" in body
       ? body.status
@@ -47,14 +59,10 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    // TODO U: Kiểm tra id; tìm đơn bằng getOrderById(id); trả 404 nếu không có.
-    // TODO U: Gọi updateOrderStatus(id, status as BookingStatus).
-    // TODO U: Nếu service trả null (đơn không còn tồn tại), trả 404.
-    // TODO U: Trả { success: true, data: updated, message: ... }, HTTP 200.
-    // Service giữ quy tắc thanh toán, thời gian xuất bến và số ghế; apiError xử lý lỗi.
+    const updated = await updateOrderStatus(orderId, status as BookingStatus);
+    if (!updated) return notFoundResponse();
     return NextResponse.json(
-      { success: false, message: `Bài U: Bạn chưa viết API đổi trạng thái đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, data: updated, message: "Cập nhật trạng thái đơn hàng thành công." }
     );
   } catch (error) {
     return apiError(error, "Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.");
@@ -67,14 +75,10 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
     await requireAdmin(request);
     const { id } = await params;
 
-    // TODO D: Kiểm tra id; tìm đơn bằng getOrderById(id); trả 404 nếu không có.
-    // TODO D: Gọi deleteOrder(id) trong services/orderService.ts.
-    // TODO D: Nếu service trả false (đơn không còn tồn tại), trả 404.
-    // TODO D: Trả { success: true, message: ... }, HTTP 200.
-    // deleteOrder chuyển vé sang CANCELLED, trả ghế đúng một lần và giữ lịch sử.
+    const deleted = await deleteOrder(parseOrderId(id));
+    if (!deleted) return notFoundResponse();
     return NextResponse.json(
-      { success: false, message: `Bài D: Bạn chưa viết API hủy đơn hàng ${id}.` },
-      { status: 501 }
+      { success: true, message: "Đã hủy vé và giữ lại lịch sử đơn hàng." }
     );
   } catch (error) {
     return apiError(error, "Không thể hủy đơn hàng. Vui lòng thử lại.");
