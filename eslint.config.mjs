@@ -14,10 +14,12 @@ const eslintConfig = defineConfig([
   },
   globalIgnores([
     ".next/**",
+    ".next-demo/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
     ".local-backups/**",
+    "docs/**",
   ]),
 ]);
 

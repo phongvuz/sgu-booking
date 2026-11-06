@@ -1,12 +1,37 @@
 # Nhà xe Sài Gòn
 
-Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [docs/authentication.md](docs/authentication.md).
+Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [bảo mật và phân quyền](documentation/security/README.md).
 
-Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [docs/seat-realtime.md](docs/seat-realtime.md).
+Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [documentation/seat-realtime.md](documentation/seat-realtime.md).
 
 API quản lý đơn hàng đã hỗ trợ xem chi tiết, xác nhận và hủy vé có giữ lịch sử; mọi thao tác yêu cầu tài khoản ADMIN.
 
 Ứng dụng đặt vé xe dùng Next.js App Router, React, TypeScript, Prisma và MySQL. Khách có thể tìm chuyến, chọn ghế, tra cứu vé; trang `/admin` quản lý chuyến xe, vé, xe, nhân viên và tài khoản.
+
+## Demo tái lập bằng một lệnh
+
+Trên máy có Node.js và MySQL/MariaDB local, dùng thông tin kết nối server từ `DEMO_SERVER_URL` hoặc `DATABASE_URL` trong `.env`, rồi chạy:
+
+```sh
+npm run demo
+```
+
+Lệnh chuẩn bị dependency, Prisma Client, database demo riêng, dữ liệu mẫu và khởi động ứng dụng tại `http://127.0.0.1:3001`. Database ứng dụng hiện tại không được dùng để tạo dữ liệu demo. Chỉ database do công cụ tạo và có dấu nhận diện phù hợp mới được dùng lại; công cụ không reset database có sẵn. Thư mục build demo `.next-demo` tách khỏi `.next`.
+
+Hướng dẫn điều kiện chạy, tài khoản ADMIN/CUSTOMER, cơ chế bảo vệ dữ liệu và kiểm chứng: [Khả năng tái lập](documentation/reproducibility.md). Chỉ chuẩn bị môi trường, chưa mở server: `npm run demo:prepare`.
+
+## Tài liệu API tự sinh và bảo mật
+
+Sau khi chạy server, mở `/api-docs` để đọc tài liệu và `/api/openapi` để lấy đặc tả OpenAPI. Sinh lại và kiểm tra tài liệu khớp route/schema:
+
+```sh
+npm run api:docs
+npm run api:docs:check
+```
+
+`npm run build` kiểm tra tài liệu API trước khi build. Đặc tả, hướng dẫn và phạm vi sinh tự động: [documentation/api/README.md](documentation/api/README.md).
+
+Checklist OWASP, chính sách cùng nguồn, kiểm tra XSS/CORS, header bảo mật và các giới hạn được ghi tại [documentation/security/README.md](documentation/security/README.md). Chạy bộ kiểm tra liên quan bằng `npm run security:check`. Đây là kiểm tra phạm vi đồ án, không phải chứng nhận kiểm toán bảo mật toàn hệ thống.
 
 ## Chạy ở máy cá nhân
 
@@ -62,6 +87,8 @@ npm start
 ```
 
 `npm start` chạy bản production đã tạo bằng `npm run build`. `npm test` chạy test độc lập với database. `npm run test:admin-db` tạo database tạm, kiểm tra nghiệp vụ với MySQL/MariaDB thật rồi xóa riêng database tạm đó. Người dùng database cần quyền CREATE DATABASE và DROP DATABASE để chạy lệnh kiểm tra này.
+
+Nếu môi trường Windows/sandbox chặn test runner tạo tiến trình con (`spawn EPERM`), chạy `npm test` trong môi trường cho phép tiến trình con. Bộ test đầy đủ cần cách ly từng file vì có fixture thay đổi biến môi trường và module cache. `security:check` chỉ chạy nhóm kiểm tra đã xác minh tương thích cùng tiến trình; không thay thế toàn bộ unit test, kiểm thử database hoặc trình duyệt.
 
 `node tests/booking-fixes-db.cjs` kiểm tra riêng migration tiền nguyên đồng và các luồng guest, tra cứu, giữ ghế, quản lý vé, tìm chuyến trên database tạm rồi xóa database đó. Kiểm tra này dùng schema hiện tại, không thay thế việc kiểm tra toàn bộ lịch sử migration trong `test:admin-db`.
 

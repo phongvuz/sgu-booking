@@ -31,3 +31,25 @@ test("nonbrowser clients without origin retain access while ordinary request URL
   assert.equal(isSameOriginRequest(new Request("http://localhost/api/bookings", { method: "POST", headers: { origin: "http://localhost" } })), true);
   assert.equal(isSameOriginRequest(new Request("http://localhost/api/bookings", { method: "POST", headers: { origin: "http://elsewhere.test" } })), false);
 });
+
+test("sibling sites and cross-site browser requests cannot bypass origin checks by omitting Origin", () => {
+  for (const site of ["same-site", "cross-site", "invalid"]) {
+    const request = new Request("https://booking.example.test/api/bookings", {
+      method: "POST", headers: { "sec-fetch-site": site },
+    });
+    assert.equal(isSameOriginRequest(request), false, site);
+  }
+  for (const site of ["same-origin", "none"]) {
+    assert.equal(isSameOriginRequest(new Request("https://booking.example.test/api/bookings", {
+      method: "POST", headers: { "sec-fetch-site": site },
+    })), true, site);
+  }
+});
+
+test("opaque, multiple and malformed origins are denied rather than normalized into a trusted origin", () => {
+  for (const origin of ["null", "https://booking.example.test/", "https://booking.example.test/path", "https://booking.example.test,https://evil.example", "javascript:alert(1)"]) {
+    assert.equal(isSameOriginRequest(new Request("https://booking.example.test/api/bookings", {
+      method: "POST", headers: { origin },
+    })), false, origin);
+  }
+});
