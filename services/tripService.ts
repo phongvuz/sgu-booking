@@ -4,20 +4,20 @@ import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes } from "@/lib/seats";
 import { formatDepartureDate, getDepartureDayRange, parseVietnamDateTime } from "@/lib/trip-search";
 import { positiveInteger } from "@/lib/query-params";
-import type { Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
 import { broadcastSeatRefresh } from "@/lib/sse";
 import { tripStatuses, tripStatusTransitions, type TripStatus } from "@/lib/trip-status";
 import { getBookingMoney } from "@/lib/booking-money";
+import { assertTripPrice } from "@/lib/money";
+import { tripTimeSlots, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
 
 interface GetTripsFilter {
   fromCity?: string;
   toCity?: string;
   date?: string; // Định dạng YYYY-MM-DD
   includeBookings?: boolean;
-<<<<<<< Updated upstream
-=======
   page?: number;
   limit?: number;
 }
@@ -46,7 +46,6 @@ function vehicleWhere(vehicles: TripVehicleFilter[]): Prisma.tripWhereInput {
     ...(capacities.length ? [{ capacity: { in: capacities } }] : []),
     ...(vehicles.includes("other") ? [{ capacity: { notIn: [22, 34] } }] : []),
   ] };
->>>>>>> Stashed changes
 }
 
 interface CreateTripInput {
@@ -227,16 +226,16 @@ export async function getTrips({
   toCity,
   date,
   includeBookings = false,
+  page = 1,
+  limit = 20,
 }: GetTripsFilter) {
-  const timeFilter = date ? getDepartureDayRange(date) : null;
+  const take = positiveInteger(limit, 20, 100);
 
   return await prisma.trip.findMany({
-    where: {
-      from: fromCity ? { contains: fromCity } : undefined,
-      to: toCity ? { contains: toCity } : undefined,
-      ...(timeFilter ? { time: timeFilter } : {}),
-    },
-    orderBy: { time: "asc" },
+    where: bookableTripWhere({ fromCity, toCity, date }, new Date()),
+    orderBy: [{ time: "asc" }, { id: "asc" }],
+    skip: (positiveInteger(page, 1, Math.floor(2147483647 / take) + 1) - 1) * take,
+    take,
     include: includeBookings
       ? {
           booking: {
@@ -251,8 +250,6 @@ export async function getTrips({
   });
 }
 
-<<<<<<< Updated upstream
-=======
 export async function queryPublicTrips({
   fromCity, toCity, date, page = 1, limit = 10, times = [], vehicles = [],
 }: PublicTripQuery) {
@@ -296,8 +293,6 @@ export async function queryPublicTrips({
   });
   return { data, pagination: { page: validPage, limit: take, total, totalPages } };
 }
-
->>>>>>> Stashed changes
 /**
  * Lấy chi tiết chuyến xe theo ID số.
  */
@@ -399,12 +394,8 @@ export async function createTrip(data: CreateTripInput) {
 
 export async function updateTrip(tripId: number, data: UpdateTripInput) {
   const id = assertTripId(tripId);
-<<<<<<< Updated upstream
-  return runTransaction(async (tx) => {
-=======
   if (data.price !== undefined) assertTripPrice(data.price);
   const updated = await runTransaction(async (tx) => {
->>>>>>> Stashed changes
     const trip = await tx.trip.findUnique({ where: { id }, include: { booking: { where: { status: { not: "CANCELLED" } } } } });
     if (!trip) return null;
     const time = data.time ? parseVietnamDateTime(data.time) : trip.time;
@@ -461,10 +452,7 @@ export async function deleteTrip(tripId: number) {
 
 export async function getTripSearchOptions(): Promise<TripSearchOption[]> {
   const trips = await prisma.trip.findMany({
-<<<<<<< Updated upstream
-=======
     where: { status: "OPEN", time: { gt: new Date() }, availableSeats: { gt: 0 } },
->>>>>>> Stashed changes
     select: { from: true, to: true, time: true },
     distinct: ["from", "to", "time"],
     orderBy: { time: "asc" },

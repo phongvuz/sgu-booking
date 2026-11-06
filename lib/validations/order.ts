@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { tripIdSchema } from "@/lib/trip-id";
+import { realtimeClientIdSchema } from "@/lib/validations/seat-realtime";
 
 export const offlineOrderSchema = z.object({
   tripId: tripIdSchema,
@@ -20,13 +21,8 @@ export const offlineOrderSchema = z.object({
   paymentMethod: z.enum(["CASH", "BANK_TRANSFER"]).default("CASH"),
 });
 
-<<<<<<< Updated upstream
-export const onlineOrderSchema = offlineOrderSchema.omit({ status: true }).extend({
-  clientId: z.string().min(1).max(191).optional(),
-=======
 export const onlineOrderSchema = offlineOrderSchema.omit({ status: true, paymentMethod: true }).extend({
   clientId: realtimeClientIdSchema.optional(),
->>>>>>> Stashed changes
 });
 
 export type OfflineOrderFormValues = z.infer<typeof offlineOrderSchema>;

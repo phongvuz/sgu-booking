@@ -47,10 +47,6 @@ export async function confirmDemoPayment(pnr: string) {
       }
       if (received.status === "REVIEW") throw new BusinessError("Lượt đặt chỗ cần đối soát. Vui lòng liên hệ nhà xe.", 409);
     }
-<<<<<<< Updated upstream
-    if (bookings.some((b) => b.status !== "PENDING" || b.trip.time <= new Date())) {
-      throw new BusinessError("Chỉ xác nhận được lượt đặt chỗ đang chờ thanh toán và chưa xuất bến.", 409);
-=======
     if (!payable.length) throw new BusinessError("Không còn vé chờ thanh toán trong lượt đặt này.", 409);
     const now = new Date();
 
@@ -70,7 +66,6 @@ export async function confirmDemoPayment(pnr: string) {
         "Chỉ xác nhận được lượt đặt chỗ đang chờ thanh toán và chưa xuất bến.",
         409,
       );
->>>>>>> Stashed changes
     }
     // Backend tự tính tiền, không nhận giá hoặc trạng thái từ trình duyệt.
     const amount = getMoneySummary(payable).amountDue;
@@ -83,9 +78,6 @@ export async function confirmDemoPayment(pnr: string) {
       providerTransactionId: `DEMO-${id}`, checkoutUrl: qrUrl,
       createdAt: paidAt, paidAt, expiresAt: bookings[0].trip.time,
     } });
-<<<<<<< Updated upstream
-    await tx.booking.updateMany({ where: { pnr, status: "PENDING" }, data: { status: "CONFIRMED", confirmedAt: paidAt } });
-=======
     await tx.bookingTransaction.createMany({ data: payable.map((booking) => ({
       bookingId: booking.id, kind: "RECEIPT", amount: getBookingMoney(booking.totalPrice, booking.status, booking.transactions).amountDue,
       method: "DEMO", reference: id,
@@ -114,7 +106,6 @@ export async function confirmDemoPayment(pnr: string) {
         409,
       );
     }
->>>>>>> Stashed changes
     // Ghế đã trừ khi đặt vé nên không trừ lần nữa khi thanh toán.
     return { status: "SUCCESS", bookingStatus: "CONFIRMED" };
   });

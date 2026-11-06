@@ -7,8 +7,6 @@ import { formatDepartureDate, formatVietnamDateTime } from "@/lib/trip-search";
 import { tripSchema } from "@/lib/validations/trip";
 import type { TripFormValues } from "@/lib/validations/trip";
 import type { TripAdminItem } from "@/types/trip";
-<<<<<<< Updated upstream
-=======
 import { mergeTripLocations, sameTripLocation } from "@/lib/trip-locations";
 import { tripStatusLabels, tripStatusTransitions } from "@/lib/trip-status";
 import { requestJson } from "@/lib/api-client";
@@ -18,9 +16,9 @@ interface DispatchOptions {
   buses: Array<{ id: string; plate: string; seats: number; status: string }>;
   drivers: Array<{ id: string; name: string; status: string }>;
 }
->>>>>>> Stashed changes
 
 interface TripModalProps {
+  locations?: string[];
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: TripFormValues) => Promise<{ success: boolean; message?: string }>;
@@ -34,6 +32,7 @@ export function TripModal({
   onSubmit,
   initialData,
   mode,
+  locations = [],
 }: TripModalProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState("");
@@ -69,8 +68,6 @@ export function TripModal({
       driverId: "",
     };
   });
-<<<<<<< Updated upstream
-=======
   const [from, setFrom] = useState(defaultValues.from);
   const [to, setTo] = useState(defaultValues.to);
   const [busId, setBusId] = useState(defaultValues.busId);
@@ -85,7 +82,6 @@ export function TripModal({
   const statusOptions = mode === "create"
     ? ["DRAFT", "OPEN"]
     : tripStatusTransitions[initialData?.status ?? "DRAFT"];
->>>>>>> Stashed changes
 
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -214,15 +210,19 @@ export function TripModal({
               <label htmlFor="trip-from" className="block text-xs font-semibold text-gray-700 mb-1">
                 Điểm khởi hành <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="VD: Hồ Chí Minh"
+              <select
                 id="trip-from"
                 name="from"
-                defaultValue={defaultValues.from}
+                value={from}
+                onChange={(event) => setFrom(event.target.value)}
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              />
+              >
+                <option value="">Chọn điểm khởi hành</option>
+                {locationOptions.map((location) => (
+                  <option key={location} value={location} disabled={sameTripLocation(location, to)}>{location}</option>
+                ))}
+              </select>
               {errors.from && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.from}</p>
               )}
@@ -232,15 +232,19 @@ export function TripModal({
               <label htmlFor="trip-to" className="block text-xs font-semibold text-gray-700 mb-1">
                 Điểm đến <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="VD: Đà Lạt"
+              <select
                 id="trip-to"
                 name="to"
-                defaultValue={defaultValues.to}
+                value={to}
+                onChange={(event) => setTo(event.target.value)}
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              />
+              >
+                <option value="">Chọn điểm đến</option>
+                {locationOptions.map((location) => (
+                  <option key={location} value={location} disabled={sameTripLocation(location, from)}>{location}</option>
+                ))}
+              </select>
               {errors.to && (
                 <p className="text-[11px] text-rose-500 mt-1">{errors.to}</p>
               )}

@@ -38,7 +38,7 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
     // 3. Trả thông tin đơn hàng cho phía gọi API.
     return NextResponse.json(
       { success: true, data: order },
-      { status: 200 }
+      { status: 200, headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {
     return apiError(error, "Không thể lấy chi tiết đơn hàng. Vui lòng thử lại.");
@@ -75,29 +75,13 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-<<<<<<< Updated upstream
-    // 3. Kiểm tra đơn hàng có tồn tại trước khi cập nhật.
-    const order = await getOrderById(orderId);
-    if (!order) {
+    const updated = await updateOrderStatus(orderId, status as BookingStatus, admin.id);
+    if (!updated) {
       return NextResponse.json(
         { success: false, message: "Không tìm thấy đơn hàng." },
         { status: 404 }
       );
     }
-
-    // 4. Service kiểm tra quy tắc thanh toán, thời gian xuất bến và số ghế.
-    const updated = await updateOrderStatus(orderId, status as BookingStatus);
-    if (!updated) {
-      return NextResponse.json(
-        { success: false, message: "Đơn hàng không còn tồn tại." },
-        { status: 404 }
-      );
-    }
-
-=======
-    const updated = await updateOrderStatus(orderId, status as BookingStatus, admin.id);
-    if (!updated) return notFoundResponse();
->>>>>>> Stashed changes
     return NextResponse.json(
       { success: true, data: updated, message: "Cập nhật trạng thái đơn hàng thành công." },
       { status: 200 }
@@ -122,16 +106,6 @@ export async function DELETE(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
-    // 2. Kiểm tra đơn hàng có tồn tại trước khi hủy.
-    const order = await getOrderById(orderId);
-    if (!order) {
-      return NextResponse.json(
-        { success: false, message: "Không tìm thấy đơn hàng." },
-        { status: 404 }
-      );
-    }
-
-    // 3. Hủy vé bằng service: chuyển sang CANCELLED, trả ghế và giữ lịch sử.
     const deleted = await deleteOrder(orderId);
     if (!deleted) {
       return NextResponse.json(

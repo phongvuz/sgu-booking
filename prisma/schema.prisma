@@ -15,11 +15,12 @@ model booking {
   activeSeat     String?   @unique
   seatNumber     String
   status         String    @default("CONFIRMED")
-  totalPrice     Float
+  totalPrice     Int
   userId         Int
   tripId         Int
   createdAt      DateTime  @default(now())
   confirmedAt    DateTime?
+  expiresAt      DateTime?
   transactions   BookingTransaction[]
   trip           trip      @relation(fields: [tripId], references: [id], onDelete: Restrict, map: "Booking_tripId_fkey")
   user           user      @relation(fields: [userId], references: [id], onDelete: Restrict, map: "Booking_userId_fkey")
@@ -27,6 +28,7 @@ model booking {
   @@index([pnr])
   @@index([status, createdAt])
   @@index([status, confirmedAt])
+  @@index([status, expiresAt])
   @@index([tripId], map: "Booking_tripId_fkey")
   @@index([userId], map: "Booking_userId_fkey")
 }
@@ -36,9 +38,6 @@ model trip {
   from           String
   to             String
   time           DateTime
-<<<<<<< Updated upstream
-  price          Float
-=======
   endsAt         DateTime?
   status         String     @default("DRAFT")
   busId          String?
@@ -46,7 +45,6 @@ model trip {
   bus            bus?       @relation(fields: [busId], references: [id], onDelete: Restrict)
   driver         employee?  @relation(fields: [driverId], references: [id], onDelete: Restrict)
   price          Int
->>>>>>> Stashed changes
   capacity       Int
   availableSeats Int
   createdAt      DateTime   @default(now())

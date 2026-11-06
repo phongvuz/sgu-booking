@@ -6,6 +6,7 @@ import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes, normalizeSeat } from "@/lib/seats";
 import { positiveInteger } from "@/lib/query-params";
 import { assertTripId } from "@/lib/trip-id";
+import { assertTripPrice } from "@/lib/money";
 import type { CreateBookingInput, BookingResult } from "@/types";
 
 class BookingConflictError extends BusinessError {
@@ -47,18 +48,15 @@ export async function createBooking(
   return runTransaction(async (tx) => {
     const trip = await tx.trip.findUnique({ where: { id } });
     if (!trip) throw new TripNotFoundError(input.tripId);
-<<<<<<< Updated upstream
-    if (trip.time <= new Date())
-=======
     assertTripPrice(trip.price);
     const now = new Date();
 
     if (trip.time <= now || trip.status !== "OPEN") {
->>>>>>> Stashed changes
       throw new BusinessError(
         "Chuyến xe chưa mở bán hoặc đã xuất bến, không thể đặt thêm vé.",
         409,
       );
+    }
     const validSeats = getSeatCodes(trip.capacity);
     if (seats.some((seat) => !validSeats.includes(seat)))
       throw new BusinessError(
@@ -77,7 +75,7 @@ export async function createBooking(
         tripId: trip.id,
         seatNumber: { in: seats },
         expiresAt: { gt: new Date() },
-        ...(input.clientId ? { clientId: { not: input.clientId } } : {}),
+        ...(input.holdOwnerKey ? { clientId: { not: input.holdOwnerKey } } : {}),
       },
       select: { seatNumber: true },
     });
@@ -146,20 +144,21 @@ export async function createBooking(
 }
 
 interface GetBookingsFilter {
-  query?: string;
+  pnr?: string;
   phone?: string;
   limit?: number;
 }
 export async function getBookings({
-  query = "",
+  pnr = "",
   phone = "",
   limit = 50,
 }: GetBookingsFilter = {}) {
-  const target = (phone || query).trim();
-  if (!target)
-    throw new BusinessError("Nhập đầy đủ số điện thoại hoặc mã đặt chỗ .");
+  const reference = pnr.trim();
+  const passengerPhone = phone.trim();
+  if (!reference || reference.length > 191 || !/^(?:0|\+84)[0-9]{9}$/.test(passengerPhone))
+    throw new BusinessError("Nhập mã đặt chỗ và số điện thoại hợp lệ.");
   const bookings = await prisma.booking.findMany({
-    where: { OR: [{ passengerPhone: target }, { pnr: target }] },
+    where: { pnr: reference, passengerPhone },
     orderBy: { createdAt: "desc" },
     take: positiveInteger(limit, 50, 100),
     select: {

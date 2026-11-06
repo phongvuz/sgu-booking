@@ -20,9 +20,6 @@ export default async function SuccessPage({ searchParams }: {
   if (!bookings.length) notFound();
   const first = bookings[0];
   const state = await getPaymentStatus(params.pnr);
-<<<<<<< Updated upstream
-  const canPay = bookings.every((booking) => booking.status === "PENDING" && booking.trip.time > new Date());
-=======
   const now = new Date();
 
   const pendingBookings = bookings.filter((booking) => booking.status === "PENDING");
@@ -36,7 +33,6 @@ export default async function SuccessPage({ searchParams }: {
         booking.expiresAt > now
       ),
   );
->>>>>>> Stashed changes
   let paymentInfo: VietqrPaymentInfo | null = null;
   let configurationError = "";
   if (canPay) {

@@ -11,14 +11,10 @@
     "typecheck": "tsc --noEmit --incremental false",
     "db:upgrade": "node scripts/upgrade-database.cjs",
     "db:deploy": "prisma migrate deploy",
-<<<<<<< Updated upstream
-    "test:admin-db": "node tests/admin-db.cjs"
-=======
     "db:payments": "node scripts/setup-payments.cjs",
     "db:trips": "node scripts/setup-trips.cjs",
     "test:admin-db": "node tests/admin-db.cjs",
     "test:finance-db": "node tests/finance-dispatch-db.cjs"
->>>>>>> Stashed changes
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

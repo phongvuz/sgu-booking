@@ -7,11 +7,8 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { UserAccount, UserQueryParams, PaginationMeta, UserStats } from "@/types";
 import { UserFormValues } from "@/lib/validations/user";
-<<<<<<< Updated upstream
-=======
 import { isGuestPhone } from "@/lib/guest-account";
 import { getMoneySummary } from "@/lib/booking-money";
->>>>>>> Stashed changes
 
 /**
  * Lấy danh sách người dùng với tìm kiếm, phân trang và thống kê số vé đặt
@@ -37,6 +34,7 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     where.OR = [
       { fullName: { contains: s } },
       { phone: { contains: s } },
+      { booking: { some: { passengerPhone: { contains: s } } } },
     ];
   }
 
@@ -92,7 +90,8 @@ export async function queryUsers(params: UserQueryParams): Promise<{
     return {
       id: u.id,
       fullName: u.fullName,
-      phone: u.phone,
+      phone: isGuestPhone(u.phone) ? "" : u.phone,
+      isGuest: isGuestPhone(u.phone),
       role: u.role,
       isActive: u.isActive,
       createdAt: u.createdAt.toISOString(),
@@ -143,7 +142,8 @@ export async function getUserById(id: number | string) {
   return {
     id: user.id,
     fullName: user.fullName,
-    phone: user.phone,
+    phone: isGuestPhone(user.phone) ? "" : user.phone,
+    isGuest: isGuestPhone(user.phone),
     role: user.role,
     isActive: user.isActive,
     createdAt: user.createdAt.toISOString(),
@@ -205,6 +205,9 @@ export async function updateUser(id: number | string, data: Partial<UserFormValu
   return runTransaction(async (tx) => {
     const current = await tx.user.findUnique({ where: { id: Number(id) }, select: safeUserSelect });
     if (!current) return null;
+    if (isGuestPhone(current.phone) && (data.phone !== undefined || data.role !== undefined || data.password)) {
+      throw new BusinessError("Hồ sơ khách vãng lai không phải tài khoản đăng nhập. Không thể đổi số điện thoại, vai trò hoặc mật khẩu.", 409);
+    }
     await checkRoleChange(tx, current.id, current.role, data.role ?? current.role, actorId, current.isActive);
     if (current.role === "USER" && data.role === "ADMIN" && !data.password) {
       throw new BusinessError("Nhập mật khẩu mới khi cấp quyền quản trị cho hồ sơ khách mua vé.");
@@ -218,7 +221,8 @@ export async function updateUser(id: number | string, data: Partial<UserFormValu
       if (!customer) throw new BusinessError("Tài khoản đang thiếu hồ sơ khách hàng. Cần kiểm tra dữ liệu trước khi cập nhật.", 409);
       await tx.customer.update({ where: { id: customer.id }, data: { name: data.fullName, phone: data.phone, status: data.isActive === undefined ? undefined : data.isActive ? "Đang hoạt động" : "Ngừng hoạt động" } });
     }
-    return tx.user.update({ where: { id: current.id }, data: { fullName: data.fullName, phone: data.phone, role: data.role, isActive: data.isActive, password }, select: safeUserSelect });
+    const updated = await tx.user.update({ where: { id: current.id }, data: { fullName: data.fullName, phone: data.phone, role: data.role, isActive: data.isActive, password }, select: safeUserSelect });
+    return { ...updated, phone: isGuestPhone(updated.phone) ? "" : updated.phone, isGuest: isGuestPhone(updated.phone) };
   });
 }
 

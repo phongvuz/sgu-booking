@@ -140,13 +140,8 @@ async function main() {
   console.log("✓ Cancel/restore: idempotency, occupied-seat rejection, payment transitions, history and revenue.");
 
   const multi = await bookings.createBooking({ ...input, seats: ["B01", "C01"] });
-<<<<<<< Updated upstream
-  assert.equal((await bookings.getBookings({ query: multi.pnr })).length, 2);
-  await fails(() => trips.updateTrip(trip.id, { capacity: 2 }), 409);
-=======
   assert.equal((await bookings.getBookings({ pnr: multi.pnr, phone: input.phone })).length, 2);
   await fails(() => trips.updateTrip(trip.id, { capacity: 2, busId: smallerBus.id }), 409);
->>>>>>> Stashed changes
   const snapshot = await prisma.booking.findUnique({ where: { id: multi.bookingIds[0] } });
   await users.updateUser(snapshot.userId, { fullName: "Renamed Account", phone: "0999000005" }, admin.id);
   assert.equal((await orders.getOrderById(snapshot.id)).user.fullName, "Passenger One");
@@ -163,7 +158,7 @@ async function main() {
   await fails(() => holds.holdSeat(heldTrip.id, "A01", "client-two"), 409);
   await fails(() => bookings.createBooking({ ...input, tripId: heldTrip.id }), 409);
   await fails(() => holds.holdSeat(heldTrip.id, "A02", "client-one"), 400);
-  const owned = await bookings.createBooking({ ...input, tripId: heldTrip.id, clientId: "client-one" });
+  const owned = await bookings.createBooking({ ...input, tripId: heldTrip.id, holdOwnerKey: "client-one" });
   assert.equal(await prisma.seatHold.count({ where: { tripId: heldTrip.id } }), 0);
   await orders.updateOrderStatus(owned.bookingIds[0], "CANCELLED");
   await holds.holdSeat(heldTrip.id, "C01", "client-one");

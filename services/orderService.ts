@@ -8,12 +8,9 @@ import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@prisma/client";
 import type { OrderGroup, OrderItem, OrderQueryParams, BookingStatus } from "@/types";
 import { toOrderItem } from "@/lib/record-mappers";
-<<<<<<< Updated upstream
-=======
 import { broadcastSeatRefresh } from "@/lib/sse";
 import { getBookingMoney, getMoneySummary } from "@/lib/booking-money";
 import { receiveBookingPayment } from "@/services/bookingFinanceService";
->>>>>>> Stashed changes
 
 const orderInclude = { user: true, trip: true, transactions: { include: { actor: true } } } as const;
 
@@ -86,28 +83,6 @@ export async function queryOrdersAdmin(params: OrderQueryParams) {
 }
 
 export async function getOrderById(id: number | string): Promise<OrderItem | null> {
-<<<<<<< Updated upstream
-  const numId = Number(id);
-  if (isNaN(numId)) return null;
-
-  const b = await prisma.booking.findUnique({
-    where: { id: numId },
-    include: {
-      user: true,
-      trip: true,
-    },
-  });
-
-  if (!b) return null;
-
-  return toOrderItem(b);
-}
-
-export async function updateOrderStatus(id: number | string, newStatus: BookingStatus): Promise<OrderItem | null> {
-  if (!["CONFIRMED", "PENDING", "CANCELLED"].includes(newStatus)) throw new BusinessError("Trạng thái vé không hợp lệ.");
-  const changed = await runTransaction(async (tx) => {
-    const existing = await tx.booking.findUnique({ where: { id: Number(id) }, include: { trip: true } });
-=======
   const orderId = Number(id);
   if (!Number.isInteger(orderId) || orderId <= 0 || orderId > 2147483647) return null;
   const booking = await prisma.booking.findUnique({ where: { id: orderId }, include: orderInclude });
@@ -125,7 +100,6 @@ export async function updateOrderStatus(id: number | string, newStatus: BookingS
   let changedTripId: number | undefined;
   const changed = await runTransaction(async (tx) => {
     const existing = await tx.booking.findUnique({ where: { id: orderId }, include: { trip: true, transactions: true } });
->>>>>>> Stashed changes
     if (!existing) return false;
     if (existing.status === newStatus) return true;
     if (existing.status === "CONFIRMED" && newStatus === "PENDING") throw new BusinessError("Vé đã xác nhận không thể chuyển về chờ thanh toán.", 409);
@@ -143,26 +117,17 @@ export async function updateOrderStatus(id: number | string, newStatus: BookingS
       const reserved = await tx.trip.updateMany({ where: { id: existing.tripId, availableSeats: { gt: 0 } }, data: { availableSeats: { decrement: 1 } } });
       if (reserved.count !== 1) throw new BusinessError("Chuyến xe đã hết ghế.", 409);
     }
-<<<<<<< Updated upstream
-    await tx.booking.update({ where: { id: existing.id }, data: {
-      status: newStatus, activeSeat: newStatus === "CANCELLED" ? null : `${existing.tripId}:${existing.seatNumber}`,
-      confirmedAt: newStatus === "CONFIRMED" ? new Date() : newStatus === "PENDING" ? null : existing.confirmedAt,
-=======
     await tx.booking.update({ where: { id: orderId }, data: {
       status, activeSeat: status === "CANCELLED" ? null : `${existing.tripId}:${existing.seatNumber}`,
->>>>>>> Stashed changes
     } });
     if (existing.status !== "CANCELLED" && status === "CANCELLED") {
       await tx.trip.update({ where: { id: existing.tripId }, data: { availableSeats: { increment: 1 } } });
     }
+    changedTripId = existing.tripId;
     return true;
   });
-<<<<<<< Updated upstream
-  return changed ? getOrderById(id) : null;
-=======
   if (changed && changedTripId !== undefined) broadcastSeatRefresh(changedTripId);
   return changed ? getOrderById(orderId) : null;
->>>>>>> Stashed changes
 }
 
 export async function deleteOrder(id: number | string): Promise<boolean> {
