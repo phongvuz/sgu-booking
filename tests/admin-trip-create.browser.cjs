@@ -55,7 +55,7 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
     const admin = await prisma.user.create({ data: { fullName: "Browser Test Admin", phone: "0999000071", password: passwordHash, role: "ADMIN", isActive: true } });
     const oldSecret = process.env.SESSION_SECRET;
     process.env.SESSION_SECRET = env.SESSION_SECRET;
-    const { createSessionToken, SESSION_COOKIE } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
+    const { createSessionToken, ADMIN_SESSION_COOKIE } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
     const token = createSessionToken(admin.id, passwordHash);
     if (oldSecret === undefined) delete process.env.SESSION_SECRET;
     else process.env.SESSION_SECRET = oldSecret;
@@ -78,7 +78,7 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
     await cdp.send("Page.enable", {}, sessionId);
     await cdp.send("Runtime.enable", {}, sessionId);
     await cdp.send("Network.enable", {}, sessionId);
-    await cdp.send("Network.setCookie", { name: SESSION_COOKIE, value: token, url: baseUrl, httpOnly: true, sameSite: "Lax", secure: true }, sessionId);
+    await cdp.send("Network.setCookie", { name: ADMIN_SESSION_COOKIE, value: token, url: baseUrl, httpOnly: true, sameSite: "Lax", secure: true }, sessionId);
     await cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: `
       window.tripSmoke = { errors: [], writes: [] };
       window.addEventListener("error", (event) => window.tripSmoke.errors.push(event.message));

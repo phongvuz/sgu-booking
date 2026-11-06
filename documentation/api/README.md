@@ -21,7 +21,8 @@ Nguồn gồm route được TypeScript AST phát hiện, Zod validators thực 
 
 - OpenAPI mô tả JSON request; Zod refine/cross-field (ví dụ mật khẩu xác nhận), chuẩn hóa chuỗi, coercion và kiểm tra DB vẫn do server thực hiện. Năm sản xuất xe có giới hạn trên động là năm hiện tại của server + 1.
 - Các response envelope đã đối chiếu route; một số dữ liệu `data`, `stats`, `pagination` do service trả chưa có schema runtime và được để mở. Đây không phải schema response được tự suy ra hoặc đã kiểm thử tích hợp.
-- Admin yêu cầu cookie `customer_session` và vai trò ADMIN. Profile yêu cầu CUSTOMER hoạt động. `admin=true` trên GET /api/trips đổi sang chế độ bắt buộc ADMIN. Cookie HttpOnly do trình duyệt quản lý.
+- Admin dùng cookie `admin_session`; khách hàng dùng `customer_session`. Hai phiên độc lập, thời hạn 24 giờ; bản demo thêm tiền tố `demo_`. Server kiểm tra lại vai trò và trạng thái tài khoản. `admin=true` trên GET /api/trips bắt buộc ADMIN. Cookie HttpOnly do trình duyệt quản lý.
+- `GET /api/auth/session` chỉ đọc, không đặt hoặc xóa cookie; nếu có cả hai phiên thì trả tài khoản CUSTOMER. `POST /api/auth/logout?audience=admin` chỉ đăng xuất quản trị, `audience=customer` (mặc định) chỉ đăng xuất khách hàng.
 - Mutation phải cùng origin ứng dụng; không cấu hình wildcard CORS. Các cookie thật/mật khẩu thật không được đưa vào tài liệu. Ví dụ chỉ dùng dữ liệu giả và ID minh họa.
 - SSE là luồng text/event-stream; schema SeatRealtimeMessage mô tả JSON của từng data frame. Trạng thái chọn tạm chỉ được chia sẻ trong một tiến trình Node.js; chưa có hàng đợi offline hoặc CRDT.
 - Thanh toán demo là giả lập và có cờ cấu hình riêng; không xác minh giao dịch ngân hàng. Chạy generator không gọi API, không tạo vé và không kiểm chứng kết quả thực tế của database.

@@ -16,11 +16,11 @@ test("admin sort controls reset pagination, preserve filters and refresh, and fi
   try {
     const admin = await prisma.user.findFirst({ where: { role: "ADMIN", isActive: true }, select: { id: true, password: true } });
     assert.ok(admin, "a local active admin is required for the read-only browser check");
-    const { createSessionToken } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
+    const { createSessionToken, ADMIN_SESSION_COOKIE } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
     const executablePath = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"].find((candidate) => fs.existsSync(candidate));
     browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) });
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-    await context.addCookies([{ name: "customer_session", value: createSessionToken(admin.id, admin.password), url: baseUrl, httpOnly: true, sameSite: "Lax" }]);
+    await context.addCookies([{ name: ADMIN_SESSION_COOKIE, value: createSessionToken(admin.id, admin.password), url: baseUrl, httpOnly: true, sameSite: "Lax" }]);
     const page = await context.newPage();
     page.on("pageerror", (error) => errors.push(error.message));
     const cases = [

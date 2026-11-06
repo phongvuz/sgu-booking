@@ -56,7 +56,7 @@ test("session endpoint returns only public account fields and rejects ineligible
     assert.equal(response.headers.get("cache-control"), "no-store");
     assert.equal(data.authenticated, allowed);
     assert.deepEqual(data.user, allowed ? { id: 7, name: customer?.name ?? "Test", role: user.role } : null);
-    if (!allowed) assert.match(response.headers.get("set-cookie"), /Max-Age=0/i);
+    assert.equal(response.headers.get("set-cookie"), null);
     assert.ok(!JSON.stringify(data).includes("private"));
   }
 });

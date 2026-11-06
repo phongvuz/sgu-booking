@@ -55,10 +55,11 @@ test("OpenAPI preserves role protection, optional admin mode, SSE framing and un
   const spec = createSpecification(discoverRoutes(), schemas);
   assert.equal(spec.openapi, "3.1.1");
   assert.equal(spec.components.securitySchemes.SessionCookie.name, "customer_session");
-  assert.deepEqual(spec.paths["/api/users"].get.security, [{ SessionCookie: [] }]);
+  assert.equal(spec.components.securitySchemes.AdminSessionCookie.name, "admin_session");
+  assert.deepEqual(spec.paths["/api/users"].get.security, [{ AdminSessionCookie: [] }]);
   assert.equal(spec.paths["/api/users"].get["x-required-role"], "ADMIN");
   assert.equal(spec.paths["/api/customer/profile"].patch["x-required-role"], "CUSTOMER");
-  assert.deepEqual(spec.paths["/api/trips"].get.security, [{}, { SessionCookie: [] }]);
+  assert.deepEqual(spec.paths["/api/trips"].get.security, [{}, { AdminSessionCookie: [] }]);
   assert.deepEqual(spec.paths["/api/trips/{id}/seat-events"].post.security, [{ SeatSessionCookie: [] }]);
   assert.deepEqual(spec.paths["/api/bookings"].post.security, []);
   assert.equal(spec.paths["/api/bookings"].post.responses[201].content["application/json"].schema.$ref, "#/components/schemas/BookingCreated");

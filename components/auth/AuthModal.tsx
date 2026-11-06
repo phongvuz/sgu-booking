@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { FiNavigation, FiX } from "react-icons/fi";
 import { authModalUrl, safeAuthReturnTo, type AuthMode } from "@/lib/auth-navigation";
 import LoginForm from "./LoginForm";
@@ -88,7 +88,6 @@ function AuthDialog({ mode, onClose, onSwitch, onLogin }: {
 export default function AuthModal() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const router = useRouter();
   const mode = searchParams.get("auth");
   if (mode !== "login" && mode !== "register") return null;
 
@@ -100,9 +99,8 @@ export default function AuthModal() {
     onSwitch={(nextMode) => window.history.replaceState(null, "", `${authModalUrl(pathname, searchParams.toString(), nextMode)}${window.location.hash}`)}
     onLogin={(redirectTo) => {
       const destination = redirectTo === "/admin" ? "/admin" : safeAuthReturnTo(searchParams.get("next"));
-      window.history.replaceState(null, "", cleanUrl());
-      if (destination) router.replace(destination);
-      router.refresh();
+      // Reload the destination so shared layouts and prefetched pages use the new session cookie.
+      window.location.replace(destination ?? cleanUrl());
     }}
   />;
 }

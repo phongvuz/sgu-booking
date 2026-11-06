@@ -1,6 +1,6 @@
 # Nhà xe Sài Gòn
 
-Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [bảo mật và phân quyền](documentation/security/README.md).
+Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Cookie `admin_session` và `customer_session` độc lập, cho phép dùng cả hai loại tài khoản trong cùng trình duyệt; đăng xuất bên nào chỉ xóa phiên bên đó. Bản demo dùng tiền tố `demo_` để không ghi đè phiên ứng dụng. API kiểm tra phiên chỉ đọc trạng thái, không xóa cookie. Sau khi nâng cấp từ phiên dùng chung cookie, quản trị viên cần đăng nhập lại một lần. Giữ nguyên `SESSION_SECRET` trong `.env` qua các lần khởi động để duy trì phiên. Chi tiết: [bảo mật và phân quyền](documentation/security/README.md).
 
 Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [documentation/seat-realtime.md](documentation/seat-realtime.md).
 

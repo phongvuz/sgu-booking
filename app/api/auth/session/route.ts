@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getCurrentCustomer, getCurrentUser, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { getCurrentCustomer, getCurrentUser } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -14,7 +14,7 @@ export async function GET() {
         id: account.id, name: customer?.name ?? account.fullName, role: account.role,
       } : null,
     }, { headers: { "Cache-Control": "no-store" } });
-    if (!authenticated) response.cookies.set(SESSION_COOKIE, "", { ...sessionCookieOptions, maxAge: 0 });
+    // A read must not delete a newer cookie set while this request was in flight.
     return response;
   } catch {
     return NextResponse.json({ message: "Không thể kiểm tra phiên đăng nhập. Vui lòng thử lại!" }, { status: 500, headers: { "Cache-Control": "no-store" } });

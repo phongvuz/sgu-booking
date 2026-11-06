@@ -230,9 +230,10 @@ function createSpecification(routes, schemas) {
   };
   for (const route of routes) {
     const details = metadata[route.key];
-    const security = details.auth === "admin" || details.auth === "customer" ? [{ SessionCookie: [] }]
+    const security = details.auth === "admin" ? [{ AdminSessionCookie: [] }]
+      : details.auth === "customer" ? [{ SessionCookie: [] }]
       : details.auth === "seat" ? [{ SeatSessionCookie: [] }]
-        : details.auth === "optional-admin" ? [{}, { SessionCookie: [] }] : [];
+        : details.auth === "optional-admin" ? [{}, { AdminSessionCookie: [] }] : [];
     const authDescription = details.auth === "admin" ? "Yêu cầu đăng nhập bằng tài khoản ADMIN."
       : details.auth === "customer" ? "Yêu cầu phiên tài khoản CUSTOMER đang hoạt động."
         : details.auth === "seat" ? "Yêu cầu cookie seat_session hợp lệ, gắn với clientId."
@@ -271,7 +272,8 @@ function createSpecification(routes, schemas) {
     paths,
     components: {
       securitySchemes: {
-        SessionCookie: { type: "apiKey", in: "cookie", name: "customer_session", description: "Cookie HttpOnly sau đăng nhập/đăng ký. Quyền ADMIN/CUSTOMER vẫn được server kiểm tra; apiKey chỉ mô tả cách truyền cookie." },
+        SessionCookie: { type: "apiKey", in: "cookie", name: "customer_session", description: "Cookie HttpOnly sau đăng nhập/đăng ký CUSTOMER, hạn 24 giờ. Bản demo dùng demo_customer_session. Server kiểm tra lại tài khoản và phiên bản mật khẩu." },
+        AdminSessionCookie: { type: "apiKey", in: "cookie", name: "admin_session", description: "Cookie HttpOnly riêng cho ADMIN, hạn 24 giờ. Bản demo dùng demo_admin_session. Đăng nhập/đăng xuất khách hàng không thay đổi phiên này." },
         SeatSessionCookie: { type: "apiKey", in: "cookie", name: "seat_session", description: "Cookie HttpOnly được cấp khi đọc holds hoặc mở stream; server kết hợp với clientId để xác định sở hữu." },
       }, schemas,
     },
@@ -290,7 +292,8 @@ function markdown(specification) {
     "## Phạm vi và giới hạn", "",
     "- OpenAPI mô tả JSON request; Zod refine/cross-field (ví dụ mật khẩu xác nhận), chuẩn hóa chuỗi, coercion và kiểm tra DB vẫn do server thực hiện. Năm sản xuất xe có giới hạn trên động là năm hiện tại của server + 1.",
     "- Các response envelope đã đối chiếu route; một số dữ liệu `data`, `stats`, `pagination` do service trả chưa có schema runtime và được để mở. Đây không phải schema response được tự suy ra hoặc đã kiểm thử tích hợp.",
-    "- Admin yêu cầu cookie `customer_session` và vai trò ADMIN. Profile yêu cầu CUSTOMER hoạt động. `admin=true` trên GET /api/trips đổi sang chế độ bắt buộc ADMIN. Cookie HttpOnly do trình duyệt quản lý.",
+    "- Admin dùng cookie `admin_session`; khách hàng dùng `customer_session`. Hai phiên độc lập, thời hạn 24 giờ; bản demo thêm tiền tố `demo_`. Server kiểm tra lại vai trò và trạng thái tài khoản. `admin=true` trên GET /api/trips bắt buộc ADMIN. Cookie HttpOnly do trình duyệt quản lý.",
+    "- `GET /api/auth/session` chỉ đọc, không đặt hoặc xóa cookie; nếu có cả hai phiên thì trả tài khoản CUSTOMER. `POST /api/auth/logout?audience=admin` chỉ đăng xuất quản trị, `audience=customer` (mặc định) chỉ đăng xuất khách hàng.",
     "- Mutation phải cùng origin ứng dụng; không cấu hình wildcard CORS. Các cookie thật/mật khẩu thật không được đưa vào tài liệu. Ví dụ chỉ dùng dữ liệu giả và ID minh họa.",
     "- SSE là luồng text/event-stream; schema SeatRealtimeMessage mô tả JSON của từng data frame. Trạng thái chọn tạm chỉ được chia sẻ trong một tiến trình Node.js; chưa có hàng đợi offline hoặc CRDT.",
     "- Thanh toán demo là giả lập và có cờ cấu hình riêng; không xác minh giao dịch ngân hàng. Chạy generator không gọi API, không tạo vé và không kiểm chứng kết quả thực tế của database.", "",

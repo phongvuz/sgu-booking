@@ -17,15 +17,18 @@ const bookingExample = { tripId: 1, seats: ["A01"], fullName: "Nguyễn Văn An"
 op("POST", "/api/auth/login", "Đăng nhập khách hàng hoặc quản trị viên", {
   request: "LoginInput", example: { identifier: "an@example.com", password: "example-password", audience: "customer" },
   response: "LoginResult", errors: [400, 401, 403, 500],
-  description: "Email hoặc số điện thoại trong identifier. Trả cookie customer_session HttpOnly; audience giới hạn loại tài khoản được đăng nhập.",
+  description: "Email hoặc số điện thoại trong identifier. Trả cookie HttpOnly riêng: admin_session cho ADMIN, customer_session cho CUSTOMER; audience giới hạn loại tài khoản được đăng nhập. Hai phiên tồn tại độc lập trong cùng trình duyệt. Bản demo thêm tiền tố demo_ vào tên cookie.",
 });
 op("POST", "/api/auth/register", "Đăng ký tài khoản khách hàng", {
   request: "RegisterInput", status: 201, response: "RegistrationResult", errors: [400, 403, 409, 500],
   example: { fullName: "Nguyễn Văn An", email: "an@example.com", phone: "0901234567", password: "example-password", confirmPassword: "example-password", agreeTerms: true },
   description: "Mật khẩu xác nhận phải trùng; tài khoản thành công nhận cookie customer_session. Không gửi mật khẩu thật vào tài liệu.",
 });
-op("POST", "/api/auth/logout", "Đăng xuất và xóa cookie phiên", { response: "Success", errors: [403] });
-op("GET", "/api/auth/session", "Kiểm tra phiên đăng nhập hiện tại", { response: "SessionResult", errors: [500], description: "Không yêu cầu đăng nhập; trả authenticated=false và user=null khi không có phiên hợp lệ." });
+op("POST", "/api/auth/logout", "Đăng xuất và xóa cookie phiên", {
+  response: "Success", errors: [400, 403],
+  queries: [q("audience", "Loại phiên cần đăng xuất, mặc định customer; không xóa phiên của loại tài khoản còn lại.", { enum: ["customer", "admin"], default: "customer" })],
+});
+op("GET", "/api/auth/session", "Kiểm tra phiên đăng nhập hiện tại", { response: "SessionResult", errors: [500], description: "Không yêu cầu đăng nhập; trả authenticated=false và user=null khi không có phiên hợp lệ. Nếu có cả hai phiên, ưu tiên CUSTOMER. Chỉ đọc trạng thái, không đặt hoặc xóa cookie để tránh phản hồi đến muộn xóa phiên mới." });
 op("PATCH", "/api/customer/profile", "Cập nhật hồ sơ hoặc đổi mật khẩu", {
   auth: "customer", request: "CustomerUpdateInput", response: "MessageResult", errors: [400, 401, 403, 409, 500],
   example: { action: "profile", fullName: "Nguyễn Văn An", email: "an@example.com", phone: "0901234567", address: "TP. Hồ Chí Minh" },

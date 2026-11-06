@@ -29,6 +29,7 @@ Script bật nút xác nhận **thanh toán mô phỏng**. Thông tin VietQR đ�
 - Chạy lại cùng lệnh: script chỉ đọc marker sở hữu/schema và dùng lại dữ liệu. Không reset, không seed lại, không tự cập nhật schema database đã tồn tại.
 - Nếu tên đã tồn tại nhưng không có marker hợp lệ, hoặc schema mã nguồn đã đổi, script dừng và giữ nguyên database đó. Chọn một tên mới theo mẫu `sgu_booking_demo_<suffix>`.
 - `SESSION_SECRET` riêng được tạo trong bộ nhớ mỗi lần khởi chạy; sau khi khởi động lại cần đăng nhập lại. Không ghi secret ra file.
+- Cookie đăng nhập demo dùng `demo_admin_session` và `demo_customer_session`, tách khỏi cookie ứng dụng để hai bản không ghi đè hoặc đăng xuất lẫn nhau.
 
 Chỉ khởi tạo, không mở web server:
 
