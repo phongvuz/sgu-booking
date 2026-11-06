@@ -13,9 +13,9 @@ export const runtime = "nodejs";
 type RouteContext = { params: Promise<{ id: string }> };
 
 async function validateTripSeats(tripId: number, seatNumbers: string[], selectingSeats: boolean) {
-  const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { capacity: true, time: true } });
+  const trip = await prisma.trip.findUnique({ where: { id: tripId }, select: { bus: { select: { capacity: true } }, time: true } });
   if (!trip) throw new BusinessError("Không tìm thấy chuyến xe.", 404);
-  const validSeats = getSeatCodes(trip.capacity);
+  const validSeats = getSeatCodes(trip.bus.capacity);
   if (seatNumbers.some((seatNumber) => !validSeats.includes(seatNumber))) {
     throw new BusinessError("Ghế không thuộc sơ đồ của chuyến xe.");
   }

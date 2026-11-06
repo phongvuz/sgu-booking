@@ -86,12 +86,12 @@ op("PATCH", "/api/admin/orders/{id}", "Đổi trạng thái vé", { auth: "admin
 op("DELETE", "/api/admin/orders/{id}", "Hủy vé và giữ lịch sử", { auth: "admin", response: "SuccessMessage", errors: [400, 404, 409, 500], description: "Không xóa lịch sử; chuyển vé về CANCELLED và hoàn ghế theo quy tắc nghiệp vụ." });
 
 for (const [resource, label, request, filters, sorts] of [
-  ["buses", "xe", "BusInput", ["type", "status"], ["plate", "seats", "createdAt", "id"]],
+  ["buses", "xe", "BusInput", ["type", "status"], ["plate", "capacity", "createdAt", "id"]],
   ["employees", "nhân viên", "EmployeeInput", ["role", "department", "status"], ["name", "createdAt", "id"]],
   ["users", "tài khoản", "UserInput", ["role"], ["createdAt", "fullName", "id"]],
 ]) {
   const base = `/api/${resource}`;
-  op("GET", base, `Tìm và phân trang ${label}`, { auth: "admin", queries: list(filters, sorts), response: "AdminListResult", errors: [500] });
+  op("GET", base, `Tìm và phân trang ${label}`, { auth: "admin", queries: [...list(filters, sorts), ...(resource === "buses" ? [q("selectable", "true: trả toàn bộ xe đang hoạt động để chọn khi tạo/sửa chuyến; không phân trang.", { enum: ["true", "false"] })] : [])], response: resource === "buses" ? "DataResult" : "AdminListResult", errors: [500] });
   op("POST", base, `Tạo ${label}`, { auth: "admin", request, response: "DataResult", status: 201, errors: [400, 409, 500], ...(resource === "users" ? { description: "Ngoài schema Zod chung, service bắt buộc password cho tài khoản mới và từ chối role=CUSTOMER; tài khoản CUSTOMER phải tạo qua /api/auth/register." } : {}) });
   op("GET", `${base}/{id}`, `Xem chi tiết ${label}`, { auth: "admin", response: "DataResult", errors: [404, 500] });
   op("PUT", `${base}/{id}`, `Cập nhật ${label}`, { auth: "admin", request, response: "DataResult", errors: [400, 404, 409, 500] });

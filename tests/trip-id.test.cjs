@@ -35,7 +35,7 @@ test("online and offline bookings reject string IDs and trip forms have no code 
     }
   }
   const { tripSchema } = load("lib/validations/trip.ts");
-  const trip = tripSchema.parse({ code: "OLD-CODE", from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, capacity: 22 });
+  const trip = tripSchema.parse({ code: "OLD-CODE", from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, busId: "BUS-001" });
   assert.equal("code" in trip, false);
 });
 
@@ -48,7 +48,7 @@ test("trip detail, update and delete APIs pass numeric IDs and reject codes", as
       return id === 42 ? { id } : null;
     }])),
   });
-  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, capacity: 22 };
+  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, busId: "BUS-001" };
   for (const method of ["GET", "PUT", "DELETE"]) {
     const request = () => new Request("http://localhost/api/trips/42", { method, ...(method === "PUT" ? { body: JSON.stringify(trip) } : {}) });
     assert.equal((await routes[method](request(), context("0042"))).status, 200);
@@ -95,7 +95,7 @@ test("seat hold URLs validate before querying and streams use the canonical nume
   const holds = load("app/api/trips/[id]/holds/route.ts", {
     "@/lib/admin-api": apiHelpers,
     "@/services/seatService": { getActiveSeatHolds: async (id) => { calls.push(id); return []; } },
-    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ capacity: 6, booking: [] }) } } },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ bus: { capacity: 6 }, booking: [] }) } } },
   });
   assert.equal((await holds.GET(new Request("http://localhost"), context("OLD-CODE"))).status, 400);
   assert.equal((await holds.GET(new Request("http://localhost"), context("0042"))).status, 200);

@@ -32,19 +32,21 @@ test("admin pages send visitors and customers to the separate admin login page",
   }
 });
 
-test("validates integer capacity, distinct locations, real dates and employee identity", () => {
+test("validates bus selection, bus capacity, distinct locations, real dates and employee identity", () => {
   const { tripSchema } = load("lib/validations/trip.ts");
-  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, capacity: 22 };
+  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", price: 300000, busId: "BUS-001" };
   assert.equal(tripSchema.safeParse(trip).success, true);
-  for (const data of [{ capacity: 22.5 }, { to: " SÀI GÒN " }, { time: "bad" }, { time: "2026-02-30T08:00" }, { capacity: 0 }]) assert.equal(tripSchema.safeParse({ ...trip, ...data }).success, false);
+  for (const data of [{ busId: " " }, { to: " SÀI GÒN " }, { time: "bad" }, { time: "2026-02-30T08:00" }, { busId: undefined }]) assert.equal(tripSchema.safeParse({ ...trip, ...data }).success, false);
+  assert.equal("capacity" in tripSchema.parse({ ...trip, capacity: 60 }), false);
   const { employeeSchema } = load("lib/validations/employee.ts");
   const employee = { name: "Nhân viên", email: "staff@example.test", phone: "0901234567", role: "Tài xế", department: "Đội xe", status: "Đang làm việc", startDate: "2026-10-01" };
   assert.equal(employeeSchema.safeParse(employee).success, true);
   for (const data of [{ startDate: "2026-02-30" }, { identityCard: "1234567890" }]) assert.equal(employeeSchema.safeParse({ ...employee, ...data }).success, false);
   const { busSchema } = load("lib/validations/bus.ts");
-  const bus = { plate: "51B-123.45", type: "Giường nằm", seats: 22, status: "Đang hoạt động", year: "" };
+  const bus = { plate: "51B-123.45", type: "Giường nằm", capacity: 22, status: "Đang hoạt động", year: "" };
   assert.equal(busSchema.parse(bus).year, null);
-  assert.equal(busSchema.safeParse({ ...bus, seats: 22.5 }).success, false);
+  for (const capacity of [0, 22.5, 61]) assert.equal(busSchema.safeParse({ ...bus, capacity }).success, false);
+  assert.equal(busSchema.safeParse({ ...bus, capacity: 3 }).success, true);
 });
 
 test("seat map has exactly database capacity and treats legacy aliases as one seat", () => {

@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       to: validData.to,
       time: validData.time,
       price: validData.price,
-      capacity: validData.capacity,
+      busId: validData.busId,
     });
 
     return NextResponse.json(

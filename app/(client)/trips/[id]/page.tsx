@@ -19,6 +19,7 @@ export default async function TripDetailPage({ params }: PageProps) {
 
   const tripInfo = await prisma.trip.findUnique({
     where: { id: tripId },
+    include: { bus: true },
   });
 
   if (!tripInfo) {
@@ -54,7 +55,7 @@ export default async function TripDetailPage({ params }: PageProps) {
               Còn {tripInfo.availableSeats} ghế trống
             </span>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             <div>
               <p className="text-gray-500 text-sm mb-1">Tuyến xe</p>
               <p className="font-bold text-gray-900">
@@ -73,12 +74,20 @@ export default async function TripDetailPage({ params }: PageProps) {
               <p className="text-gray-500 text-sm mb-1">Giá vé</p>
               <p className="font-extrabold text-xl text-brand-primary">{formattedPrice}</p>
             </div>
+            <div>
+              <p className="text-gray-500 text-sm mb-1">Xe phục vụ</p>
+              <p className="font-bold text-gray-900">{tripInfo.bus.plate}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 text-sm mb-1">Loại xe và sức chứa</p>
+              <p className="font-bold text-gray-900">{tripInfo.bus.type} · {tripInfo.bus.capacity} chỗ</p>
+            </div>
           </div>
         </div>
 
         {tripInfo.time > new Date() && tripInfo.availableSeats > 0 ? <SeatSelector
           key={tripInfo.id}
-          capacity={tripInfo.capacity}
+          capacity={tripInfo.bus.capacity}
           tripId={tripInfo.id}
           pricePerSeat={tripInfo.price}
           bookedSeats={bookedSeats}

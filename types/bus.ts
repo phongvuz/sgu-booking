@@ -4,7 +4,7 @@ export interface Bus {
   id: string;
   plate: string;
   type: string;
-  seats: number;
+  capacity: number;
   status: string;
   brand?: string;
   year?: number;
@@ -21,7 +21,7 @@ export interface BusQueryParams {
   status?: string;
   page?: number;
   limit?: number;
-  sortBy?: "plate" | "seats" | "createdAt" | "id";
+  sortBy?: "plate" | "capacity" | "createdAt" | "id";
   sortOrder?: "asc" | "desc";
 }
 
@@ -46,3 +46,5 @@ export interface BusStats {
   maintenance: number;
   inactive: number;
 }
+
+export type BusOption = Pick<Bus, "id" | "plate" | "type" | "capacity" | "status">;

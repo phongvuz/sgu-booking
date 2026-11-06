@@ -1,13 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
+import Link from "next/link";
 import { FiX } from "react-icons/fi";
 import { formatDepartureDate, formatVietnamDateTime } from "@/lib/trip-search";
 import { tripSchema } from "@/lib/validations/trip";
 import type { TripFormValues } from "@/lib/validations/trip";
 import type { TripAdminItem } from "@/types/trip";
+import type { BusOption } from "@/types/bus";
 import { mergeTripLocations, sameTripLocation } from "@/lib/trip-locations";
+import { fetchBusOptions } from "@/services/clientBusService";
+import { useRemoteData } from "@/hooks/useRemoteData";
 
 interface TripModalProps {
   isOpen: boolean;
@@ -37,7 +41,7 @@ export function TripModal({
         to: initialData.to,
         time: formatVietnamDateTime(initialData.time),
         price: initialData.price,
-        capacity: initialData.totalSeats,
+        busId: initialData.busId,
       };
     }
 
@@ -49,11 +53,21 @@ export function TripModal({
       to: "",
       time: formatDepartureDate(tomorrow) + "T08:00",
       price: 300000,
-      capacity: 30,
+      busId: "",
     };
   });
   const [from, setFrom] = useState(defaultValues.from);
   const [to, setTo] = useState(defaultValues.to);
+  const [busId, setBusId] = useState(defaultValues.busId);
+  const loadBuses = useCallback(async (signal: AbortSignal) => {
+    const response = await fetchBusOptions(signal);
+    return response.data;
+  }, []);
+  const { data: activeBuses, loading: loadingBuses, error: busError, refresh: refreshBuses } = useRemoteData<BusOption[]>(loadBuses, []);
+  const buses = initialData?.bus && !activeBuses.some((bus) => bus.id === initialData.busId)
+    ? [initialData.bus, ...activeBuses]
+    : activeBuses;
+  const selectedBus = buses.find((bus) => bus.id === busId);
   const locationOptions = mergeTripLocations(locations, [from, to]);
 
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
@@ -66,7 +80,7 @@ export function TripModal({
       to: formData.get("to"),
       time: formData.get("time"),
       price: formData.get("price"),
-      capacity: formData.get("capacity"),
+      busId,
     });
 
     setErrors({});
@@ -205,6 +219,42 @@ export function TripModal({
             )}
           </div>
 
+          <div>
+            <label htmlFor="trip-bus" className="block text-xs font-semibold text-gray-700 mb-1">
+              Xe phục vụ chuyến <span className="text-rose-500">*</span>
+            </label>
+            <select
+              id="trip-bus"
+              name="busId"
+              value={busId}
+              onChange={(event) => setBusId(event.target.value)}
+              disabled={isSubmitting || loadingBuses || Boolean(busError)}
+              aria-describedby="trip-bus-help"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary disabled:bg-gray-50"
+            >
+              <option value="">{loadingBuses ? "Đang tải danh sách xe..." : "Chọn xe cho chuyến"}</option>
+              {buses.map((bus) => (
+                <option key={bus.id} value={bus.id} disabled={bus.status !== "Đang hoạt động"}>
+                  {bus.plate} · {bus.type} · {bus.capacity} chỗ{bus.status !== "Đang hoạt động" ? ` (${bus.status})` : ""}
+                </option>
+              ))}
+            </select>
+            <p id="trip-bus-help" className="mt-1 text-[11px] text-gray-500">Sơ đồ ghế và sức chứa lấy từ xe được chọn.</p>
+            {errors.busId && <p className="mt-1 text-[11px] text-rose-500">{errors.busId}</p>}
+            {busError && (
+              <div role="alert" className="mt-2 rounded-lg bg-rose-50 p-3 text-xs text-rose-700">
+                <p>{busError}</p>
+                <button type="button" onClick={refreshBuses} className="mt-1 underline">Tải lại danh sách xe</button>
+              </div>
+            )}
+            {!loadingBuses && !busError && activeBuses.length === 0 && (
+              <p role="status" className="mt-2 text-xs text-amber-700">Chưa có xe đang hoạt động. <Link href="/admin/buses" className="underline">Thêm hoặc kích hoạt xe tại Quản lý Xe</Link> để tạo chuyến.</p>
+            )}
+            {selectedBus && selectedBus.status !== "Đang hoạt động" && (
+              <p className="mt-2 text-xs text-amber-700">Xe hiện tại đang {selectedBus.status.toLocaleLowerCase("vi")}. Chỉ có thể đổi sang xe đang hoạt động.</p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="trip-price" className="block text-xs font-semibold text-gray-700 mb-1">
@@ -227,19 +277,12 @@ export function TripModal({
 
             <div>
               <label htmlFor="trip-capacity" className="block text-xs font-semibold text-gray-700 mb-1">
-                Sức chứa chuyến xe <span className="text-rose-500">*</span>
+                Sức chứa của xe
               </label>
-              <input
-                type="number"
+              <output
                 id="trip-capacity"
-                name="capacity"
-                defaultValue={defaultValues.capacity}
-                disabled={isSubmitting}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              />
-              {errors.capacity && (
-                <p className="text-[11px] text-rose-500 mt-1">{errors.capacity}</p>
-              )}
+                className="block w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-xs text-gray-700"
+              >{selectedBus ? `${selectedBus.capacity} chỗ` : "Chọn xe để xem sức chứa"}</output>
             </div>
           </div>
 
@@ -256,7 +299,7 @@ export function TripModal({
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || loadingBuses || Boolean(busError) || !selectedBus}
               className="px-4 py-2 bg-brand-primary hover:bg-brand-dark text-white text-xs font-bold rounded-lg shadow-xs transition-all cursor-pointer disabled:opacity-50"
             >
               {submitLabel}

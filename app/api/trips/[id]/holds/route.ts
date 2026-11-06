@@ -23,12 +23,12 @@ export async function GET(
     const session = ensureSeatSession(request);
     const [activeHolds, trip] = await Promise.all([
       getActiveSeatHolds(tripId, clientId ? deriveSeatOwner(session.id, clientId) : undefined),
-      prisma.trip.findUnique({ where: { id: tripId }, select: { capacity: true, booking: { where: { status: { not: "CANCELLED" } }, select: { seatNumber: true } } } }),
+      prisma.trip.findUnique({ where: { id: tripId }, select: { bus: { select: { capacity: true } }, booking: { where: { status: { not: "CANCELLED" } }, select: { seatNumber: true } } } }),
     ]);
     if (!trip) throw new BusinessError("Không tìm thấy chuyến xe.", 404);
     
     const bookedSeats = trip.booking.map((booking) => booking.seatNumber);
-    return NextResponse.json({ success: true, holds: activeHolds, capacity: trip.capacity, bookedSeats, selections: getSeatSnapshot(tripId, bookedSeats).selections }, {
+    return NextResponse.json({ success: true, holds: activeHolds, capacity: trip.bus.capacity, bookedSeats, selections: getSeatSnapshot(tripId, bookedSeats).selections }, {
       headers: { "Cache-Control": "no-store", ...(session.cookie ? { "Set-Cookie": session.cookie } : {}) },
     });
   } catch (error) {

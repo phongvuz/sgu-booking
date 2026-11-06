@@ -36,13 +36,17 @@ async function main() {
   assert.equal(await target.employee.count(), 1);
   assert.equal(await target.booking.count(), 1);
   const booking = await target.booking.findFirst();
-  const trip = await target.trip.findUnique({ where: { id: booking.tripId } });
-  assert.equal(trip.availableSeats, trip.capacity - 1);
+  const trip = await target.trip.findUnique({ where: { id: booking.tripId }, include: { bus: true } });
+  assert.equal(trip.availableSeats, trip.bus.capacity - 1);
+  assert.equal("capacity" in trip, false);
   const constraints = await target.$queryRawUnsafe("SELECT CONSTRAINT_NAME FROM information_schema.TABLE_CONSTRAINTS WHERE TABLE_SCHEMA = DATABASE() AND CONSTRAINT_TYPE = 'CHECK'");
-  assert.equal(constraints.length, 5);
+  assert.equal(constraints.length, 6);
   const foreignKey = await target.$queryRawUnsafe("SELECT UPDATE_RULE FROM information_schema.REFERENTIAL_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND TABLE_NAME = 'booking' AND REFERENCED_TABLE_NAME = 'trip'");
   assert.equal(foreignKey[0].UPDATE_RULE, "RESTRICT");
-  await assert.rejects(() => target.trip.update({ where: { id: trip.id }, data: { capacity: 0 } }));
+  await assert.rejects(() => target.bus.update({ where: { id: trip.busId }, data: { capacity: 0 } }));
+  await assert.rejects(() => target.trip.update({ where: { id: trip.id }, data: { availableSeats: 61 } }));
+  await assert.rejects(() => target.trip.update({ where: { id: trip.id }, data: { busId: "MISSING-BUS" } }));
+  await assert.rejects(() => target.bus.delete({ where: { id: trip.busId } }));
   await assert.rejects(() => target.booking.update({ where: { id: booking.id }, data: { activeSeat: null } }));
   await assert.rejects(() => target.booking.update({ where: { id: booking.id }, data: { totalPrice: -1 } }));
   await assert.rejects(() => target.booking.update({ where: { id: booking.id }, data: { status: "UNKNOWN" } }));
@@ -51,9 +55,9 @@ async function main() {
     seatNumber: booking.seatNumber, activeSeat: booking.activeSeat, totalPrice: booking.totalPrice,
     userId: booking.userId, tripId: booking.tripId, status: "CONFIRMED",
   } }), { code: "P2002" });
-  console.log("PASS: ADMIN/CUSTOMER seed, password hashes, future trips, history, unique indexes, FK and all five CHECK constraints.");
+  console.log("PASS: ADMIN/CUSTOMER seed, password hashes, bus-backed trips, history, unique indexes, FK and all six CHECK constraints.");
 
-  const added = await target.trip.create({ data: { from: "QA preserve", to: "QA destination", time: new Date(Date.now() + 86400000), price: 100000, capacity: 22, availableSeats: 22 } });
+  const added = await target.trip.create({ data: { from: "QA preserve", to: "QA destination", time: new Date(Date.now() + 86400000), price: 100000, busId: trip.busId, availableSeats: trip.bus.capacity } });
   const originalHash = users[0].password;
   const again = runDemo(database);
   assert.equal(again.status, 0, "Owned demo reuse failed.");

@@ -27,7 +27,13 @@ export default async function TripsPage({
     vehicles: filters.vehicles,
     page: filters.page,
   });
-
+  if (process.env.NODE_ENV === "development") {
+    console.info("[TripsPage/server] queryPublicTrips completed", {
+      pid: process.pid,
+      rows: trips.length,
+      total: pagination.total,
+    });
+  }
   return (
     <div className="bg-gray-100 min-h-screen py-8">
       <div className="max-w-7xl mx-auto px-4">

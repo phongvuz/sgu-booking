@@ -1,7 +1,7 @@
 import { requireAdmin, apiError, readJson } from "@/lib/admin-api";
 import { readOption } from "@/lib/query-params";
 import { NextRequest, NextResponse } from "next/server";
-import { queryBuses, createBus, checkBusPlateConflict } from "@/services/busService";
+import { queryBuses, createBus, checkBusPlateConflict, getSelectableBuses } from "@/services/busService";
 import { busSchema } from "@/lib/validations/bus";
 import { BusQueryParams } from "@/types";
 
@@ -14,13 +14,17 @@ export async function GET(request: NextRequest) {
     await requireAdmin(request);
     const { searchParams } = new URL(request.url);
 
+    if (searchParams.get("selectable") === "true") {
+      return NextResponse.json({ success: true, data: await getSelectableBuses() });
+    }
+
     const params: BusQueryParams = {
       search: searchParams.get("search") || "",
       type: searchParams.get("type") || "",
       status: searchParams.get("status") || "",
       page: searchParams.get("page") ? parseInt(searchParams.get("page")!, 10) : 1,
       limit: searchParams.get("limit") ? parseInt(searchParams.get("limit")!, 10) : 10,
-      sortBy: readOption(searchParams.get("sortBy"), ["plate", "seats", "createdAt", "id"] as const, "createdAt"),
+      sortBy: readOption(searchParams.get("sortBy"), ["plate", "capacity", "createdAt", "id"] as const, "createdAt"),
       sortOrder: readOption(searchParams.get("sortOrder"), ["asc", "desc"] as const, "desc"),
     };
 

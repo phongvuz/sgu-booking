@@ -4,7 +4,7 @@ const { load } = require("./load-ts.cjs");
 
 test("trip input rejects fractional VND before a ticket can be reserved", () => {
   const { tripSchema } = load("lib/validations/trip.ts");
-  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", capacity: 22 };
+  const trip = { from: "Sài Gòn", to: "Đà Lạt", time: "2026-12-02T08:00", busId: "BUS-PRICE-TEST" };
   for (const price of [10000.5, "10000.5", NaN, Infinity, 9999, 10000001]) {
     assert.equal(tripSchema.safeParse({ ...trip, price }).success, false);
   }

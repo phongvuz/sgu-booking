@@ -137,14 +137,14 @@ export async function updateOrderStatus(id: number | string, newStatus: BookingS
   if (!["CONFIRMED", "PENDING", "CANCELLED"].includes(newStatus)) throw new BusinessError("Trạng thái vé không hợp lệ.");
   let changedTripId: number | undefined;
   const changed = await runTransaction(async (tx) => {
-    const existing = await tx.booking.findUnique({ where: { id: orderId }, include: { trip: true } });
+    const existing = await tx.booking.findUnique({ where: { id: orderId }, include: { trip: { include: { bus: true } } } });
     if (!existing) return false;
     if (existing.status === newStatus) return true;
     if (existing.status === "CONFIRMED" && newStatus === "PENDING") throw new BusinessError("Vé đã thanh toán không thể chuyển về chờ thanh toán.", 409);
     if (existing.trip.time <= new Date() && (newStatus === "CANCELLED" || existing.status === "CANCELLED")) throw new BusinessError("Chuyến xe đã xuất bến. Không thể thay đổi trạng thái vé.", 409);
 
     if (existing.status === "CANCELLED" && newStatus !== "CANCELLED") {
-      if (!getSeatCodes(existing.trip.capacity).includes(existing.seatNumber)) throw new BusinessError("Ghế không còn thuộc sơ đồ hiện tại. Không thể khôi phục vé.", 409);
+      if (!getSeatCodes(existing.trip.bus.capacity).includes(existing.seatNumber)) throw new BusinessError("Ghế không còn thuộc sơ đồ hiện tại. Không thể khôi phục vé.", 409);
       const conflict = await tx.booking.findFirst({ where: { activeSeat: `${existing.tripId}:${existing.seatNumber}` } });
       const held = await tx.seatHold.findFirst({ where: { tripId: existing.tripId, seatNumber: existing.seatNumber, expiresAt: { gt: new Date() } } });
       if (conflict || held) throw new BusinessError("Ghế này đã được đặt hoặc đang được giữ. Không thể khôi phục vé.", 409);

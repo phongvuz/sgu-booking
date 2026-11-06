@@ -52,6 +52,7 @@ export function TripTable({
           <tr>
             <th className="px-5 py-3.5">Mã Chuyến</th>
             <th className="px-5 py-3.5">Lộ trình Tuyến</th>
+            <th className="px-5 py-3.5">Xe phục vụ</th>
             <th className="px-5 py-3.5">Thời gian xuất bến</th>
             <th className="px-5 py-3.5">Giá vé</th>
             <th className="px-5 py-3.5">Tình trạng chỗ</th>
@@ -76,6 +77,11 @@ export function TripTable({
                     <span className="text-gray-400 font-normal"><FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
                     <span>{trip.to}</span>
                   </div>
+                </td>
+                <td className="px-5 py-3.5">
+                  <p className="font-bold text-gray-900">{trip.bus.plate}</p>
+                  <p className="mt-0.5 text-[11px] text-gray-500">{trip.bus.type} · {trip.bus.capacity} chỗ</p>
+                  {trip.bus.status !== "Đang hoạt động" && <p className="mt-0.5 text-[11px] text-amber-700">{trip.bus.status}</p>}
                 </td>
                 <td className="px-5 py-3.5">
                   <p className="font-bold text-gray-900">{timeInfo.departureTime}</p>

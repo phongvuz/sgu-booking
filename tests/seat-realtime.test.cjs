@@ -195,7 +195,7 @@ test("HTTP rejects mismatched trips, unknown seats, booked seats and missing con
   const route = load("app/api/trips/[id]/seat-events/route.ts", {
     "@/lib/admin-api": apiHelpers,
     "@/lib/prisma": { prisma: {
-      trip: { findUnique: async ({ where }) => where.id === tripId ? { capacity: 6, time: new Date(Date.now() + 86400000) } : null },
+      trip: { findUnique: async ({ where }) => where.id === tripId ? { bus: { capacity: 6 }, time: new Date(Date.now() + 86400000) } : null },
       booking: { findFirst: async ({ where }) => where.seatNumber.in.includes("B01") ? { seatNumber: "B01" } : null },
     } },
   });
@@ -283,7 +283,7 @@ test("HTTP rejects a second browser claiming the victim's public ID", async () =
   const connection = connect(tripId, "victim");
   const route = load("app/api/trips/[id]/seat-events/route.ts", {
     "@/lib/admin-api": apiHelpers,
-    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ capacity: 6, time: new Date(Date.now() + 86400000) }) }, booking: { findFirst: async () => null } } },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ bus: { capacity: 6 }, time: new Date(Date.now() + 86400000) }) }, booking: { findFirst: async () => null } } },
   });
   const attackerCookie = `${seatSession.SEAT_SESSION_COOKIE}=${seatSession.createSeatSessionToken()}`;
   const body = JSON.stringify({ tripId, clientId: "victim", seatNumber: "A01", type: "SEAT_DESELECTED" });

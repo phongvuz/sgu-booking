@@ -23,7 +23,7 @@ export function toBus(record: BusRecord): Bus {
     id: record.id,
     plate: record.plate,
     type: record.type,
-    seats: record.seats,
+    capacity: record.capacity,
     status: record.status,
     brand: record.brand || undefined,
     year: record.year || undefined,

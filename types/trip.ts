@@ -1,4 +1,5 @@
 import type { PaginationMeta } from "./common";
+import type { BusOption } from "./bus";
 
 export interface TripQueryParams {
   bookable?: boolean;
@@ -14,6 +15,8 @@ export interface TripQueryParams {
 
 export interface TripAdminItem {
   id: number;
+  busId: string;
+  bus: BusOption;
   from: string;
   to: string;
   time: string;

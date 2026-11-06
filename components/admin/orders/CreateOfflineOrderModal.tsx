@@ -137,7 +137,7 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
                   const time = formatTripTime(trip.time);
                   return (
                     <option key={trip.id} value={trip.id}>
-                      [{trip.id}] {trip.from} &rarr; {trip.to} ({time.departureTime} {time.dateFormatted}) - {formatPrice(trip.price)}
+                      [{trip.id}] {trip.from} &rarr; {trip.to} ({time.departureTime} {time.dateFormatted}) · {trip.bus.plate} · {trip.bus.capacity} chỗ - {formatPrice(trip.price)}
                     </option>
                   );
                 })}

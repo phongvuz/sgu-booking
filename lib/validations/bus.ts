@@ -12,10 +12,10 @@ export const busSchema = z.object({
     .string()
     .trim()
     .min(2, "Vui lòng chọn hoặc nhập loại xe"),
-  seats: z.coerce
+  capacity: z.coerce
     .number()
     .int("Số ghế phải là số nguyên")
-    .min(10, "Số lượng ghế phải từ 10 trở lên")
+    .min(1, "Số lượng ghế phải từ 1 trở lên")
     .max(60, "Số lượng ghế không vượt quá 60"),
   status: z.enum(["Đang hoạt động", "Bảo dưỡng", "Ngừng hoạt động"], {
     message: "Trạng thái không hợp lệ",

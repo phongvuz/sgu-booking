@@ -25,9 +25,12 @@ async function main() {
   assert.match(database, /^nha_xe_payment_verify_\d+$/);
   await control.$executeRawUnsafe(`CREATE DATABASE \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
   created = true;
-  const migrated = spawnSync(process.execPath, [require.resolve("prisma/build/index.js"), "migrate", "deploy"], { encoding: "utf8", env: { ...process.env, DATABASE_URL: url.toString() } });
-  assert.equal(migrated.status, 0, migrated.stderr);
-  const trip = await prisma.trip.create({ data: { from: "Demo Test", to: "Destination", time: new Date(Date.now() + 86400000), price: 200000, capacity: 6, availableSeats: 6 } });
+  // Payment behavior uses the current datamodel; historical migration deployment
+  // is checked separately by admin-db.cjs.
+  const pushed = spawnSync(process.execPath, [require.resolve("prisma/build/index.js"), "db", "push", "--skip-generate"], { encoding: "utf8", env: { ...process.env, DATABASE_URL: url.toString() } });
+  assert.equal(pushed.status, 0, pushed.error?.message || pushed.stderr || pushed.stdout);
+  const bus = await prisma.bus.create({ data: { id: "BUS-PAYMENT", plate: "99B-100.01", type: "Ghế ngồi", capacity: 6, status: "Đang hoạt động" } });
+  const trip = await prisma.trip.create({ data: { from: "Demo Test", to: "Destination", time: new Date(Date.now() + 86400000), price: 200000, busId: bus.id, availableSeats: bus.capacity } });
   const input = { tripId: trip.id, fullName: "Payment Test", phone: "0999000001", status: "PENDING" };
   const first = await bookings.createBooking({ ...input, seats: ["A01", "B01"] });
   const info = await payments.getVietqrPaymentInfo(first.pnr);

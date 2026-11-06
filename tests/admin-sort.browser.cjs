@@ -25,7 +25,7 @@ test("admin sort controls reset pagination, preserve filters and refresh, and fi
     page.on("pageerror", (error) => errors.push(error.message));
     const cases = [
       ["trips", "/api/trips", "price"],
-      ["buses", "/api/buses", "plate"],
+      ["buses", "/api/buses", "capacity"],
       ["employees", "/api/employees", "name"],
       ["orders", "/api/admin/orders", "totalPrice"],
       ["users", "/api/users", "fullName"],

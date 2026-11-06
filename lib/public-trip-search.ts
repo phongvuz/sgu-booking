@@ -53,7 +53,8 @@ export function publicTripUrl(filters: PublicTripFilters, page = filters.page): 
   return search ? `/trips?${search}` : "/trips";
 }
 
-export function tripVehicleLabel(capacity: number): string {
+export function tripVehicleLabel(capacity: number, busType?: string): string {
+  if (busType?.trim()) return busType.trim();
   if (capacity === 22) return "Limousine 22 phòng";
   if (capacity === 34) return "Giường nằm 34 chỗ";
   return `Xe ${capacity} chỗ`;

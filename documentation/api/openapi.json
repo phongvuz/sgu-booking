@@ -2069,7 +2069,7 @@
               "description": "Cột sắp xếp.",
               "enum": [
                 "plate",
-                "seats",
+                "capacity",
                 "createdAt",
                 "id"
               ]
@@ -2088,6 +2088,20 @@
                 "desc"
               ]
             }
+          },
+          {
+            "name": "selectable",
+            "in": "query",
+            "required": false,
+            "description": "true: trả toàn bộ xe đang hoạt động để chọn khi tạo/sửa chuyến; không phân trang.",
+            "schema": {
+              "type": "string",
+              "description": "true: trả toàn bộ xe đang hoạt động để chọn khi tạo/sửa chuyến; không phân trang.",
+              "enum": [
+                "true",
+                "false"
+              ]
+            }
           }
         ],
         "responses": {
@@ -2096,7 +2110,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/AdminListResult"
+                  "$ref": "#/components/schemas/DataResult"
                 }
               }
             }
@@ -4606,10 +4620,10 @@
             "minimum": 10000,
             "maximum": 10000000
           },
-          "capacity": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 60
+          "busId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 191
           }
         },
         "required": [
@@ -4617,7 +4631,7 @@
           "to",
           "time",
           "price",
-          "capacity"
+          "busId"
         ]
       },
       "BusInput": {
@@ -4633,9 +4647,9 @@
             "type": "string",
             "minLength": 2
           },
-          "seats": {
+          "capacity": {
             "type": "integer",
-            "minimum": 10,
+            "minimum": 1,
             "maximum": 60
           },
           "status": {
@@ -4728,7 +4742,7 @@
         "required": [
           "plate",
           "type",
-          "seats",
+          "capacity",
           "status"
         ]
       },
@@ -5604,7 +5618,7 @@
       "app/api/bookings/route.ts": "439a58c38580a691324845b3f71b215432511526c26731d0567894d7fb9edce2",
       "app/api/buses/[id]/route.ts": "329df77ca507ee790783db6e51462f559f07be0a58de14749440a35cc1a08819",
       "app/api/buses/[id]/status/route.ts": "ecf4108262478d0798cd3838b19a336f3caf4696741ab675d4190af18d1df92e",
-      "app/api/buses/route.ts": "a86cd3ba032e4df7809a9f2a05dcffc4990a5f1ffc73c7e6a919573def22b8b1",
+      "app/api/buses/route.ts": "96875a3f286d3c7d8f829f7a06ec4cb3de7a5a980cf964fd6c2a512d48e89501",
       "app/api/customer/profile/route.ts": "0dfd152c28112c077023ecc8ea70b9b724b48daf69e3d46bbeafe7fb7be15140",
       "app/api/employees/[id]/route.ts": "63a17a37cb8190a605ed6a2e44d25e359fd3b92f213a81ec8673aa062bf9a91f",
       "app/api/employees/[id]/status/route.ts": "cb288c8af67f78160010cb8e7287872442d030628a37d65769f23b5345db0649",
@@ -5613,50 +5627,50 @@
       "app/api/payments/demo/confirm/route.ts": "93b27c6276a883a1a8de80405e85a828422b39abe998d0c8253cd6544bdab8d1",
       "app/api/payments/status/route.ts": "a7de6994b0ad1c3691632122ddb6767a90c96c0dd6ca72272f1e4164b8b4771e",
       "app/api/seats/hold/route.ts": "aaca3498c043153c303ca38c0d289227210d57eb1d3eeeb9036dc15bf40e7e98",
-      "app/api/trips/[id]/holds/route.ts": "e3067d84abc072f6c847121db61cb2f8f09c34453d0d83a80505bb9d932797e7",
+      "app/api/trips/[id]/holds/route.ts": "f96521219c14d9e88b5a819aa9faf8b73422f879923bdaf1851a6dbc69818fb2",
       "app/api/trips/[id]/route.ts": "8b41df91baa5febff87646b451d5e72d501b682a72f104c48c9c642c94228a31",
-      "app/api/trips/[id]/seat-events/route.ts": "9ce1a55fe4a85587231572db88cfead6614bc5d39e9b7c17328185c008593f05",
+      "app/api/trips/[id]/seat-events/route.ts": "94d44e5de5ac6b05cc51ad98ff1a0bd21732547020e6cf8a5ca92c9472f4ecd6",
       "app/api/trips/[id]/stream/route.ts": "d4490ed2d4b369bb90ee4bf719b470ed7ed662f303bf83db3cb5724830bea228",
       "app/api/trips/locations/route.ts": "7f9b0f824a92b431690f3eb7f5a56b271754156b468db21ccbbec119794fbe64",
-      "app/api/trips/route.ts": "b73e8455805daeb87d47b862961e5fbcac7cfe900ed429f5ecb9d9dd55dbca5c",
+      "app/api/trips/route.ts": "20bd999410be317b89e09992f41549082fc4f8011734f7e97b7b716cbec265f5",
       "app/api/users/[id]/role/route.ts": "1967399716e40e17cf8809b52c2d84545b47d16c22de619af7dd05c3bff2f792",
       "app/api/users/[id]/route.ts": "d67f00ded0db5e3fef73f8eebd6d5af5a511461488dce1e2635c499f69839d70",
       "app/api/users/route.ts": "6a0acf89ba3e43ae0983e44fc9ed852b8553ddee3abca11fd1e3147a80293181",
       "lib/admin-api.ts": "75fdfef378281a8a7f7adae2e5cfe0cc07c72feb75331e67ca56cdc1cb8100d9",
       "lib/business-error.ts": "1155431c742bf085abfa2d8c004e0444f094c7d0d2389546fa19348d133ecb3c",
-      "lib/public-trip-search.ts": "4314f1f4f8b09575f4356b2f320654e9be881ea183e35a7696d65e166e6ce7ac",
+      "lib/public-trip-search.ts": "89740be5a50694021306a4a9ecc6c45910cae37e24dfd2a7dc01b1dd16eeddd3",
       "lib/query-params.ts": "11f59f4d9c6f8fc64af87ef20ab89f65f9cecb034867a6af72f48d33cc8fdd4f",
       "lib/request-origin.ts": "89134178ab322b5c332f40626df8b5ee66838b38fa02f73e6723411812608f05",
       "lib/seat-session.ts": "38948d97ee00eafa364cf9e64e1a72c8f59fe81950f4e65553d07e364e44d0a6",
       "lib/session.ts": "7b53f05965373dc7c29b062039f67f2095c68fd014d484e752fd1a654fa6a9d9",
       "lib/trip-id.ts": "c80bc9868965941876d4220fe76c56e658fe2922a7696af1ef2108f0c277ab2f",
       "lib/trip-search.ts": "013c206ed4e4f6b5d73d731e0fc2b3db1e366688f443018aa66e1cc7ffa869a7",
-      "lib/validations/bus.ts": "1a0fadd6dba9710ea1fbff696e840aaeeda933eb2bd306cbad4f2687a7b52df5",
+      "lib/validations/bus.ts": "2a56cf69cc168fde7b5810f4c69feae4d2a3a1f65b8da3dce1e5d2e0a4bd8f1e",
       "lib/validations/employee.ts": "695959f702ae6e7a3a5c1f9b582ed47e7cc860379e9214a402df9e833f3c7e25",
       "lib/validations/order.ts": "12b150604669ae7c15848814269687dfbe22a1742e89e86c8bb60ad535ada8a9",
       "lib/validations/profile.ts": "238be8a75708dccd601b4a55c30c6daf6d2c6557a09fb254f240ada3d5c748da",
       "lib/validations/register.ts": "8024f790afdd149b4a9c424ce013f18f8e59b8ca94424aff1c0f3475f71bc4e7",
       "lib/validations/seat-realtime.ts": "f68778065a6f6677c2ab0932ffba4958f9d27d2f3bfcbcc83c9a16b8738142e2",
-      "lib/validations/trip.ts": "86484c9456a9d1ce4014e7147a1bfde05cb60b93d291b9c82c10e5a7fcdd7945",
+      "lib/validations/trip.ts": "3bbeca8b80cd0fa02f26044b851bbc4562816ec1ab83d89ecf6c0dd6cbc7678b",
       "lib/validations/user.ts": "959c6e107d6ecb52039a31fadf78042d885e6281a9a2dc5040a19de6b1ac4833",
       "lib/vietqr.ts": "adb9e0a12b9ab148d631b08c566f678f31b9053246446e6ab2390c818e734a86",
       "proxy.ts": "aaa6978cb4e935103d225531e5103b4324790ff2d77ebda63b6d5b8adac738b2",
-      "scripts/api-docs-metadata.cjs": "a12ce423b76b2c19ea796eb97a3484f6fd0004fe0d87c197f044c6a929ac2889",
+      "scripts/api-docs-metadata.cjs": "f276c79eb9341b433a99c75fc816ac0cc80d7fb29acb66a8fb90ee252014a95c",
       "scripts/generate-api-docs.cjs": "04425dab788e9564da954c2f050cdd70c3bdbc6855073d861439586d4e9a697d",
       "services/bookingExpiryService.ts": "1a32e91498ee190b5ea054240539e065ae88c7eee49834d2b15664bf81bdc9c7",
-      "services/bookingService.ts": "644ccdb3ebadfed9d87d6447c987dbf2a5dfb7426bc742c1de874c9a8471e276",
-      "services/busService.ts": "752e43b3450e46022ba8cdcdb94edd93ea9a0821ca3514f5912a10b90e189c60",
-      "services/clientBusService.ts": "ecd6efa7926a92dcd93acc022450fd24c325c1a73693d2551ac44fc34b5ee2d1",
+      "services/bookingService.ts": "6b9024755e1e1b282f1bce100dbfa3aadb00b789b487dbe775e83e1595b03518",
+      "services/busService.ts": "2b380aa3e737438d4b0172658c8b60fe8c83889ed196b21ddd302945039ea5e4",
+      "services/clientBusService.ts": "9efc2eddc6a17048a567eb6d05b0910f4ffdd3605a85ab7108b68fe4e5a7e157",
       "services/clientEmployeeService.ts": "48ce9c4d5ced830980fa3f471985ec2d57c230594eb4cea608c6df5e13413cf3",
       "services/clientOrderService.ts": "c8edd5b723391cebbba4002e2f397e9069d84f6b829e6d8c67f4ff92922a1954",
       "services/clientTripService.ts": "e270705cf06833dc339f6682336fbf60ee5bda5526b06b23f35af7b91123b1c4",
       "services/clientUserService.ts": "faec7eec4243e9acc818aa13d5fb2628044d26c2ebb2cbacc9e84425e870cfb6",
       "services/dashboardService.ts": "0d8e9a0df74df54021ad6abb6fb58ad5f5f1f89dfb2d5ce4066ebed38788f0b3",
       "services/employeeService.ts": "ab994042b7b919f767527708ef3ccf753a7f8adf3dc44a28b0da9d0988ef0cd8",
-      "services/orderService.ts": "30746c44704ab2c635adb53838231bf93509ddc40f40fcfda31899250a4dce94",
+      "services/orderService.ts": "c61c21664a09737c9826cee2760831203609daed6787821c3fa752361d398521",
       "services/paymentService.ts": "18ec66c2c95475c2d96f3f4b3790084305ef4adb92010125d21496b9b88ac69c",
-      "services/seatService.ts": "a7a1002e3f3f937b46865aefdd075d572e4bd528270cee922a33d5222dd47180",
-      "services/tripService.ts": "cc50de5f0eec476e91edacd05bd06b1532408f97b35e0a2af95caf9513ddffad",
+      "services/seatService.ts": "46ebe9921acd26585880af90661ae96a777f9cf82a43d7fcf05356ee1b3ee1e5",
+      "services/tripService.ts": "3d2b16e095af1704c3de438654721cb01fd3318699236c4e67ffd6c90a40a981",
       "services/userService.ts": "c68cb57a22ccf4c07b93441d525506d5434e4b2a264360c63931b073aa8a9e00"
     }
   }

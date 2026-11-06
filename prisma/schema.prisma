@@ -38,13 +38,15 @@ model trip {
   to             String
   time           DateTime
   price          Int
-  capacity       Int
+  busId          String
   availableSeats Int
   createdAt      DateTime   @default(now())
+  bus            bus        @relation(fields: [busId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "trip_busId_fkey")
   booking        booking[]
   seatHolds      SeatHold[]
 
   @@index([time])
+  @@index([busId], map: "trip_busId_idx")
 }
 
 model user {
@@ -103,7 +105,7 @@ model bus {
   id              String   @id
   plate           String   @unique
   type            String
-  seats           Int
+  capacity        Int
   status          String   @default("Đang hoạt động")
   brand           String?
   year            Int?
@@ -112,6 +114,7 @@ model bus {
   lastMaintenance String?
   notes           String?  @db.Text
   createdAt       DateTime @default(now())
+  trips           trip[]
 }
 
 // Một lượt thanh toán cho tất cả ghế có cùng mã PNR.

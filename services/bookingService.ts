@@ -47,7 +47,7 @@ export async function createBooking(
   const guestPassword = await hashPassword(randomBytes(32).toString("hex"));
 
   const result = await runTransaction(async (tx) => {
-    const trip = await tx.trip.findUnique({ where: { id } });
+    const trip = await tx.trip.findUnique({ where: { id }, include: { bus: true } });
     if (!trip) throw new TripNotFoundError(input.tripId);
     assertTripPrice(trip.price);
     const now = new Date();
@@ -68,7 +68,7 @@ export async function createBooking(
             ),
           )
         : null;
-    const validSeats = getSeatCodes(trip.capacity);
+    const validSeats = getSeatCodes(trip.bus.capacity);
     if (seats.some((seat) => !validSeats.includes(seat))) throw new BusinessError("Ghế đã chọn không thuộc sơ đồ ghế của chuyến xe.");
     const booked = await tx.booking.findMany({ where: { tripId: trip.id, status: { not: "CANCELLED" },
       seatNumber: { in: seats } }, select: { seatNumber: true } });

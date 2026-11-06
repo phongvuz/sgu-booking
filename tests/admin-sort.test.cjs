@@ -5,7 +5,7 @@ const { renderToStaticMarkup } = require("react-dom/server");
 
 const services = [
   ["services/tripService.ts", "queryTripsAdmin", "trip", ["createdAt", "time", "price", "availableSeats", "id"]],
-  ["services/busService.ts", "queryBuses", "bus", ["createdAt", "plate", "seats", "id"]],
+  ["services/busService.ts", "queryBuses", "bus", ["createdAt", "plate", "capacity", "id"]],
   ["services/employeeService.ts", "queryEmployees", "employee", ["createdAt", "name", "id"]],
   ["services/orderService.ts", "queryOrdersAdmin", "booking", ["createdAt", "totalPrice", "id"]],
   ["services/userService.ts", "queryUsers", "user", ["createdAt", "fullName", "id"]],
@@ -17,7 +17,6 @@ function mockPrisma(onFindMany) {
     prisma[model] = {
       count: async () => 20,
       groupBy: async () => [],
-      aggregate: async () => ({ _sum: { capacity: 0 } }),
       findMany: async (query) => onFindMany(model, query),
     };
   }
@@ -31,6 +30,7 @@ for (const [file, name, model, fields] of services) {
     for (const sortBy of fields) {
       for (const sortOrder of ["asc", "desc"]) {
         prisma[model].findMany = async (query) => {
+          if (query.select?.bus) return [];
           const clauses = Array.isArray(query.orderBy) ? query.orderBy : [query.orderBy];
           assert.deepEqual(clauses[0], { [sortBy]: sortOrder });
           assert.deepEqual(clauses.slice(1), sortBy === "id" ? [] : [{ id: "desc" }]);
@@ -54,8 +54,9 @@ test("new trips appear first by creation date, departure sorting is selectable, 
     { id: 1, createdAt: older, time: new Date("2026-10-12T01:00:00Z") },
     { id: 2, createdAt: newer, time: new Date("2026-10-14T01:00:00Z") },
     { id: 3, createdAt: newer, time: new Date("2026-10-15T01:00:00Z") },
-  ].map((row) => ({ ...row, from: "Sài Gòn", to: "Đà Lạt", price: 300000, capacity: 22, availableSeats: 22, booking: [] }));
+  ].map((row) => ({ ...row, from: "Sài Gòn", to: "Đà Lạt", price: 300000, busId: "BUS-001", bus: { id: "BUS-001", plate: "51B-123.45", type: "Limousine", capacity: 22, status: "Đang hoạt động" }, availableSeats: 22, booking: [] }));
   const prisma = mockPrisma((model, query) => {
+    if (query.select?.bus) return rows.map((row) => ({ bus: row.bus }));
     const clauses = Array.isArray(query.orderBy) ? query.orderBy : [query.orderBy];
     const sorted = [...rows].sort((a, b) => {
       for (const clause of clauses) {

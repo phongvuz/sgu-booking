@@ -2,7 +2,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { randomBytes } = require("node:crypto");
 
-const requiredColumns = ["id", "from", "to", "time", "price", "capacity", "availableSeats", "createdAt"];
+const requiredColumns = ["id", "from", "to", "time", "price", "availableSeats", "createdAt"];
 
 // Imported databases may have the current trip model plus the old required
 // code column. Apply only that already-defined schema change, preserving history.
@@ -14,6 +14,11 @@ async function ensureNumericTripIds(prisma, { backupDirectory = path.resolve(".l
   if (requiredColumns.some((name) => !columnNames.has(name))) {
     throw new Error("Bảng trip chưa có đủ các cột của ứng dụng hiện tại. Dừng sửa để giữ nguyên dữ liệu.");
   }
+  const hasLegacyCapacity = columnNames.has("capacity");
+  const hasBusId = columnNames.has("busId");
+  if (hasLegacyCapacity === hasBusId) {
+    throw new Error("Bảng trip phải có capacity cũ hoặc busId mới. Cần hoàn tất chuyển đổi quan hệ xe trước khi sửa cột code.");
+  }
   const idColumn = columns.find((column) => column.name === "id");
   if (idColumn.type !== "int" || !idColumn.extra.includes("auto_increment")) {
     throw new Error("ID chuyến xe chưa phải số nguyên tự tăng. Cần kiểm tra schema trước khi tiếp tục.");
@@ -22,7 +27,7 @@ async function ensureNumericTripIds(prisma, { backupDirectory = path.resolve(".l
     from: ["varchar", "char"], to: ["varchar", "char"],
     time: ["datetime"], createdAt: ["datetime"],
     price: ["int", "double", "float", "decimal"],
-    capacity: ["int"], availableSeats: ["int"],
+    ...(hasLegacyCapacity ? { capacity: ["int"] } : { busId: ["varchar"] }), availableSeats: ["int"],
   };
   for (const [name, types] of Object.entries(supportedTypes)) {
     const column = columns.find((item) => item.name === name);

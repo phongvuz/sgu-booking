@@ -14,7 +14,7 @@ export const tripSortOptions = [
 export const busSortOptions = [
   createdAtOption,
   { value: "plate", label: "Biển số", ascLabel: "A → Z", descLabel: "Z → A" },
-  { value: "seats", label: "Số chỗ" },
+  { value: "capacity", label: "Số chỗ" },
   { value: "id", label: "Mã xe" },
 ] satisfies TableSortOption<NonNullable<BusQueryParams["sortBy"]>>[];
 

@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { formatTripTime, formatPrice } from "@/lib/trip-display";
 import { publicTripUrl, tripVehicleLabel, type PublicTripFilters, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
 import type { PaginationMeta } from "@/types/common";
+import type { BusOption } from "@/types/bus";
 
 interface TripItem {
   id: number;
@@ -16,6 +17,8 @@ interface TripItem {
   price: number;
   availableSeats: number;
   capacity: number;
+  busId: string;
+  bus: BusOption;
 }
 
 interface TripListWithFilterProps {
@@ -150,7 +153,7 @@ export default function TripListWithFilter({ initialTrips, filters, pagination }
         {initialTrips.length > 0 ? (
           initialTrips.map((trip) => {
             const { departureTime, arrivalTime, dateFormatted } = formatTripTime(trip.time);
-            const vehicleType = tripVehicleLabel(trip.capacity);
+            const vehicleType = tripVehicleLabel(trip.bus.capacity, trip.bus.type);
 
             return (
               <div

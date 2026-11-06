@@ -1,10 +1,23 @@
 import { randomBytes } from "node:crypto";
 import { positiveInteger } from "@/lib/query-params";
+import { BusinessError } from "@/lib/business-error";
+import { runTransaction } from "@/lib/transaction";
 import type { Prisma } from "@prisma/client";
 import { toBus } from "@/lib/record-mappers";
 import { prisma } from "@/lib/prisma";
 import { Bus, BusQueryParams, PaginationMeta, BusStats } from "@/types";
 import { BusFormValues } from "@/lib/validations/bus";
+
+function assertBusCapacity(capacity: number) {
+  if (!Number.isInteger(capacity) || capacity < 1 || capacity > 60) {
+    throw new BusinessError("Sức chứa xe phải là số nguyên từ 1 đến 60.");
+  }
+}
+
+export async function getSelectableBuses(): Promise<Bus[]> {
+  const buses = await prisma.bus.findMany({ where: { status: "Đang hoạt động" }, orderBy: [{ plate: "asc" }, { id: "asc" }] });
+  return buses.map(toBus);
+}
 
 /**
  * Lấy danh sách xe với bộ lọc tìm kiếm, loại xe, trạng thái và phân trang
@@ -65,7 +78,7 @@ export async function queryBuses(params: BusQueryParams): Promise<{
   const skip = (validPage - 1) * numLimit;
 
   let orderBy: Prisma.busOrderByWithRelationInput = {};
-  if (sortBy === "plate" || sortBy === "seats" || sortBy === "createdAt" || sortBy === "id") {
+  if (sortBy === "plate" || sortBy === "capacity" || sortBy === "createdAt" || sortBy === "id") {
     orderBy[sortBy] = sortOrder === "asc" ? "asc" : "desc";
   } else {
     orderBy = { id: "desc" };
@@ -124,6 +137,7 @@ export async function checkBusPlateConflict(plate: string, excludeId?: string): 
  * Thêm mới xe vào cơ sở dữ liệu
  */
 export async function createBus(data: BusFormValues): Promise<Bus> {
+  assertBusCapacity(data.capacity);
   const nextId = `BUS-${randomBytes(6).toString("hex").toUpperCase()}`;
 
   const created = await prisma.bus.create({
@@ -131,7 +145,7 @@ export async function createBus(data: BusFormValues): Promise<Bus> {
       id: nextId,
       plate: data.plate.trim().toUpperCase(),
       type: data.type.trim(),
-      seats: Number(data.seats),
+      capacity: data.capacity,
       status: data.status,
       brand: data.brand?.trim() || null,
       year: data.year ? Number(data.year) : null,
@@ -149,38 +163,48 @@ export async function createBus(data: BusFormValues): Promise<Bus> {
  * Cập nhật thông tin xe
  */
 export async function updateBus(id: string, data: Partial<BusFormValues>): Promise<Bus | null> {
-  const bus = await getBusById(id);
-  if (!bus) return null;
+  if (data.capacity !== undefined) assertBusCapacity(data.capacity);
+  return runTransaction(async (tx) => {
+    const bus = await tx.bus.findFirst({ where: { OR: [{ id }, { plate: id }] } });
+    if (!bus) return null;
+    if (data.capacity !== undefined && data.capacity !== bus.capacity && await tx.trip.count({ where: { busId: bus.id } })) {
+      throw new BusinessError("Xe đã được gán cho chuyến. Không thể đổi sức chứa vì sẽ thay đổi sơ đồ ghế; hãy tạo xe khác.", 409);
+    }
 
-  const updateData: Prisma.busUpdateInput = {};
-  if (data.plate !== undefined) updateData.plate = data.plate.trim().toUpperCase();
-  if (data.type !== undefined) updateData.type = data.type.trim();
-  if (data.seats !== undefined) updateData.seats = Number(data.seats);
-  if (data.status !== undefined) updateData.status = data.status;
-  if (data.brand !== undefined) updateData.brand = data.brand?.trim() || null;
-  if (data.year !== undefined) updateData.year = data.year ? Number(data.year) : null;
-  if (data.driverName !== undefined) updateData.driverName = data.driverName?.trim() || null;
-  if (data.driverPhone !== undefined) updateData.driverPhone = data.driverPhone?.trim() || null;
-  if (data.lastMaintenance !== undefined) updateData.lastMaintenance = data.lastMaintenance?.trim() || null;
-  if (data.notes !== undefined) updateData.notes = data.notes?.trim() || null;
+    const updateData: Prisma.busUpdateInput = {};
+    if (data.plate !== undefined) updateData.plate = data.plate.trim().toUpperCase();
+    if (data.type !== undefined) updateData.type = data.type.trim();
+    if (data.capacity !== undefined) updateData.capacity = data.capacity;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.brand !== undefined) updateData.brand = data.brand?.trim() || null;
+    if (data.year !== undefined) updateData.year = data.year ? Number(data.year) : null;
+    if (data.driverName !== undefined) updateData.driverName = data.driverName?.trim() || null;
+    if (data.driverPhone !== undefined) updateData.driverPhone = data.driverPhone?.trim() || null;
+    if (data.lastMaintenance !== undefined) updateData.lastMaintenance = data.lastMaintenance?.trim() || null;
+    if (data.notes !== undefined) updateData.notes = data.notes?.trim() || null;
 
-  const updated = await prisma.bus.update({
-    where: { id: bus.id },
-    data: updateData,
+    const updated = await tx.bus.update({
+      where: { id: bus.id },
+      data: updateData,
+    });
+
+    return toBus(updated);
   });
-
-  return toBus(updated);
 }
 
 /**
  * Xóa một xe
  */
 export async function deleteBus(id: string): Promise<boolean> {
-  const bus = await getBusById(id);
-  if (!bus) return false;
-
-  await prisma.bus.delete({ where: { id: bus.id } });
-  return true;
+  return runTransaction(async (tx) => {
+    const bus = await tx.bus.findFirst({ where: { OR: [{ id }, { plate: id }] } });
+    if (!bus) return false;
+    if (await tx.trip.count({ where: { busId: bus.id } })) {
+      throw new BusinessError("Xe đã được gán cho chuyến hoặc có lịch sử chuyến, không thể xóa.", 409);
+    }
+    await tx.bus.delete({ where: { id: bus.id } });
+    return true;
+  });
 }
 
 /**

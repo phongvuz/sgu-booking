@@ -87,7 +87,7 @@ test("missing orders return 404 and business conflicts remain 409", async () => 
 
 test("cancel and restore return seats once, preserve history and notify viewers after commit", async () => {
   const row = { id: 42, tripId: 7, status: "PENDING", seatNumber: "A01", confirmedAt: null,
-    trip: { capacity: 3, availableSeats: 2, time: new Date(Date.now() + 86400000) } };
+    trip: { bus: { capacity: 3 }, availableSeats: 2, time: new Date(Date.now() + 86400000) } };
   const events = [];
   let committed = false;
   const tx = {

@@ -82,7 +82,7 @@ export function BusTable({
                   <p className="text-[11px] text-gray-400">{bus.brand || "Chưa cập nhật"}</p>
                 </td>
                 <td className="px-5 py-3.5">
-                  <span className="font-bold text-gray-800">{bus.seats} chỗ</span>
+                  <span className="font-bold text-gray-800">{bus.capacity} chỗ</span>
                 </td>
                 <td className="px-5 py-3.5">
                   {bus.driverName ? (
