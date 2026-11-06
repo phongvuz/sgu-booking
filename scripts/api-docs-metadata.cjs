@@ -76,16 +76,22 @@ op("POST", "/api/seats/hold", "Giữ ghế có hạn hoặc giải phóng ghế 
   example: { tripId: 1, clientId: "example-tab", seatNumber: "A01", action: "hold" },
   description: "Cookie seat_session được cấp từ holds/stream; clientId là mã tab. action=hold tạo SeatHold 5 phút trong CSDL; action=release giải phóng ghế thuộc phiên. UI chọn ghế hiện tại không tự gọi API giữ ghế này.",
 });
-op("GET", "/api/payments/status", "Kiểm tra trạng thái thanh toán theo PNR", { queries: [pnr], response: "PaymentResult", errors: [400, 404, 500], description: "status phản ánh bản ghi payment; bookingStatus là CONFIRMED, PENDING hoặc UNAVAILABLE. Cần biết mã PNR." });
+op("GET", "/api/payments/status", "Kiểm tra trạng thái thanh toán theo PNR", { queries: [pnr], response: "PaymentResult", errors: [400, 404, 500], description: "Trả trạng thái thanh toán và các khoản received, refunded, refundDue, amountDue từ sổ thu/hoàn. bookingStatus là CONFIRMED, PENDING hoặc UNAVAILABLE. Cần biết mã PNR." });
 op("POST", "/api/payments/demo/confirm", "Xác nhận thanh toán giả lập", {
   request: "DemoPaymentInput", response: "PaymentResult", example: { pnr: "NHAXE-1-EXAMPLE" }, errors: [400, 403, 404, 409, 500, 503],
   description: "Chỉ hoạt động khi PAYMENT_DEMO_ENABLED=true và cấu hình VietQR hợp lệ. Đây là giả lập, không gọi ngân hàng hoặc xác minh tiền thực nhận. Server tự tính tiền; từ chối vé hết hạn, bị hủy hoặc đã xuất bến. Cần biết PNR; endpoint không yêu cầu tài khoản admin.",
 });
-op("GET", "/api/admin/stats", "Thống kê dashboard quản trị", { auth: "admin", response: "DataResult", errors: [500] });
-op("GET", "/api/admin/orders", "Tìm và phân trang đơn hàng", { auth: "admin", queries: list(["status", "date", "tripId"], ["createdAt", "totalPrice", "id"]), response: "AdminListResult", errors: [400, 500] });
+op("GET", "/api/admin/stats", "Thống kê dashboard quản trị", { auth: "admin", response: "DataResult", errors: [500], description: "Tiền theo kỳ tính bằng khoản thu trừ khoản hoàn phát sinh trong kỳ, không dựa trên trạng thái vé. Bốn số dư thu/hoàn/chờ hoàn/phải thu tính toàn bộ lịch sử; loại trừ giao dịch DEMO." });
+op("GET", "/api/admin/dispatch", "Danh sách xe và tài xế để phân công chuyến", {
+  auth: "admin", response: "DataResult", errors: [400, 500],
+  queries: [q("time", "Giờ xuất bến: datetime-local theo giờ Việt Nam (đến phút) hoặc ISO có múi giờ; phải gửi cùng endsAt."), q("endsAt", "Giờ kết thúc, cùng định dạng time và phải sau time."), query("excludeTripId", integer("Bỏ qua chính chuyến đang sửa.", { minimum: 1, maximum: 2147483647 }))],
+  description: "Mỗi tài xế có available, reason và conflictTripId. Không có khoảng giờ thì available=false, chưa xác định lịch rảnh. Chặn trùng lịch OPEN/DEPARTED; nếu giờ xuất bến đã đến thì mọi chuyến DEPARTED chưa hoàn thành cũng giữ tài xế, kể cả quá giờ kết thúc dự kiến. Phân công tương lai không bị chặn bởi chuyến hiện tại không trùng giờ. Server kiểm tra lại xe và tài xế trong transaction khi lưu chuyến.",
+});
+op("POST", "/api/admin/orders/{id}/payment", "Ghi nhận thu hoặc hoàn tiền của một vé", { auth: "admin", request: "OrderPaymentInput", response: "SuccessMessage", errors: [400, 404, 409, 500], example: { kind: "RECEIPT", method: "CASH" }, description: "Server tự tính số tiền còn phải thu/hoàn và lưu người xử lý từ phiên admin. Chỉ hoàn vé đã hủy. Ghi sổ không tự chuyển tiền qua ngân hàng; giao dịch demo không được tính vào báo cáo tiền thật." });
+op("GET", "/api/admin/orders", "Tìm và phân trang lượt đặt theo PNR", { auth: "admin", queries: list(["status", "date", "tripId"], ["createdAt", "totalPrice", "id"]), response: "AdminListResult", errors: [400, 500], description: "Mỗi dòng là một PNR chứa toàn bộ tickets, kể cả vé đã hủy. Bộ lọc chọn PNR có ít nhất một vé phù hợp. pagination.total và stats.orderCount đếm lượt đặt; stats.total đếm vé; transactionCount đếm mã giao dịch thu/hoàn riêng biệt." });
 op("POST", "/api/admin/orders", "Tạo vé tại quầy", { auth: "admin", request: "OfflineBookingInput", response: "BookingCreated", status: 201, example: { ...bookingExample, status: "CONFIRMED" }, errors: [400, 404, 409, 500] });
 op("GET", "/api/admin/orders/{id}", "Xem chi tiết đơn hàng", { auth: "admin", response: "DataResult", errors: [400, 404, 500] });
-op("PATCH", "/api/admin/orders/{id}", "Đổi trạng thái vé", { auth: "admin", request: "OrderStatusInput", response: "DataResult", errors: [400, 404, 409, 500], description: "status cho phép CONFIRMED, PENDING, CANCELLED; service kiểm tra xung đột và cập nhật ghế khi chuyển trạng thái." });
+op("PATCH", "/api/admin/orders/{id}", "Đổi trạng thái vé", { auth: "admin", request: "OrderStatusInput", response: "DataResult", errors: [400, 404, 409, 500], description: "CONFIRMED tương thích luồng cũ: ghi thu tiền mặt còn thiếu với người xử lý từ phiên admin. CANCELLED trả ghế nhưng giữ nguyên khoản thu, không tự hoàn tiền. PENDING dùng để khôi phục vé đã hủy; nếu tiền chưa hoàn vẫn đủ giá vé thì khôi phục CONFIRMED. Service kiểm tra xung đột ghế trong transaction." });
 op("DELETE", "/api/admin/orders/{id}", "Hủy vé và giữ lịch sử", { auth: "admin", response: "SuccessMessage", errors: [400, 404, 409, 500], description: "Không xóa lịch sử; chuyển vé về CANCELLED và hoàn ghế theo quy tắc nghiệp vụ." });
 
 for (const [resource, label, request, filters, sorts] of [

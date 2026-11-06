@@ -94,7 +94,7 @@ function validatorLoader() {
   return function load(relative) {
     relative = slash(relative);
     if (!/^lib\/validations\/[\w-]+\.ts$/.test(relative)
-      && !["lib/trip-id.ts", "lib/trip-search.ts", "lib/business-error.ts"].includes(relative)) throw new Error(`Validator import not allowed: ${relative}`);
+      && !["lib/trip-id.ts", "lib/trip-search.ts", "lib/business-error.ts", "lib/trip-status.ts"].includes(relative)) throw new Error(`Validator import not allowed: ${relative}`);
     if (cache.has(relative)) return cache.get(relative).exports;
     const filename = path.join(ROOT, relative);
     const mod = new Module(filename, module);
@@ -167,6 +167,7 @@ function buildSchemas() {
     SeatRealtimeMessage: realtime.seatRealtimeMessageSchema,
     SeatHoldInput: inlineSchema("app/api/seats/hold/route.ts", { tripIdSchema, realtimeClientIdSchema: realtime.realtimeClientIdSchema }),
     DemoPaymentInput: inlineSchema("app/api/payments/demo/confirm/route.ts"),
+    OrderPaymentInput: inlineSchema("app/api/admin/orders/[id]/payment/route.ts"),
     OrderStatusInput: z.object({ status: z.enum(enumValues("app/api/admin/orders/[id]/route.ts", "allowedStatuses")) }),
     BusStatusInput: z.object({ status: z.enum(enumValues("app/api/buses/[id]/status/route.ts", "allowedStatuses")) }),
     EmployeeStatusInput: z.object({ status: z.enum(enumValues("app/api/employees/[id]/status/route.ts", "allowedStatuses")) }),

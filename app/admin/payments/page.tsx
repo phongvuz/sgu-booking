@@ -5,6 +5,7 @@ import { readOption } from "@/lib/query-params";
 import { paymentSortOptions } from "@/lib/admin-table-sort";
 import { TableSortNavigation } from "@/components/admin/TableSortNavigation";
 import type { Prisma } from "@prisma/client";
+import { paymentMethodLabels } from "@/lib/booking-money";
 
 export const metadata = { title: "Thanh toán online | Quản trị" };
 
@@ -22,6 +23,9 @@ interface PaymentsPageProps {
     review?: string;
     sortBy?: string;
     sortOrder?: string;
+    ledgerPage?: string;
+    ledgerSearch?: string;
+    kind?: string;
   }>;
 }
 
@@ -46,6 +50,23 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
   // Trong phiên bản Next.js này, searchParams là Promise nên cần await.
   const params = await searchParams;
+  const ledgerWhere: Prisma.BookingTransactionWhereInput = {};
+  if (params.ledgerSearch?.trim()) ledgerWhere.booking = { pnr: { contains: params.ledgerSearch.trim().slice(0, 191) } };
+  if (params.kind === "RECEIPT" || params.kind === "REFUND") ledgerWhere.kind = params.kind;
+  const ledgerCount = await prisma.bookingTransaction.count({ where: ledgerWhere });
+  const ledgerPages = Math.max(1, Math.ceil(ledgerCount / PAGE_SIZE));
+  const requestedLedgerPage = Number(params.ledgerPage);
+  const ledgerPage = Number.isSafeInteger(requestedLedgerPage) && requestedLedgerPage > 0 ? Math.min(requestedLedgerPage, ledgerPages) : 1;
+  const ledger = await prisma.bookingTransaction.findMany({
+    where: ledgerWhere, include: { booking: { select: { pnr: true, seatNumber: true } }, actor: { select: { fullName: true } } },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }], skip: (ledgerPage - 1) * PAGE_SIZE, take: PAGE_SIZE,
+  });
+  function ledgerLink(page: number) {
+    const query = new URLSearchParams({ ledgerPage: String(page) });
+    if (params.ledgerSearch) query.set("ledgerSearch", params.ledgerSearch);
+    if (params.kind) query.set("kind", params.kind);
+    return `/admin/payments?${query.toString()}`;
+  }
   const sortBy = readOption(
     params.sortBy ?? null,
     ["createdAt", "amount", "pnr", "id"] as const,
@@ -101,7 +122,28 @@ export default async function PaymentsPage({ searchParams }: PaymentsPageProps) 
 
   return (
     <div>
-      <h1 className="text-2xl font-bold">Thanh toán online</h1>
+      <h1 className="text-2xl font-bold">Sổ thu / hoàn tiền</h1>
+      <p className="my-3 text-sm text-gray-600">Mỗi khoản tiền gắn với một vé. Các vé chung một lần thu có cùng mã giao dịch. Hủy vé không xóa khoản thu; hoàn tiền được ghi thành dòng riêng.</p>
+      <form className="mb-4 flex flex-wrap gap-3">
+        <label className="text-sm">PNR<input name="ledgerSearch" defaultValue={params.ledgerSearch ?? ""} className="ml-2 rounded border p-2" /></label>
+        <label className="text-sm">Loại<select name="kind" defaultValue={params.kind ?? ""} className="ml-2 rounded border p-2"><option value="">Tất cả</option><option value="RECEIPT">Thu tiền</option><option value="REFUND">Hoàn tiền</option></select></label>
+        <button type="submit" className="rounded border px-4 py-2 text-sm">Lọc sổ tiền</button>
+      </form>
+      <div className="overflow-x-auto rounded-lg border bg-white">
+        <table className="w-full text-left text-sm">
+          <thead className="bg-gray-100"><tr>{["PNR / Ghế", "Loại / Số tiền", "Phương thức", "Người xử lý", "Thời điểm / Mã giao dịch"].map((label) => <th key={label} className="p-3">{label}</th>)}</tr></thead>
+          <tbody>{ledger.map((entry) => <tr key={entry.id} className="border-t">
+            <td className="p-3"><Link className="text-blue-700 underline" href={`/admin/orders?search=${encodeURIComponent(entry.booking.pnr ?? "")}`}>{entry.booking.pnr}</Link><p>Ghế {entry.booking.seatNumber}</p></td>
+            <td className="p-3">{entry.kind === "RECEIPT" ? "Thu" : "Hoàn"}<p className="font-semibold">{entry.amount.toLocaleString("vi-VN")} đ</p></td>
+            <td className="p-3">{paymentMethodLabels[entry.method]}</td>
+            <td className="p-3">{entry.actor?.fullName ?? (entry.method === "DEMO" ? "Khách / hệ thống demo" : "Chưa rõ từ dữ liệu cũ")}</td>
+            <td className="p-3">{formatDate(entry.createdAt)}<p className="break-all text-xs text-gray-500">{entry.reference}</p></td>
+          </tr>)}</tbody>
+        </table>
+        {!ledger.length && <p className="p-6 text-gray-500">Chưa có khoản thu / hoàn phù hợp.</p>}
+      </div>
+      <div className="my-4 flex gap-5 text-sm"><span>Sổ tiền: trang {ledgerPage}/{ledgerPages} · {ledgerCount} dòng phân bổ theo vé</span>{ledgerPage > 1 && <Link href={ledgerLink(ledgerPage - 1)} className="text-blue-700">Trang trước</Link>}{ledgerPage < ledgerPages && <Link href={ledgerLink(ledgerPage + 1)} className="text-blue-700">Trang sau</Link>}</div>
+      <h2 className="mt-8 text-xl font-bold">Lịch sử thanh toán online</h2>
       <p className="my-3 text-sm text-gray-600">VietQR Demo: giao dịch được tạo khi khách bấm “Tôi đã chuyển khoản”. Đây là xác nhận giả lập, chưa được ngân hàng kiểm chứng. Lịch sử cổng thanh toán cũ được giữ để đối chiếu.</p>
       <div className="mb-4 flex gap-5 text-sm font-semibold text-blue-700">
         <Link href={filterLink(false)}>Tất cả</Link>

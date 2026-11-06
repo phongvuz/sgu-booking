@@ -4,7 +4,7 @@ import { TableSort } from "@/components/admin/TableSort";
 import { orderSortOptions } from "@/lib/admin-table-sort";
 
 import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useOrders } from "@/hooks/useOrders";
 import { OrderTable } from "@/components/admin/orders/OrderTable";
@@ -13,11 +13,16 @@ import { OrderStats } from "@/components/admin/orders/OrderStats";
 import { OrderDetailModal } from "@/components/admin/orders/OrderDetailModal";
 import { CreateOfflineOrderModal } from "@/components/admin/orders/CreateOfflineOrderModal";
 import { CancelOrderModal } from "@/components/admin/orders/CancelOrderModal";
+import { OrderPaymentModal } from "@/components/admin/orders/OrderPaymentModal";
 import { EmployeePagination } from "@/components/admin/employees/EmployeePagination";
 import { OrderItem, BookingStatus } from "@/types";
 import { OfflineOrderFormValues } from "@/lib/validations/order";
 
 export default function AdminOrdersPage() {
+  return <Suspense fallback={<p>Đang tải bộ lọc đơn hàng...</p>}><AdminOrdersContent /></Suspense>;
+}
+
+function AdminOrdersContent() {
   const {
     orders,
     stats,
@@ -37,6 +42,8 @@ export default function AdminOrdersPage() {
     createOfflineOrder,
     changeStatus,
     deleteOrder,
+    recordPayment,
+    actionLoading,
   } = useOrders();
 
   const { success, error: toastError, info } = useToast();
@@ -45,6 +52,7 @@ export default function AdminOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<OrderItem | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [moneyAction, setMoneyAction] = useState<{ order: OrderItem; kind: "RECEIPT" | "REFUND" } | null>(null);
 
   function handleOpenDetail(order: OrderItem) {
     setSelectedOrder(order);
@@ -95,7 +103,7 @@ export default function AdminOrdersPage() {
           <h1 className="text-2xl font-bold text-gray-900 tracking-tight flex items-center gap-2">
             <span>Quản lý Đơn hàng & Vé</span>
             <span className="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2.5 py-0.5 rounded-full">
-              {pagination.total} giao dịch
+              {pagination.total} lượt đặt
             </span>
           </h1>
           <p className="text-xs text-gray-500 mt-1">
@@ -166,6 +174,8 @@ export default function AdminOrdersPage() {
           onView={handleOpenDetail}
           onUpdateStatus={handleUpdateStatus}
           onCancel={handleOpenCancel}
+          busy={actionLoading}
+          onPayment={(order, kind) => setMoneyAction({ order, kind })}
         />
 
         {/* Pagination */}
@@ -195,6 +205,18 @@ export default function AdminOrdersPage() {
         order={selectedOrder}
         onConfirmCancel={handleConfirmCancel}
       />
+      {moneyAction && <OrderPaymentModal
+        key={`${moneyAction.order.id}-${moneyAction.kind}`}
+        order={moneyAction.order}
+        kind={moneyAction.kind}
+        onClose={() => setMoneyAction(null)}
+        onSubmit={async (method) => {
+          const response = await recordPayment(moneyAction.order.id, moneyAction.kind, method);
+          if (response.success) success(response.message ?? "Đã lưu giao dịch.");
+          else toastError(response.message ?? "Không thể lưu giao dịch.");
+          return response;
+        }}
+      />}
     </div>
   );
 }

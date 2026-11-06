@@ -1,6 +1,10 @@
 export interface PaymentState {
   status: string;
   bookingStatus: string;
+  received?: number;
+  refunded?: number;
+  refundDue?: number;
+  amountDue?: number;
 }
 
 export interface VietqrPaymentInfo {

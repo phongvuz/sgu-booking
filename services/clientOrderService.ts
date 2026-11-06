@@ -1,4 +1,4 @@
-import type { OrderQueryParams, OrderListResponse, OrderDetailResponse, BookingStatus, MutationResponse } from "@/types";
+import type { OrderQueryParams, OrderListResponse, OrderDetailResponse, BookingStatus, MutationResponse, MoneyMethod } from "@/types";
 import type { OfflineOrderFormValues } from "@/lib/validations/order";
 import { buildQuery, requestJson } from "@/lib/api-client";
 
@@ -22,4 +22,8 @@ export function updateOrderStatus(id: number | string, status: BookingStatus) {
     method: "PATCH",
     body: JSON.stringify({ status }),
   });
+}
+
+export function recordOrderPayment(id: number, kind: "RECEIPT" | "REFUND", method: MoneyMethod) {
+  return requestJson<MutationResponse>(`/api/admin/orders/${id}/payment`, { method: "POST", body: JSON.stringify({ kind, method }) });
 }

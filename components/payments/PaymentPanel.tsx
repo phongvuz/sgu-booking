@@ -29,6 +29,8 @@ export default function PaymentPanel({ pnr, initial, paymentInfo, demoEnabled, c
   const pending = canPay && state.bookingStatus === "PENDING" && !["SUCCESS", "REVIEW"].includes(state.status);
   return <section className="mb-6 rounded-lg border border-gray-200 p-5" aria-label="Thanh toán VietQR">
     <h2 className="mb-3 text-lg font-bold">Thanh toán chuyển khoản VietQR {demoEnabled && <span className="text-sm text-amber-700">· Demo</span>}</h2>
+    {state.refundDue !== undefined && state.refundDue > 0 && <p className="mb-3 text-sm text-amber-800">Vé đã hủy đang chờ hoàn {state.refundDue.toLocaleString("vi-VN")} đ. Liên hệ nhà xe để nhận tiền.</p>}
+    {state.refunded !== undefined && state.refunded > 0 && <p className="mb-3 text-sm text-gray-700">Đã ghi nhận hoàn {state.refunded.toLocaleString("vi-VN")} đ.</p>}
     <p role="status" className="mb-4 text-sm text-gray-700">
       {state.status === "REVIEW" ? "Thanh toán cần đối soát. Vui lòng liên hệ nhà xe."
         : state.bookingStatus === "CONFIRMED" ? "Thanh toán đã được xác nhận. Đặt vé hoàn tất."

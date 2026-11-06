@@ -23,7 +23,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nKhông xóa lịch sử; chuyển vé về CANCELLED và hoàn ghế theo quy tắc nghiệp vụ.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -124,7 +124,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -212,10 +212,10 @@
         "tags": [
           "admin"
         ],
-        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nstatus cho phép CONFIRMED, PENDING, CANCELLED; service kiểm tra xung đột và cập nhật ghế khi chuyển trạng thái.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nCONFIRMED tương thích luồng cũ: ghi thu tiền mặt còn thiếu với người xử lý từ phiên admin. CANCELLED trả ghế nhưng giữ nguyên khoản thu, không tự hoàn tiền. PENDING dùng để khôi phục vé đã hủy; nếu tiền chưa hoàn vẫn đủ giá vé thì khôi phục CONFIRMED. Service kiểm tra xung đột ghế trong transaction.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -328,7 +328,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -418,7 +418,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -498,7 +498,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -610,7 +610,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -700,7 +700,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -780,7 +780,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -892,7 +892,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1059,7 +1059,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1172,7 +1172,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1263,7 +1263,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1344,7 +1344,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1447,17 +1447,121 @@
         "x-required-role": "ADMIN"
       }
     },
-    "/api/admin/orders": {
+    "/api/admin/dispatch": {
       "get": {
-        "operationId": "get_api_admin_orders",
-        "summary": "Tìm và phân trang đơn hàng",
+        "operationId": "get_api_admin_dispatch",
+        "summary": "Danh sách xe và tài xế để phân công chuyến",
         "tags": [
           "admin"
         ],
-        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nMỗi tài xế có available, reason và conflictTripId. Không có khoảng giờ thì available=false, chưa xác định lịch rảnh. Chặn trùng lịch OPEN/DEPARTED; nếu giờ xuất bến đã đến thì mọi chuyến DEPARTED chưa hoàn thành cũng giữ tài xế, kể cả quá giờ kết thúc dự kiến. Phân công tương lai không bị chặn bởi chuyến hiện tại không trùng giờ. Server kiểm tra lại xe và tài xế trong transaction khi lưu chuyến.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
+          }
+        ],
+        "x-access": "admin",
+        "x-source": "app/api/admin/dispatch/route.ts",
+        "parameters": [
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Giờ xuất bến: datetime-local theo giờ Việt Nam (đến phút) hoặc ISO có múi giờ; phải gửi cùng endsAt.",
+            "schema": {
+              "type": "string",
+              "description": "Giờ xuất bến: datetime-local theo giờ Việt Nam (đến phút) hoặc ISO có múi giờ; phải gửi cùng endsAt."
+            }
+          },
+          {
+            "name": "endsAt",
+            "in": "query",
+            "required": false,
+            "description": "Giờ kết thúc, cùng định dạng time và phải sau time.",
+            "schema": {
+              "type": "string",
+              "description": "Giờ kết thúc, cùng định dạng time và phải sau time."
+            }
+          },
+          {
+            "name": "excludeTripId",
+            "in": "query",
+            "required": false,
+            "description": "Bỏ qua chính chuyến đang sửa.",
+            "schema": {
+              "type": "integer",
+              "description": "Bỏ qua chính chuyến đang sửa.",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Yêu cầu thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DataResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON, tham số hoặc dữ liệu không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc thông tin đăng nhập không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không đủ quyền, nguồn yêu cầu không hợp lệ hoặc tính năng bị tắt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi máy chủ hoặc cấu hình.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-required-role": "ADMIN"
+      }
+    },
+    "/api/admin/orders": {
+      "get": {
+        "operationId": "get_api_admin_orders",
+        "summary": "Tìm và phân trang lượt đặt theo PNR",
+        "tags": [
+          "admin"
+        ],
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nMỗi dòng là một PNR chứa toàn bộ tickets, kể cả vé đã hủy. Bộ lọc chọn PNR có ít nhất một vé phù hợp. pagination.total và stats.orderCount đếm lượt đặt; stats.total đếm vé; transactionCount đếm mã giao dịch thu/hoàn riêng biệt.",
+        "security": [
+          {
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1618,7 +1722,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1724,10 +1828,10 @@
         "tags": [
           "admin"
         ],
-        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nTiền theo kỳ tính bằng khoản thu trừ khoản hoàn phát sinh trong kỳ, không dựa trên trạng thái vé. Bốn số dư thu/hoàn/chờ hoàn/phải thu tính toàn bộ lịch sử; loại trừ giao dịch DEMO.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -1784,7 +1888,7 @@
         "tags": [
           "auth"
         ],
-        "description": "Không yêu cầu phiên tài khoản.\n\nKhông yêu cầu đăng nhập; trả authenticated=false và user=null khi không có phiên hợp lệ. Nếu có cả hai phiên, ưu tiên CUSTOMER. Chỉ đọc trạng thái, không đặt hoặc xóa cookie để tránh phản hồi đến muộn xóa phiên mới.",
+        "description": "Không yêu cầu phiên tài khoản.\n\nKhông yêu cầu đăng nhập; trả authenticated=false và user=null khi không có phiên hợp lệ.",
         "security": [],
         "x-access": "public",
         "x-source": "app/api/auth/session/route.ts",
@@ -2001,7 +2105,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -2143,7 +2247,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -2233,7 +2337,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -2384,7 +2488,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -2496,7 +2600,7 @@
         "tags": [
           "payments"
         ],
-        "description": "Không yêu cầu phiên tài khoản.\n\nstatus phản ánh bản ghi payment; bookingStatus là CONFIRMED, PENDING hoặc UNAVAILABLE. Cần biết mã PNR.",
+        "description": "Không yêu cầu phiên tài khoản.\n\nTrả trạng thái thanh toán và các khoản received, refunded, refundDue, amountDue từ sổ thu/hoàn. bookingStatus là CONFIRMED, PENDING hoặc UNAVAILABLE. Cần biết mã PNR.",
         "security": [],
         "x-access": "public",
         "x-source": "app/api/payments/status/route.ts",
@@ -2569,7 +2673,7 @@
         "security": [
           {},
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "optional-admin",
@@ -2779,7 +2883,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3055,7 +3159,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3115,7 +3219,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3246,7 +3350,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nNgoài schema Zod chung, service bắt buộc password cho tài khoản mới và từ chối role=CUSTOMER; tài khoản CUSTOMER phải tạo qua /api/auth/register.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3336,7 +3440,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3535,7 +3639,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3637,7 +3741,7 @@
         "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nEndpoint này chỉ chấp nhận USER hoặc ADMIN. Các quy tắc không tự hạ quyền/vô hiệu hóa quản trị viên cuối cùng được service kiểm tra.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [
           {
-            "AdminSessionCookie": []
+            "SessionCookie": []
           }
         ],
         "x-access": "admin",
@@ -3740,6 +3844,123 @@
         "x-required-role": "ADMIN"
       }
     },
+    "/api/admin/orders/{id}/payment": {
+      "post": {
+        "operationId": "post_api_admin_orders_id_payment",
+        "summary": "Ghi nhận thu hoặc hoàn tiền của một vé",
+        "tags": [
+          "admin"
+        ],
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nServer tự tính số tiền còn phải thu/hoàn và lưu người xử lý từ phiên admin. Chỉ hoàn vé đã hủy. Ghi sổ không tự chuyển tiền qua ngân hàng; giao dịch demo không được tính vào báo cáo tiền thật.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
+        "security": [
+          {
+            "SessionCookie": []
+          }
+        ],
+        "x-access": "admin",
+        "x-source": "app/api/admin/orders/[id]/payment/route.ts",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID nguyên dương, tối đa 2147483647.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderPaymentInput"
+              },
+              "example": {
+                "kind": "RECEIPT",
+                "method": "CASH"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Yêu cầu thành công.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessMessage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON, tham số hoặc dữ liệu không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Chưa đăng nhập hoặc thông tin đăng nhập không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Không đủ quyền, nguồn yêu cầu không hợp lệ hoặc tính năng bị tắt.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Không tìm thấy tài nguyên.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Xung đột dữ liệu, ghế hoặc trạng thái nghiệp vụ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Lỗi máy chủ hoặc cấu hình.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "x-required-role": "ADMIN"
+      }
+    },
     "/api/auth/login": {
       "post": {
         "operationId": "post_api_auth_login",
@@ -3747,7 +3968,7 @@
         "tags": [
           "auth"
         ],
-        "description": "Không yêu cầu phiên tài khoản.\n\nEmail hoặc số điện thoại trong identifier. Trả cookie HttpOnly riêng: admin_session cho ADMIN, customer_session cho CUSTOMER; audience giới hạn loại tài khoản được đăng nhập. Hai phiên tồn tại độc lập trong cùng trình duyệt. Bản demo thêm tiền tố demo_ vào tên cookie.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
+        "description": "Không yêu cầu phiên tài khoản.\n\nEmail hoặc số điện thoại trong identifier. Trả cookie customer_session HttpOnly; audience giới hạn loại tài khoản được đăng nhập.\n\nYêu cầu ghi phải cùng origin với ứng dụng; gửi Content-Type: application/json nếu có body. Cookie do trình duyệt quản lý.",
         "security": [],
         "x-access": "public",
         "x-source": "app/api/auth/login/route.ts",
@@ -3831,23 +4052,6 @@
         "security": [],
         "x-access": "public",
         "x-source": "app/api/auth/logout/route.ts",
-        "parameters": [
-          {
-            "name": "audience",
-            "in": "query",
-            "required": false,
-            "description": "Loại phiên cần đăng xuất, mặc định customer; không xóa phiên của loại tài khoản còn lại.",
-            "schema": {
-              "type": "string",
-              "description": "Loại phiên cần đăng xuất, mặc định customer; không xóa phiên của loại tài khoản còn lại.",
-              "enum": [
-                "customer",
-                "admin"
-              ],
-              "default": "customer"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "Yêu cầu thành công.",
@@ -3855,16 +4059,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Success"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "JSON, tham số hoặc dữ liệu không hợp lệ.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -4380,13 +4574,7 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "customer_session",
-        "description": "Cookie HttpOnly sau đăng nhập/đăng ký CUSTOMER, hạn 24 giờ. Bản demo dùng demo_customer_session. Server kiểm tra lại tài khoản và phiên bản mật khẩu."
-      },
-      "AdminSessionCookie": {
-        "type": "apiKey",
-        "in": "cookie",
-        "name": "admin_session",
-        "description": "Cookie HttpOnly riêng cho ADMIN, hạn 24 giờ. Bản demo dùng demo_admin_session. Đăng nhập/đăng xuất khách hàng không thay đổi phiên này."
+        "description": "Cookie HttpOnly sau đăng nhập/đăng ký. Quyền ADMIN/CUSTOMER vẫn được server kiểm tra; apiKey chỉ mô tả cách truyền cookie."
       },
       "SeatSessionCookie": {
         "type": "apiKey",
@@ -4608,6 +4796,14 @@
               "CONFIRMED",
               "PENDING"
             ]
+          },
+          "paymentMethod": {
+            "default": "CASH",
+            "type": "string",
+            "enum": [
+              "CASH",
+              "BANK_TRANSFER"
+            ]
           }
         },
         "required": [
@@ -4620,6 +4816,45 @@
       "TripInput": {
         "type": "object",
         "properties": {
+          "status": {
+            "default": "DRAFT",
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "OPEN",
+              "DEPARTED",
+              "COMPLETED",
+              "CANCELLED"
+            ]
+          },
+          "busId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 191
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "driverId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 191
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "endsAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "from": {
             "type": "string",
             "minLength": 2,
@@ -5142,6 +5377,30 @@
         ],
         "additionalProperties": false
       },
+      "OrderPaymentInput": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "RECEIPT",
+              "REFUND"
+            ]
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "CASH",
+              "BANK_TRANSFER"
+            ]
+          }
+        },
+        "required": [
+          "kind",
+          "method"
+        ],
+        "additionalProperties": false
+      },
       "OrderStatusInput": {
         "type": "object",
         "properties": {
@@ -5625,15 +5884,17 @@
   "x-generation": {
     "command": "node scripts/generate-api-docs.cjs",
     "check": "node scripts/generate-api-docs.cjs --check",
-    "operationCount": 45,
+    "operationCount": 47,
     "sourceSha256": {
-      "app/api/admin/orders/[id]/route.ts": "cd593ce67bdacea0c5493925b435cfaf1dc7e7511974fccce7d0a69497034efb",
-      "app/api/admin/orders/route.ts": "a2b45a0cc37197c920cd4f5ea5b3e29131d1619e9860f788c98cb30cdc223f7b",
+      "app/api/admin/dispatch/route.ts": "d6baf596c9c58a13cc8080cf5918996ad034ccfbeef1d20562faef8da003c830",
+      "app/api/admin/orders/[id]/payment/route.ts": "d6484106109920342b945956364066bd3ef01d980db8f943c5902d0a0e8bb773",
+      "app/api/admin/orders/[id]/route.ts": "f77bda0ed919cdc2a7d81c947139e3bc802ad9591225febaeed31eac2099dd5d",
+      "app/api/admin/orders/route.ts": "c50e50a02eb6e1874f7d8a756fb2a364ae1ec1168690e9ccfd02138dd49a589d",
       "app/api/admin/stats/route.ts": "3c4da6b84bc0157f3ecfefc27f1d725b481008eb47548b62cf23d4afa53cb4d3",
-      "app/api/auth/login/route.ts": "4873a817e07965328e70bfae48a40b7b1e6ac33068f1eb9386f8124ca73c03ff",
-      "app/api/auth/logout/route.ts": "29d4c3eab91606c62a902f07345add4fb4ccdd31da2cb6a3d0eaef98d2f6ce27",
+      "app/api/auth/login/route.ts": "d9f84d226f1e4281a55c73fc1d60376978c111b0a4fa88e294408f3e7de07984",
+      "app/api/auth/logout/route.ts": "44e058ac9f819521a0d6ded5680f611f21c96973db9c7e652fee25405fc60638",
       "app/api/auth/register/route.ts": "fc251ad0ed30572db4d66a82a3df4aeedf5f410144b0996e804fe6f569b9d296",
-      "app/api/auth/session/route.ts": "77f119a4f56df18bd679df2ce03e26f7b68eab5636327fec8d3ebe1bb8493b14",
+      "app/api/auth/session/route.ts": "d779b18319c1409878567471aa943fdbbd032b614b50de920c8c1a03a64d676c",
       "app/api/bookings/route.ts": "439a58c38580a691324845b3f71b215432511526c26731d0567894d7fb9edce2",
       "app/api/buses/[id]/route.ts": "329df77ca507ee790783db6e51462f559f07be0a58de14749440a35cc1a08819",
       "app/api/buses/[id]/status/route.ts": "ecf4108262478d0798cd3838b19a336f3caf4696741ab675d4190af18d1df92e",
@@ -5655,42 +5916,43 @@
       "app/api/users/[id]/role/route.ts": "1967399716e40e17cf8809b52c2d84545b47d16c22de619af7dd05c3bff2f792",
       "app/api/users/[id]/route.ts": "d67f00ded0db5e3fef73f8eebd6d5af5a511461488dce1e2635c499f69839d70",
       "app/api/users/route.ts": "6a0acf89ba3e43ae0983e44fc9ed852b8553ddee3abca11fd1e3147a80293181",
-      "lib/admin-api.ts": "a3a26536d0b070dbdeaedeb8fa62c13ef89657fff5fa701c4be9e3ddd84c9fa6",
+      "lib/admin-api.ts": "75fdfef378281a8a7f7adae2e5cfe0cc07c72feb75331e67ca56cdc1cb8100d9",
       "lib/business-error.ts": "1155431c742bf085abfa2d8c004e0444f094c7d0d2389546fa19348d133ecb3c",
       "lib/public-trip-search.ts": "4314f1f4f8b09575f4356b2f320654e9be881ea183e35a7696d65e166e6ce7ac",
       "lib/query-params.ts": "11f59f4d9c6f8fc64af87ef20ab89f65f9cecb034867a6af72f48d33cc8fdd4f",
       "lib/request-origin.ts": "89134178ab322b5c332f40626df8b5ee66838b38fa02f73e6723411812608f05",
       "lib/seat-session.ts": "38948d97ee00eafa364cf9e64e1a72c8f59fe81950f4e65553d07e364e44d0a6",
-      "lib/session.ts": "2a43a11596e58dbf5c5c3f4ea3e01da07c080eb60c423ff76d15fdd479de1941",
+      "lib/session.ts": "7b53f05965373dc7c29b062039f67f2095c68fd014d484e752fd1a654fa6a9d9",
       "lib/trip-id.ts": "c80bc9868965941876d4220fe76c56e658fe2922a7696af1ef2108f0c277ab2f",
       "lib/trip-search.ts": "013c206ed4e4f6b5d73d731e0fc2b3db1e366688f443018aa66e1cc7ffa869a7",
       "lib/validations/bus.ts": "1a0fadd6dba9710ea1fbff696e840aaeeda933eb2bd306cbad4f2687a7b52df5",
       "lib/validations/employee.ts": "695959f702ae6e7a3a5c1f9b582ed47e7cc860379e9214a402df9e833f3c7e25",
-      "lib/validations/order.ts": "12b150604669ae7c15848814269687dfbe22a1742e89e86c8bb60ad535ada8a9",
+      "lib/validations/order.ts": "23374721bcd5ac7bc6762814d405f9a0157a39deb10db7038d9a8d6c261d93cb",
       "lib/validations/profile.ts": "238be8a75708dccd601b4a55c30c6daf6d2c6557a09fb254f240ada3d5c748da",
       "lib/validations/register.ts": "8024f790afdd149b4a9c424ce013f18f8e59b8ca94424aff1c0f3475f71bc4e7",
       "lib/validations/seat-realtime.ts": "f68778065a6f6677c2ab0932ffba4958f9d27d2f3bfcbcc83c9a16b8738142e2",
-      "lib/validations/trip.ts": "86484c9456a9d1ce4014e7147a1bfde05cb60b93d291b9c82c10e5a7fcdd7945",
+      "lib/validations/trip.ts": "0e3175631703035dadbbc42737e6f5756fc28e07216ddeaff6a274ba9b3f55b7",
       "lib/validations/user.ts": "959c6e107d6ecb52039a31fadf78042d885e6281a9a2dc5040a19de6b1ac4833",
       "lib/vietqr.ts": "adb9e0a12b9ab148d631b08c566f678f31b9053246446e6ab2390c818e734a86",
       "proxy.ts": "aaa6978cb4e935103d225531e5103b4324790ff2d77ebda63b6d5b8adac738b2",
-      "scripts/api-docs-metadata.cjs": "ab04505596d89d4878976914cf3352e2b25001ac4bef677f69e1deb11a0f0c39",
-      "scripts/generate-api-docs.cjs": "9a3b882a5182325efd1a5f00dba0b3812d2a85cc5dd9e0bd0c5d8cb5f7f487a6",
+      "scripts/api-docs-metadata.cjs": "f8f72fc661b295523111c9c9a23901c902ce4c9c4651561f4844b71cc048f1fa",
+      "scripts/generate-api-docs.cjs": "535dc0643b4fcd6bd269a5a3c5245038c02843f25bb61e952db1f5c3620cf6ca",
       "services/bookingExpiryService.ts": "1a32e91498ee190b5ea054240539e065ae88c7eee49834d2b15664bf81bdc9c7",
-      "services/bookingService.ts": "644ccdb3ebadfed9d87d6447c987dbf2a5dfb7426bc742c1de874c9a8471e276",
-      "services/busService.ts": "752e43b3450e46022ba8cdcdb94edd93ea9a0821ca3514f5912a10b90e189c60",
+      "services/bookingFinanceService.ts": "8c852ce3115f7e2c44a36e2a9c482083612a5008ad951a181c4fe8b0b2ee4b73",
+      "services/bookingService.ts": "8ae7cb644bb1327c0d63d9b28e5de8c340e7e654fc733bce5ccffe09c79498a6",
+      "services/busService.ts": "e88e40e8879ce0541f0830e5533be0ef9b3f296b92a335d6246b6fe96080c179",
       "services/clientBusService.ts": "ecd6efa7926a92dcd93acc022450fd24c325c1a73693d2551ac44fc34b5ee2d1",
       "services/clientEmployeeService.ts": "48ce9c4d5ced830980fa3f471985ec2d57c230594eb4cea608c6df5e13413cf3",
-      "services/clientOrderService.ts": "c8edd5b723391cebbba4002e2f397e9069d84f6b829e6d8c67f4ff92922a1954",
+      "services/clientOrderService.ts": "b7aa988396293a67e5e41b8a85df80bad396b7fa9005b49fd315f798a45e0377",
       "services/clientTripService.ts": "e270705cf06833dc339f6682336fbf60ee5bda5526b06b23f35af7b91123b1c4",
       "services/clientUserService.ts": "faec7eec4243e9acc818aa13d5fb2628044d26c2ebb2cbacc9e84425e870cfb6",
-      "services/dashboardService.ts": "0d8e9a0df74df54021ad6abb6fb58ad5f5f1f89dfb2d5ce4066ebed38788f0b3",
-      "services/employeeService.ts": "ab994042b7b919f767527708ef3ccf753a7f8adf3dc44a28b0da9d0988ef0cd8",
-      "services/orderService.ts": "30746c44704ab2c635adb53838231bf93509ddc40f40fcfda31899250a4dce94",
-      "services/paymentService.ts": "18ec66c2c95475c2d96f3f4b3790084305ef4adb92010125d21496b9b88ac69c",
-      "services/seatService.ts": "a7a1002e3f3f937b46865aefdd075d572e4bd528270cee922a33d5222dd47180",
-      "services/tripService.ts": "cc50de5f0eec476e91edacd05bd06b1532408f97b35e0a2af95caf9513ddffad",
-      "services/userService.ts": "c68cb57a22ccf4c07b93441d525506d5434e4b2a264360c63931b073aa8a9e00"
+      "services/dashboardService.ts": "1c842b3cddb95399feed0ef57f7c53fc4c65d405fe7cf76254a97d2fd00d2f90",
+      "services/employeeService.ts": "40ab6ac2f7793eb720938ed698040fa7a2f399ab4215bd3abbfddc90e5fb9d75",
+      "services/orderService.ts": "e384d81ded2181a0c873500fee5d18d72d451571dc5ef4bcbca4871836c71fed",
+      "services/paymentService.ts": "12d964980f001b050cd607f50c5e3d2ab34ad13d77584c9960eb002a4eed5642",
+      "services/seatService.ts": "f9d8857698f6625e7254659aee307efa466979f717dfc2edb91bb48d5d70c57d",
+      "services/tripService.ts": "9ce05fe212e01342fd8cdea2de0098d848d8eed51378f8bf473030abaf9cd92a",
+      "services/userService.ts": "3fb8d1d5acb1ddb1ffbe9dbd72806d54fc4b6faa440481c23d8109661caa6a92"
     }
   }
 }

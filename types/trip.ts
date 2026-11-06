@@ -17,6 +17,12 @@ export interface TripAdminItem {
   from: string;
   to: string;
   time: string;
+  endsAt: string | null;
+  status: string;
+  busId: string | null;
+  driverId: string | null;
+  busPlate: string;
+  driverName: string;
   price: number;
   availableSeats: number;
   totalSeats: number;
@@ -30,6 +36,9 @@ export interface TripAdminItem {
     totalPrice: number;
     userName: string;
     userPhone: string;
+    paymentStatus: string;
+    received: number;
+    refunded: number;
   }>;
 }
 
