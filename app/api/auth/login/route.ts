@@ -3,7 +3,7 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import { createHash, timingSafeEqual } from "node:crypto";
-import { createSessionToken, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
+import { createSessionToken, ensureSessionConfigured, ADMIN_SESSION_COOKIE, SESSION_COOKIE, sessionCookieOptions } from "@/lib/session";
 import { isSameOriginRequest } from "@/lib/request-origin";
 
 export const runtime = "nodejs";
@@ -42,6 +42,7 @@ export async function POST(request: Request) {
     if (!user || user.isActive === false || !validPassword || !allowed) {
       return NextResponse.json({ message: "Thông tin đăng nhập không đúng hoặc tài khoản không được phép đăng nhập!" }, { status: 401 });
     }
+    ensureSessionConfigured();
     let sessionPassword = user.password;
     if (legacyAdmin) {
       sessionPassword = await hashPassword(password);
@@ -52,7 +53,8 @@ export async function POST(request: Request) {
       if (updated.count !== 1) return NextResponse.json({ message: "Vui lòng đăng nhập lại!" }, { status: 401 });
     }
     const response = NextResponse.json({ success: true, redirectTo: user.role === "ADMIN" ? "/admin" : "/" }, { headers: { "Cache-Control": "no-store" } });
-    response.cookies.set(SESSION_COOKIE, createSessionToken(user.id, sessionPassword), sessionCookieOptions);
+    const cookieName = user.role === "ADMIN" ? ADMIN_SESSION_COOKIE : SESSION_COOKIE;
+    response.cookies.set(cookieName, createSessionToken(user.id, sessionPassword), sessionCookieOptions);
     return response;
   } catch {
     return NextResponse.json({ message: "Không thể đăng nhập lúc này. Vui lòng thử lại sau!" }, { status: 500 });
