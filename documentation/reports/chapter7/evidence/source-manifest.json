@@ -1,0 +1,1057 @@
+{
+  "capturedAt": "2026-11-06T16:34:11.705141+07:00",
+  "sourceDocument": {
+    "path": "D:\\Libarary\\Downloads\\CHƯƠNG 7.docx",
+    "sha256": "a76f92a73826e6ef93cbb53267a869a50d943866ee34a3d48783f848bf09afa6",
+    "unchanged": true
+  },
+  "baseline": {
+    "commit": "1f2bedb",
+    "uncommittedChangesIncluded": true,
+    "notAFrozenReleaseTag": true
+  },
+  "verifiedPriorEvidence": {
+    "path": "documentation/evidence/verification.json",
+    "sha256": "c1b5c07838d943a5941a020e6ee8f09ffcdbec0a217c6d21fd6d3002818259f9",
+    "selectedHashesMatched": 34
+  },
+  "preIntegrationRuntimeCapture": {
+    "path": "docs/chapter7/evidence/runtime-pages.json",
+    "sha256": "a17736115ae04fb95bd1ca47660cd66902c30e5eb00e1dd50c4c9f405b376054",
+    "baselineCommit": "809f9bc",
+    "rerunAfterSynchronization": false
+  },
+  "historicalEvidence": {
+    "path": "documentation/evidence/verification-before-sync.json",
+    "sha256": "6e25f0eb52fd8374974fead7e6dc8a151509f675a47890eddfa591d119de38c8",
+    "baselineCommit": "809f9bc",
+    "httpDemoChecks": 5,
+    "httpSecurityChecks": 8,
+    "httpRerunAfterSynchronization": false
+  },
+  "figures": [
+    {
+      "path": "docs/chapter7/assets/architecture.png",
+      "sha256": "f0418a0ce665b15aea8a684528fe970a4a0a42afa32ec135c572862af123bfda"
+    },
+    {
+      "path": "docs/chapter7/assets/booking-flow.png",
+      "sha256": "7528e11d4615f5523b1d880f3ee76d5caf1f84df8af633327c8cba4c38877d5c"
+    },
+    {
+      "path": "docs/chapter7/assets/runtime-home.png",
+      "sha256": "d9bf141dc804fb1cb39595753e9547d655371fc6a6ca0aa4276fcd2bc42b7dcb"
+    },
+    {
+      "path": "docs/chapter7/assets/runtime-trips.png",
+      "sha256": "8e127fbc93e9a005a96185c292de0ed7c203a326c9c300861980987a9cdefe58"
+    }
+  ],
+  "sourceFiles": [
+    {
+      "path": "app/(auth)/admin/login/page.tsx",
+      "sha256": "877ea826cb17f311ed97a048aa29fa30f782f4a26dc98bcdb1a125ad699e53dc"
+    },
+    {
+      "path": "app/(auth)/layout.tsx",
+      "sha256": "401ea8a6e6433627567bf2fc4633a809556f3806ce7de98ac208ad51c7f96ac1"
+    },
+    {
+      "path": "app/(auth)/login/page.tsx",
+      "sha256": "aba457c3306c59209331b49ebe783eab0ec823f199d148d1066871c32cc870c0"
+    },
+    {
+      "path": "app/(auth)/register/page.tsx",
+      "sha256": "e9bb7b1ca4576eee812d6d5cd6b13c1941218ccd16f8ba55cf57a636f98dabb9"
+    },
+    {
+      "path": "app/(client)/bookings/error.tsx",
+      "sha256": "533940ca9db2398ccd17f621cc985186d43d08e59af95a81770e5929e7ffb5e2"
+    },
+    {
+      "path": "app/(client)/bookings/loading.tsx",
+      "sha256": "3e4d1106f858c6cad1adc8083db63cbdffe37f84c61aeca6ad3a8f4303ea667e"
+    },
+    {
+      "path": "app/(client)/bookings/page.tsx",
+      "sha256": "5d77da59924e9c30811f9b77f72fb9800cc5c742be4109494c57abe4bbba53b8"
+    },
+    {
+      "path": "app/(client)/layout.tsx",
+      "sha256": "798f152d2cf722364da76195c72d2ab414d517944d0a9fa1b4cd8129ba56fdcb"
+    },
+    {
+      "path": "app/(client)/lookup/page.tsx",
+      "sha256": "81830a3cee9db0022b22b755563fd5d10ef7ec88356c025eb309008048b83067"
+    },
+    {
+      "path": "app/(client)/page.tsx",
+      "sha256": "baf80acde7d9f15f4523591e08c43ce29afa24c586deb1bbe0f20dc918296fb6"
+    },
+    {
+      "path": "app/(client)/profile/page.tsx",
+      "sha256": "c1bf0927063e80502f3b1abbeb13745dd6d84a31c38ecec76459995e74820538"
+    },
+    {
+      "path": "app/(client)/success/page.tsx",
+      "sha256": "2775b5d60e72dfb8dc2e06c9c68e5f0e276de3f28a4bfbabc805a8cf7a6e305d"
+    },
+    {
+      "path": "app/(client)/trips/[id]/not-found.tsx",
+      "sha256": "a9334a387f5c988dc03720e9eb799e89e86ded4f3631cb1d856a168a1fc2dc22"
+    },
+    {
+      "path": "app/(client)/trips/[id]/page.tsx",
+      "sha256": "b3f9eea1bf6b49d95c1c6a92f75e0592aadfa1f3b335fe0b85ddd6bf5ec08c56"
+    },
+    {
+      "path": "app/(client)/trips/loading.tsx",
+      "sha256": "2222e22d8b054fc782a2a223ca6c9d169816f93b3957d222a3cf1a47311f296a"
+    },
+    {
+      "path": "app/(client)/trips/page.tsx",
+      "sha256": "ac14c40fc2257af9e50463371a0586df3784d7a1cbe5e8a43971974f39d06e65"
+    },
+    {
+      "path": "app/admin/buses/page.tsx",
+      "sha256": "df7a1b9fb8267226581a7973d45cd941f4bc345483c6b25164e890b8733fc564"
+    },
+    {
+      "path": "app/admin/employees/page.tsx",
+      "sha256": "e789c5ba19b3abe9d0eb4ddcb7dc6f8d90e0cad17f92cb7c6eecd72a71a59dcb"
+    },
+    {
+      "path": "app/admin/layout.tsx",
+      "sha256": "3ae9d3105b2f8b82682c54d29355a7e7309430fa4df07e81846e5ba910e7f19e"
+    },
+    {
+      "path": "app/admin/orders/page.tsx",
+      "sha256": "95ea6e5998af2cda27a1eb5221c7cb9394e10aa209882b1bded15edb883f45f9"
+    },
+    {
+      "path": "app/admin/page.tsx",
+      "sha256": "52a3b54639d2c9f368e6fb2dbd83f2f7db0c7a4ff6c828959af58e3131f7c732"
+    },
+    {
+      "path": "app/admin/payments/page.tsx",
+      "sha256": "ca04f3029a8810663d06278a3c852c5afe70ccfb88c8ce602b7c0cf1f664c2e7"
+    },
+    {
+      "path": "app/admin/trips/page.tsx",
+      "sha256": "0d1b56ce946f38b242aa0bed13d0c86a4af034129a6082784f021317685535ac"
+    },
+    {
+      "path": "app/admin/users/page.tsx",
+      "sha256": "59e238b00ddf55d29b0e9ac568e2c0a61916eeaaa8b9f7aa9b4fd713021fb59a"
+    },
+    {
+      "path": "app/api/admin/orders/[id]/route.ts",
+      "sha256": "bc6aef6ad217a393389930efd61fcdf5318f69ea82296420b839bd68bbec9e94"
+    },
+    {
+      "path": "app/api/admin/orders/route.ts",
+      "sha256": "5b8c8997602d8f46d8930d71d69e5685da4d5df4fa3964b67c5bc23bc6b83032"
+    },
+    {
+      "path": "app/api/admin/stats/route.ts",
+      "sha256": "a660a0e088554281370bdc60718154a1857fef13de8156012d01d2c6e6d3e618"
+    },
+    {
+      "path": "app/api/auth/login/route.ts",
+      "sha256": "c087383f6875e06fabd3068444f6421d67cf4956bed9cc05878503e5c2469dda"
+    },
+    {
+      "path": "app/api/auth/logout/route.ts",
+      "sha256": "d6d464fed2beabd1aa7cb8556a71d05fa27059183664a765fd479d27a1181489"
+    },
+    {
+      "path": "app/api/auth/register/route.ts",
+      "sha256": "3055292168003f78cf8280f9e5954d43efb6c4ec398bc9cae9ad578d7c430565"
+    },
+    {
+      "path": "app/api/auth/session/route.ts",
+      "sha256": "d5cc457c50cb394dc92075a3a1768fe7941546a0709274693bf37fb2aaeca783"
+    },
+    {
+      "path": "app/api/bookings/route.ts",
+      "sha256": "23637c8e3a21a8d713617a976fea5e10bc98488320e24f7b6bb8346e502ff730"
+    },
+    {
+      "path": "app/api/buses/[id]/route.ts",
+      "sha256": "263674ab2c952403d0dd1d0a083fa48bdb306130da876c67be59c73448f508cb"
+    },
+    {
+      "path": "app/api/buses/[id]/status/route.ts",
+      "sha256": "009e4cf3bc35f30e412a1f1be79e70b28437380a68d3769bdc1f0c472c1b986c"
+    },
+    {
+      "path": "app/api/buses/route.ts",
+      "sha256": "cf1facdfc8af181f7be2eb8e85d4d537f687c069813f9a09827d6d3db60ee2f8"
+    },
+    {
+      "path": "app/api/customer/profile/route.ts",
+      "sha256": "ace6ba9d3d1d81a9e8b38a8243a8e0fa3769850875d5a30fb0c3f5fe611209fb"
+    },
+    {
+      "path": "app/api/employees/[id]/route.ts",
+      "sha256": "ed29c6b1556c2607f7d35190704c4b4ad4f6179b6220d1a9d742e4a8d0b75567"
+    },
+    {
+      "path": "app/api/employees/[id]/status/route.ts",
+      "sha256": "596c6921f7b33eab6438c9cb3bb0b0e8b133d8003f42aadf3a51bf8b00272a7c"
+    },
+    {
+      "path": "app/api/employees/route.ts",
+      "sha256": "fb798cc7e860cf17df6890c5a3e857931c314a437e1bb42fb7486e49cbc9a540"
+    },
+    {
+      "path": "app/api/openapi/route.ts",
+      "sha256": "399a6fca3ddc82788ef8539dce0e80d0d5701c0f9c595cea7ba58cc9b71c8082"
+    },
+    {
+      "path": "app/api/payments/demo/confirm/route.ts",
+      "sha256": "1bf3544834c0a82ce12929a96489f15437cd547a553c6bbb79854efce947847c"
+    },
+    {
+      "path": "app/api/payments/status/route.ts",
+      "sha256": "9b54832b2173ddbe4f8a55e0e4065f857357a14a9dd34fdff78aaa04c8a32475"
+    },
+    {
+      "path": "app/api/seats/hold/route.ts",
+      "sha256": "7c39a01d3c341c36ce770b6e34fd7f9d3802c086bdc8d06400ccb4e6c763f210"
+    },
+    {
+      "path": "app/api/trips/[id]/holds/route.ts",
+      "sha256": "5b7807861921345e82780051d3a2586e171efa8bae6d49769f8911aff742700b"
+    },
+    {
+      "path": "app/api/trips/[id]/route.ts",
+      "sha256": "bad02b084f7cf5865c53e92e2cfde919c202897af9636b56d19504be74ecb45a"
+    },
+    {
+      "path": "app/api/trips/[id]/seat-events/route.ts",
+      "sha256": "65d758f4a59288587df45694f7b11e888f50a4e20848de7d0502c2eb4b14d778"
+    },
+    {
+      "path": "app/api/trips/[id]/stream/route.ts",
+      "sha256": "1d5d2a0098c22e0244043627db4b3fda69c9146db5292b93e025da3349faa17b"
+    },
+    {
+      "path": "app/api/trips/locations/route.ts",
+      "sha256": "76a5d534b511142482046552f85f8eb434fef017a5b7f46b9190d101b4a3e507"
+    },
+    {
+      "path": "app/api/trips/route.ts",
+      "sha256": "1d379b4cc86899ee050a4e26c21d238ad350b5821954f3e3214037d3f12e8e97"
+    },
+    {
+      "path": "app/api/users/[id]/role/route.ts",
+      "sha256": "75f1b32a9f66de3e0ca3e19decdc5c6cca6eea2679e959a64421153636099dbd"
+    },
+    {
+      "path": "app/api/users/[id]/route.ts",
+      "sha256": "459e2cb66516cf3532eb245c9b13902d356b71fb24dc6d2fa3e75e0a9fad358b"
+    },
+    {
+      "path": "app/api/users/route.ts",
+      "sha256": "26d3f123668f1cf0e02ced2c25e8e2efe2c84efaf640456d16f4c7f444f40df0"
+    },
+    {
+      "path": "app/api-docs/page.tsx",
+      "sha256": "262217bb2046f9b5d2154d132144e627e3f5cc22b19a46481b1b51e56c58a8da"
+    },
+    {
+      "path": "app/error.tsx",
+      "sha256": "dcbab0f52e717b31e088fab92b9ef1ea65490fa5b2a539f50063dd17b6bcf0f4"
+    },
+    {
+      "path": "app/layout.tsx",
+      "sha256": "51f3244238ce40ae57dd2a1d2557e946dc59c79901f18b365955e75b92f72eeb"
+    },
+    {
+      "path": "app/not-found.tsx",
+      "sha256": "55625608d262cf1c0d5ab35efa8f833ffc6d2d90f15d06869b96fff09b3ed014"
+    },
+    {
+      "path": "components/admin/AdminShell.tsx",
+      "sha256": "68d8c17aeb4715f6e05f11c2e417b02c7616d6b23392d15eff80b4dbed5578a5"
+    },
+    {
+      "path": "components/admin/buses/BusDetailModal.tsx",
+      "sha256": "ef9843f93693441a36edb3eb258312ad94995efd3052845d4f4e2a6e14fda534"
+    },
+    {
+      "path": "components/admin/buses/BusFilters.tsx",
+      "sha256": "85ebc8791689b470873f4d3fe34bf16cc8fd1c717e88df3df754e4cb700d34fc"
+    },
+    {
+      "path": "components/admin/buses/BusModal.tsx",
+      "sha256": "cb89afa488eea68c2da1a190e87892636427aac546604336a9cc55eb894c6032"
+    },
+    {
+      "path": "components/admin/buses/BusStats.tsx",
+      "sha256": "c569ef53fade3a377ace9d289532461344b648f5ee8d22ac593f1fb2fa99273b"
+    },
+    {
+      "path": "components/admin/buses/BusTable.tsx",
+      "sha256": "e2e9cb5a127e5f6c83059fa6414c930d1ecdb55e493c101a00f17d87192bd561"
+    },
+    {
+      "path": "components/admin/buses/DeleteBusModal.tsx",
+      "sha256": "5c511be93fc21debe3af89429a5ff7367ac8fef4bd83f332ad72b4aa9955697d"
+    },
+    {
+      "path": "components/admin/dashboard/DashboardAlerts.tsx",
+      "sha256": "d5728b71479f8f33575ac6e000891e7aa2a937d92d01252282b00e96648e9654"
+    },
+    {
+      "path": "components/admin/dashboard/DashboardOverview.tsx",
+      "sha256": "406c9d1f3aec17850f55492f9ef85921dda87baadbc838d982af40df16f009cb"
+    },
+    {
+      "path": "components/admin/dashboard/RecentOrders.tsx",
+      "sha256": "7076a914a381791bb1f8be880c4318d0113db8ff3a28e17d8b88b3ed08f0d1f5"
+    },
+    {
+      "path": "components/admin/employees/DeleteConfirmModal.tsx",
+      "sha256": "f05ee6501120e43332b8a4d20294c6c73c27e2ea4c1406730a7b3c6274f4663b"
+    },
+    {
+      "path": "components/admin/employees/EmployeeContactFields.tsx",
+      "sha256": "3df7de1d4efdeb9f78166507b5953b450cc3ef140c095f133ce467c58df1787e"
+    },
+    {
+      "path": "components/admin/employees/EmployeeDetailModal.tsx",
+      "sha256": "0b2fb33ec0825651b3480e48cb3a47aff98f47e911a8536dc495681c93b59e48"
+    },
+    {
+      "path": "components/admin/employees/EmployeeFilters.tsx",
+      "sha256": "e119261e8969fd13c1e8f6d81310c614dabb6daeb85a0db328ba5cceb549adf9"
+    },
+    {
+      "path": "components/admin/employees/EmployeeModal.tsx",
+      "sha256": "feaea5187e4bb8bb9592775a8d7148f3ef9cbc5e7312d94e360aad1de5028a89"
+    },
+    {
+      "path": "components/admin/employees/EmployeePagination.tsx",
+      "sha256": "ff6c0bb931b22b1b9ff1604dd03ccb20cd464f94575997521b7135151119caa8"
+    },
+    {
+      "path": "components/admin/employees/EmployeeStats.tsx",
+      "sha256": "37097e0ad3d6bc2135d2b58993e0ebea600de2239545b708a43830b800bb03af"
+    },
+    {
+      "path": "components/admin/employees/EmployeeTable.tsx",
+      "sha256": "c169e9f18c2af11dad186bbbb90506f7b421b251f87f2cc17e3f202d5a2b814e"
+    },
+    {
+      "path": "components/admin/employees/EmployeeWorkFields.tsx",
+      "sha256": "4f681957c345d7b604c56f2781503ec38b4b19aec2ae462fe84d4b319a7b2505"
+    },
+    {
+      "path": "components/admin/orders/CancelOrderModal.tsx",
+      "sha256": "ef1ac935efbf313565d48b8fdff49f89d23633c2e6f1ccaf390ac5e9f7bd48f7"
+    },
+    {
+      "path": "components/admin/orders/CreateOfflineOrderModal.tsx",
+      "sha256": "0df688f6ea8ea13775475a3427619a0ceee17366cdd078a9a666929419daf1d0"
+    },
+    {
+      "path": "components/admin/orders/OrderDetailModal.tsx",
+      "sha256": "d81ee995b09549008f19946ca72e3cd4e86a20e87aa018a59fb240d9b3484398"
+    },
+    {
+      "path": "components/admin/orders/OrderFilters.tsx",
+      "sha256": "3ceeb538a324580f2ea8066d5a1b1908f9c82569c8330bc944f2405a2fef709c"
+    },
+    {
+      "path": "components/admin/orders/OrderStats.tsx",
+      "sha256": "8ffacc78c92341864137fc1977b5b15b6ef95800d27ea4566eebda1d04a369df"
+    },
+    {
+      "path": "components/admin/orders/OrderTable.tsx",
+      "sha256": "208a94827fbdcae4d4abd5204433af134b134858a1e6e322965c5543a1a1e606"
+    },
+    {
+      "path": "components/admin/TableSort.tsx",
+      "sha256": "84e13b6acd92846bf405037ed9ad8515e61d1925efcf26225b9229a3aebe6460"
+    },
+    {
+      "path": "components/admin/TableSortNavigation.tsx",
+      "sha256": "670914a3c8a23e8801000aa5d23d1ed6119a6dcc6f707110b5d566008447d997"
+    },
+    {
+      "path": "components/admin/Toast.tsx",
+      "sha256": "78b10f1faf09a190c72f5db774098735da1b5dc2b86ad51eed55c3b263f2ca92"
+    },
+    {
+      "path": "components/admin/trips/DeleteTripModal.tsx",
+      "sha256": "09a4822de031cb52bfd7dfbb0efe6a232cfb9750426bf2d0025d4bd56ffd715e"
+    },
+    {
+      "path": "components/admin/trips/TripDetailModal.tsx",
+      "sha256": "285d6fbc49f94f8f0cf9dae235771fa81653953249fa0d924f7ce578e36f4a8b"
+    },
+    {
+      "path": "components/admin/trips/TripFilters.tsx",
+      "sha256": "f146c0452b4f5627bbdb8c37e61ce146d1e120c74d429845625591eda51eeec1"
+    },
+    {
+      "path": "components/admin/trips/TripModal.tsx",
+      "sha256": "58e3e0d2889f8779e4fc2f705188dc7842f89001ab83beec64f2d40e3f625d12"
+    },
+    {
+      "path": "components/admin/trips/TripStats.tsx",
+      "sha256": "e80d4533735a47f56c79a9622c2562f4f55866337a5de4e698f0ccce6804e441"
+    },
+    {
+      "path": "components/admin/trips/TripTable.tsx",
+      "sha256": "a175e7d3514a3c2db991b1c1d63e9ae0f395f66e28321da0f8cfd880abee995d"
+    },
+    {
+      "path": "components/admin/users/DeleteUserModal.tsx",
+      "sha256": "eec224a7c91a4d6b6699e3286c1b386036b20ebd643d9431a0a829209829c5a8"
+    },
+    {
+      "path": "components/admin/users/UserDetailModal.tsx",
+      "sha256": "5804a13ab0a21faf4a51ba56e127c6f71bee8d1dbd7452dd8edb966138159c3c"
+    },
+    {
+      "path": "components/admin/users/UserFilters.tsx",
+      "sha256": "c1f4e4b118b35b06d9d0400835a437f8ee9baf0053ce919a2306dc5d57f688f8"
+    },
+    {
+      "path": "components/admin/users/UserModal.tsx",
+      "sha256": "3514a5e30337addf58033dd1139546beab300b112eda1175a123acc529748f2f"
+    },
+    {
+      "path": "components/admin/users/UserStats.tsx",
+      "sha256": "718fba20d219822b4c2fd54579e99ccc8bdf80b76571ed7e878373e0272b2414"
+    },
+    {
+      "path": "components/admin/users/UserTable.tsx",
+      "sha256": "5464537b4b6b45aacdf0caff593de8d6998e96719b8399ddb80e536b55fc4aa6"
+    },
+    {
+      "path": "components/auth/AdminLoginForm.tsx",
+      "sha256": "3cc36f0f757dd5c865cebec512ef49783786ca7ccd4234168e3b76b8ece7b2a8"
+    },
+    {
+      "path": "components/auth/AuthLink.tsx",
+      "sha256": "6716635c82c07b274874424bf4a4ad24dab660b62d85cf4b050f75cbd5560dd0"
+    },
+    {
+      "path": "components/auth/AuthModal.tsx",
+      "sha256": "4e500bc4f7eb6c381f644f18d00fdf3e9f88422ab479d92bcd5625f2f85e609c"
+    },
+    {
+      "path": "components/auth/CustomerDropdown.tsx",
+      "sha256": "4d6b250be2937a40f4fb82546a0c40370ca5140c0932103effa79682dcd0261a"
+    },
+    {
+      "path": "components/auth/CustomerMenu.tsx",
+      "sha256": "89bee5be312d303b5af5b5d0b04601c27e70f6295ad1c87142888575a0d14e50"
+    },
+    {
+      "path": "components/auth/LoginForm.tsx",
+      "sha256": "2cdd08f725838d34e867878b38a0fd2128de6e85ba210e34f17925b99233ff0f"
+    },
+    {
+      "path": "components/auth/LogoutButton.tsx",
+      "sha256": "af683f3e96e22c58506fdde5052457201dc89c895ad76819e866beb2e2de347e"
+    },
+    {
+      "path": "components/auth/ProfileForm.tsx",
+      "sha256": "1b363a6186dfaab91f505cdb9df560680ca8b1f8ba44cc428db79346b67f5e81"
+    },
+    {
+      "path": "components/auth/RegisterForm.tsx",
+      "sha256": "728c443072b34159be36350cb6f2412b8a0212518dfd01a4de9f3be9bcb9dd6f"
+    },
+    {
+      "path": "components/home/content.tsx",
+      "sha256": "97c892bc1e8246aa3adeef840b5e978c331e3bf62bc46f776db5ed3010d4c7f0"
+    },
+    {
+      "path": "components/home/FeaturedDestinations.tsx",
+      "sha256": "4c3e6a5b30eb3fb4b9e9e968cc4a80c8ba6f167bf03c14aede12287c312b4224"
+    },
+    {
+      "path": "components/home/HomeHero.tsx",
+      "sha256": "b40816cd925b5427ba79f186a7d81f9ccd90d6f51f1dc4e67de428e7c9b9a70d"
+    },
+    {
+      "path": "components/home/SearchWidget.tsx",
+      "sha256": "63c747311a6a7a3d646724cf28945099f23ce634b107695145f649de9f8da0e8"
+    },
+    {
+      "path": "components/home/TravelGuides.tsx",
+      "sha256": "2b3e511c0d81134972344ea66bf44891a05a5681d9a26bbc222e5931a82a1ea4"
+    },
+    {
+      "path": "components/home/TravelRoadmap.tsx",
+      "sha256": "ef83497298cbc623cc3c97830dce69d6cccfca59f2a56725e7662383da0bd75c"
+    },
+    {
+      "path": "components/payments/PaymentPanel.tsx",
+      "sha256": "c760ae8d512bc6baea843e39b6849d593eeed838cec9fbe8f8e99cda3f2eda6e"
+    },
+    {
+      "path": "components/RouteCard.tsx",
+      "sha256": "0a5af99d0917c09fa092962e2a87451a78248faf23ee22f0eb6b30dadba9fef3"
+    },
+    {
+      "path": "components/trips/BookingForm.tsx",
+      "sha256": "83db5c6817b6ccc32f309118064df6bff5ff65cfcb1d3a9ec888792b40d83595"
+    },
+    {
+      "path": "components/trips/SeatMap.tsx",
+      "sha256": "c41ed0844ec402c21178d7c584633106a3f93c1faea800b15205a7a62acb5073"
+    },
+    {
+      "path": "components/trips/SeatSelector.tsx",
+      "sha256": "574bfa6b6a6423d625cc8c8ee1bba9c36ca9ed221f45c86a6c165aafdd100ee5"
+    },
+    {
+      "path": "components/trips/seatUtils.ts",
+      "sha256": "3173c15a4a7d143dad6829e81c598aefa7da7a885ea98518f0ade3dd9c5dffa7"
+    },
+    {
+      "path": "components/trips/TripFilter.tsx",
+      "sha256": "721c46cd479b9539a9f5d6fc5a5fc9591312a68274262d7ddfd3f07dadfd98c2"
+    },
+    {
+      "path": "hooks/useAsyncAction.ts",
+      "sha256": "a42c2a8f3c61b3f27aadb4695e5f6c0c10010301450670dbc3f6dcd0234fb620"
+    },
+    {
+      "path": "hooks/useBuses.ts",
+      "sha256": "b441c986014dab27f05099e7c34842c4adfc891a7b37b5e3ddff261e0199a52a"
+    },
+    {
+      "path": "hooks/useDebouncedSearch.ts",
+      "sha256": "332519d4a77f987fc22012527a78d110f52a7c34c070b5ec4ba44f32f7b18709"
+    },
+    {
+      "path": "hooks/useEmployees.ts",
+      "sha256": "37d19ddfdeda9687126d85fad8097ec2adaa7b9db57f6bdb7d97dd2893774e7a"
+    },
+    {
+      "path": "hooks/useOrders.ts",
+      "sha256": "c78d381d8948989eedf8befc27ac4df3bb6679dd7e9e8af9cd4673c3dcf59400"
+    },
+    {
+      "path": "hooks/useRemoteData.ts",
+      "sha256": "9b4e0ad6e649d1df9fe66e23874f00d6ea1484c0b51e8fde7859062be292fa3d"
+    },
+    {
+      "path": "hooks/useSeatRealtime.ts",
+      "sha256": "281282dee6ba969295a54e1479520cd3d7e40886d07b50776cf7d1a5bf5e844a"
+    },
+    {
+      "path": "hooks/useTableSort.ts",
+      "sha256": "6475921365d49688aba0784136a50bd3b5d0251aa4ee344740fa22e7d38b611e"
+    },
+    {
+      "path": "hooks/useTrips.ts",
+      "sha256": "6b8805be9eaa669235fc02e9e59a491711d6d3ca2b168f006da0dc2fb2c63658"
+    },
+    {
+      "path": "hooks/useUsers.ts",
+      "sha256": "59d9530744fe6138622c4882650828c9791c43ddb52249936f323aab8ee353cc"
+    },
+    {
+      "path": "services/bookingExpiryService.ts",
+      "sha256": "7f5222f954267b457e208a57d78b8c04149560d95f6c0e2127762288de528ae3"
+    },
+    {
+      "path": "services/bookingService.ts",
+      "sha256": "99d4d26155219008dfdd7e734c7f92dc520e31f82f518daacfee16a2bd9bb10c"
+    },
+    {
+      "path": "services/busService.ts",
+      "sha256": "d21a14e1d0cd5c00f28aa69f211d66027ec5de3b0cf270e8bc81879472a8b1ea"
+    },
+    {
+      "path": "services/clientBusService.ts",
+      "sha256": "862bae362fcb3c06dfee6257c6b1493ced6b4d0c704bedbff4a161fa91e4353e"
+    },
+    {
+      "path": "services/clientEmployeeService.ts",
+      "sha256": "53a3c38ff261d18a8672730748619ad40c7142420c4bef667d14354973910621"
+    },
+    {
+      "path": "services/clientOrderService.ts",
+      "sha256": "0c06181be17686f04473e665659af5a7a0281fe301f30197cf88a3258890c01a"
+    },
+    {
+      "path": "services/clientTripService.ts",
+      "sha256": "1296fdf67192007161d3de923e5ceb07e6653cd6337f5924dad2149010b6f4e5"
+    },
+    {
+      "path": "services/clientUserService.ts",
+      "sha256": "cc539b3b3e434440e5c00bdf79c664dff25e5a83a398214c8e1c11890f4eaeca"
+    },
+    {
+      "path": "services/dashboardService.ts",
+      "sha256": "676d5aeab34e9128280f70494e06f19b2beed731d8d6da7625405109e84f51cf"
+    },
+    {
+      "path": "services/employeeService.ts",
+      "sha256": "eb08e8f9071dcb24fe839cdbc053185536f1802d2e6bf6599fc4a834612538d7"
+    },
+    {
+      "path": "services/orderService.ts",
+      "sha256": "dcdd840f826b51f0675884105a17f41b033ee0ec0639540900ffdb2fdd0e5649"
+    },
+    {
+      "path": "services/paymentService.ts",
+      "sha256": "5a2793611b5b6e498fbf2dab7c6038b1a0f3f2cb9700aeda8d88534c64584fc0"
+    },
+    {
+      "path": "services/seatService.ts",
+      "sha256": "b294fccd48838a14169bed49628f0939843ef20a88b623519205956dbf13b740"
+    },
+    {
+      "path": "services/tripService.ts",
+      "sha256": "62b0111671be539da517bc1d0bf98fee092b46062aa01ee58cc7ac018a463237"
+    },
+    {
+      "path": "services/userService.ts",
+      "sha256": "abf8da0533772a8ed0c25d742bcfb7559a8f9d317e83c5b498ffc4b804b705ac"
+    },
+    {
+      "path": "lib/admin-api.ts",
+      "sha256": "8e40cb6ae4626de4d0b7d46327859208c8ceebc4860a9f379abb7d3839ba5329"
+    },
+    {
+      "path": "lib/admin-table-sort.ts",
+      "sha256": "9fe74877b1a5fef56f8cf005d3e7943eca073004914c5b08969747124b2f7408"
+    },
+    {
+      "path": "lib/api-client.ts",
+      "sha256": "ac6fd22ba022a147cd0450e2e45631dee9fd5c2fc43237a52c2c69fbcb6e4b58"
+    },
+    {
+      "path": "lib/auth-navigation.ts",
+      "sha256": "2d2dd72a904e26565852b7f563affb98ee2ee5ae55b21588762a17b5fe9ec775"
+    },
+    {
+      "path": "lib/booking-expiry-worker.ts",
+      "sha256": "cf555089b04f1462f7ecbedbe0e1570d2d86b13e6e8aa1766e2301458805381e"
+    },
+    {
+      "path": "lib/booking-lookup-limit.ts",
+      "sha256": "c28498ac12896ecd307c6e5a3f10f9498a9514c6e29664f2d01a1ad102aa2149"
+    },
+    {
+      "path": "lib/business-error.ts",
+      "sha256": "102ba1829021402e1128668484e775c3a8d8cdcea94bdda74585bac65c65f8ae"
+    },
+    {
+      "path": "lib/customer-id.ts",
+      "sha256": "8a73af3351381ca6000e31dcac7be4df6cb0a8f1256481cae23d325e1b05b001"
+    },
+    {
+      "path": "lib/guest-account.ts",
+      "sha256": "93c84a5136d3a67ae6dd6e167bb62d3d6f1dfa99730723ba725a68a80d012ff0"
+    },
+    {
+      "path": "lib/home-content.ts",
+      "sha256": "6a5d2bf70d2ae25afbf55eab4a623e0a7effd4d829ed7080ead0dae4ea28c38b"
+    },
+    {
+      "path": "lib/money.ts",
+      "sha256": "0fa76b82930baba437f3fa6103f6d94c17306a96888f6bd6fb5908a850530453"
+    },
+    {
+      "path": "lib/password.ts",
+      "sha256": "45e202ca44b0b6c0ecbd91b5b3c12f9f52f6a42635e5ddcc57a18961ea0b811f"
+    },
+    {
+      "path": "lib/prisma.ts",
+      "sha256": "0a9a494cc12c0562d43424b5bcc004b43ac29a180381843dbd58fb983146fba5"
+    },
+    {
+      "path": "lib/public-trip-search.ts",
+      "sha256": "087effcdaf0b13cba1503c0dd0c131882e7c0cbda105e6a3249b7d9c62ca6f69"
+    },
+    {
+      "path": "lib/query-params.ts",
+      "sha256": "91a17f6c0deaeeb415c399e77d917e13966ec559c304ef97f95f334c6aea622f"
+    },
+    {
+      "path": "lib/record-mappers.ts",
+      "sha256": "c68ac846f5084b7649808377d07dd5de8c316417872ca32e3c1af0ef8a64e150"
+    },
+    {
+      "path": "lib/request-origin.ts",
+      "sha256": "2f0fc09ba1fdcadf3d59401c77dc9e13c4729925a38a2f59379ef089f5b7f719"
+    },
+    {
+      "path": "lib/seat-selection.ts",
+      "sha256": "c36096b8e2f3231c0f315ea61b30097e5bd88e70a5a24d4ced9b09dab7eac303"
+    },
+    {
+      "path": "lib/seat-session.ts",
+      "sha256": "51981129160fa47dbc9ddc6815ca669786c4637c31f61d892a75c8bdfbb0cafa"
+    },
+    {
+      "path": "lib/seats.ts",
+      "sha256": "73bbec7600112d2ffb256aa6e33cdf8198e5949f9d417e36563f949812b860be"
+    },
+    {
+      "path": "lib/security-headers.ts",
+      "sha256": "f2c13c07841864ae7e16638cb48dec9ba09b29caabda56bfb8b6ebcaabaddd53"
+    },
+    {
+      "path": "lib/session.ts",
+      "sha256": "25efc389c0e816ba01c30d018ab80787c9931a43b5ec181dbbeb619d56277b75"
+    },
+    {
+      "path": "lib/sse.ts",
+      "sha256": "fa8900eb6bddcba9b4531a3dd0761dd89412c9583d33ef92b14b35225af5a256"
+    },
+    {
+      "path": "lib/transaction.ts",
+      "sha256": "fd63aa5c92560e3bf3fd4101cbed8cfa1570a1c6303f16123446c5b9ccc82212"
+    },
+    {
+      "path": "lib/trip-display.ts",
+      "sha256": "503cfeb47829ca83482fdd9a711dd9bc0a90b97ef9ade73a78cdc0970288649d"
+    },
+    {
+      "path": "lib/trip-id.ts",
+      "sha256": "394a55851565cd0034d4f505c256fbed3a219b0cbc62269d1afa6ecdf7991e73"
+    },
+    {
+      "path": "lib/trip-locations.ts",
+      "sha256": "c2e7595f7c4d78ff4562185e69f2ae199bd8efd34940f5e5fd86e12cb12c807c"
+    },
+    {
+      "path": "lib/trip-search.ts",
+      "sha256": "a5c6b15303e80a03c33b76e011e57070add9e87edbee46d641680943e2ea95e7"
+    },
+    {
+      "path": "lib/validations/bus.ts",
+      "sha256": "42b56076a2ea3cc8caf1d524c64e45cb7b351119aeacf933098ff38ba4f3b180"
+    },
+    {
+      "path": "lib/validations/employee.ts",
+      "sha256": "f7eb19186db446f9f65ebde506645d62a39c0167e9219e36f979a4382537e1a4"
+    },
+    {
+      "path": "lib/validations/order.ts",
+      "sha256": "96299d2729e69f09df94ee851803d53ec0a9a774347685bcb82f229ae726c7a3"
+    },
+    {
+      "path": "lib/validations/profile.ts",
+      "sha256": "a00e15d6350ac10774955045528fcf562953bf0bf0dd23cd792ba5e0a4ed933e"
+    },
+    {
+      "path": "lib/validations/register.ts",
+      "sha256": "9ded84ab25c7d4a93c200386d73cbd214f808876a5695ff2e742aca77be14fd5"
+    },
+    {
+      "path": "lib/validations/seat-realtime.ts",
+      "sha256": "812efe33adcd9fbd88431cefcb1744b0ab3c634c174ac372cfd6c1987a5dfef5"
+    },
+    {
+      "path": "lib/validations/trip.ts",
+      "sha256": "1e10df27f4040bd54a9608171301756cdd898a5d6b2ab6db48f77cdeb65477c4"
+    },
+    {
+      "path": "lib/validations/user.ts",
+      "sha256": "0919073438164382524b494875117ef9f16aa9842bf8ba065f901367b1992a6b"
+    },
+    {
+      "path": "lib/vietqr.ts",
+      "sha256": "b5bb92cf2b0bb9af16e7b8ee38c5cbda2ff043b2641bf307ef6862ce1992e680"
+    },
+    {
+      "path": "prisma/admin-migrations/20261009000000_baseline/migration.sql",
+      "sha256": "5b6eed1ab396626114f6b0f3c80ce8347963b2bc313f8e938c34578e9dacaa99"
+    },
+    {
+      "path": "prisma/admin-migrations/20261009010000_admin_business_rules/migration.sql",
+      "sha256": "20d26305daa7dd18709dd9ccc292699ce553446c32d9a5e629f775b847614e28"
+    },
+    {
+      "path": "prisma/admin-migrations/20261009020000_account_status/migration.sql",
+      "sha256": "3fff6be6d816630c7c1d20486ff33144245fc155a71e7dc38f67740290cef501"
+    },
+    {
+      "path": "prisma/admin-migrations/20261009030000_payment_time/migration.sql",
+      "sha256": "71ea65f19b81fc3d831589c9ee96fe557537f00b57de00253ac59f64df298499"
+    },
+    {
+      "path": "prisma/admin-migrations/20261009040000_numeric_trip_id/migration.sql",
+      "sha256": "1f4f2f978ad0153fde5f6432cefb27e1a0e9d60d1d625f87649bf293471934c2"
+    },
+    {
+      "path": "prisma/admin-migrations/20261011000000_online_payments/migration.sql",
+      "sha256": "addc9bdca5fbce40dc874f690b3258ab674e70f8d5c0086ccd7c6cd06c725af9"
+    },
+    {
+      "path": "prisma/admin-migrations/20261105000000_integer_vnd/migration.sql",
+      "sha256": "20b18104cf6ef714a33f200cbee0b576e0d76fe91a739cbf970ee82dc8be0b9a"
+    },
+    {
+      "path": "prisma/admin-migrations/20261106000000_booking_expiry/migration.sql",
+      "sha256": "2667bf6560e853d0cef47e346a97a7f099e7f9a8249a2003e776765424885161"
+    },
+    {
+      "path": "prisma/admin-migrations/migration_lock.toml",
+      "sha256": "0f4cbfa4bac3b634d4c728dcf2637c5f1d64882515bcd923af1a8a6ebcf057dd"
+    },
+    {
+      "path": "prisma/migrations/20260921072457_init_database/migration.sql",
+      "sha256": "cf9a07f3ca0609966ef3cede6d8786865f28c7ad4ec0acb6c78662d13b49fb6f"
+    },
+    {
+      "path": "prisma/migrations/20260926000000_customer_registration/migration.sql",
+      "sha256": "35464b725e54f99a039385976ba65d95a3db1e568be971eb4dea6cec5eeb7229"
+    },
+    {
+      "path": "prisma/migrations/migration_lock.toml",
+      "sha256": "55ee6ba436634f186a7e86b271656cd5f508eb6d0f5f47b2ed2a9c39498dc214"
+    },
+    {
+      "path": "prisma/schema.prisma",
+      "sha256": "4d7d05a0b00761bcd76ac0449eb41913ce851f9d353c9023d9d2f097aa5faf82"
+    },
+    {
+      "path": "prisma/seed.js",
+      "sha256": "b5db155a69d113ea0816593eab5dd4166f53f4a4ca25fc657feefee036151435"
+    },
+    {
+      "path": "scripts/api-docs-metadata.cjs",
+      "sha256": "a12ce423b76b2c19ea796eb97a3484f6fd0004fe0d87c197f044c6a929ac2889"
+    },
+    {
+      "path": "scripts/baseline-schema.cjs",
+      "sha256": "b43c6e73f81075c99c55a41293ccccbf14bc796380f6ed78f3af15ee07830df7"
+    },
+    {
+      "path": "scripts/check-security-http.cjs",
+      "sha256": "13a899deca2af45f4e928054b9c1da723aebfcdc51ea58168075d7560b821bac"
+    },
+    {
+      "path": "scripts/demo.cjs",
+      "sha256": "84db306ce293fc78ebdc537caaf122f62b4d29dc49fdb9d1b6e1412bbaa052c9"
+    },
+    {
+      "path": "scripts/generate-api-docs.cjs",
+      "sha256": "04425dab788e9564da954c2f050cdd70c3bdbc6855073d861439586d4e9a697d"
+    },
+    {
+      "path": "scripts/setup-payments.cjs",
+      "sha256": "b4d8e370d6891ac887a5e7deb008c50285eaef7116dcaae4b930bd6de583fc59"
+    },
+    {
+      "path": "scripts/setup-trips.cjs",
+      "sha256": "a6c456cb22a32552a6c53e31132697acc0a552783b42d1d3eebca963f1dc3f6a"
+    },
+    {
+      "path": "scripts/upgrade-database.cjs",
+      "sha256": "7ac4609627eb4b9af6ea461eaaaa83944d98fa9a624da39ce16b6a261baa96bc"
+    },
+    {
+      "path": "tests/admin-business.test.cjs",
+      "sha256": "2e74a82b8968550431c69a56d486dd2e6201333e782f2d0615f71de07e58d562"
+    },
+    {
+      "path": "tests/admin-db.cjs",
+      "sha256": "581287a7447ceea1e3ce0d4f75350a6a8f6470685b1a58ec68a398d89398a853"
+    },
+    {
+      "path": "tests/admin-orders-api.test.cjs",
+      "sha256": "444968d407b6da5afcfd0de3c44629d0185a5e6814a815bcc61f313d7731edb1"
+    },
+    {
+      "path": "tests/admin-sort.browser.cjs",
+      "sha256": "cd46ae63d71b9016d4a09fe78761105bb10d2a55b024bb152a4a079decf04838"
+    },
+    {
+      "path": "tests/admin-sort.test.cjs",
+      "sha256": "8336a2fed8e0aeb5b8f61eb749e4317cf67495214e239559592c0651bd7fdccf"
+    },
+    {
+      "path": "tests/admin-trip-create.browser.cjs",
+      "sha256": "5815f882d53d4f8e4a85d8665c62d79b326077852c716016ebf97f650da76186"
+    },
+    {
+      "path": "tests/admin-trips.browser.cjs",
+      "sha256": "fc8866d2368b13ed7e0ea9a94b5010825c7495ffee1328c7ad48a1d0a504832e"
+    },
+    {
+      "path": "tests/api-client.test.cjs",
+      "sha256": "d0d1d02bc2fd2008d6a8e75548fd417dc9156c853c884cb337e649c091cdef12"
+    },
+    {
+      "path": "tests/api-documentation.test.cjs",
+      "sha256": "86be204ff35b45c83977316b014e513d7146f32e8038fac5478543ec92bcbdf2"
+    },
+    {
+      "path": "tests/auth-navigation.test.cjs",
+      "sha256": "68554e7407874084eb019066ac3b3cf4e65811b65af88aa84033c54bfd9111d3"
+    },
+    {
+      "path": "tests/auth-session.test.cjs",
+      "sha256": "e8fb6bb5beedf1ab78a9d1d19aa3a4ca85e4a44a272c021ec73a7010037fa066"
+    },
+    {
+      "path": "tests/auth.browser.cjs",
+      "sha256": "d6256480d10751b0aa57e30cd4af372977f75805e959327b1a4694d133bfd9a8"
+    },
+    {
+      "path": "tests/baseline-schema.test.cjs",
+      "sha256": "11d9c31cbf6182bdfbe6ae1b35913a7f067d62c66d36706b4464c626ffe4eb52"
+    },
+    {
+      "path": "tests/booking-fixes-db.cjs",
+      "sha256": "2f6ac6417a58cee9791def61abda9c46d000ec98e8efd451515d56587809efe0"
+    },
+    {
+      "path": "tests/booking-fixes.browser.cjs",
+      "sha256": "6d9b1ab0b523c302fdf6b11f8d81cb2b0eeb25501db7408d11650b0cb94ef478"
+    },
+    {
+      "path": "tests/booking-lookup-limit.test.cjs",
+      "sha256": "96329975faacd1b52d164ee253cbd39243c7eb8576544c46b246d0f32e6f9222"
+    },
+    {
+      "path": "tests/booking-privacy.test.cjs",
+      "sha256": "cbb44d31599ef02815f0c0378d50675a06e5f37f396c06189c0584d0032b4e77"
+    },
+    {
+      "path": "tests/bookings.test.cjs",
+      "sha256": "fccd0806e7ed78eb6bf59e85d9479bdbe510fbdf1bd87f9db8c12be22a0944c7"
+    },
+    {
+      "path": "tests/browser-cdp.cjs",
+      "sha256": "71b250debb1d52edeb335549945289d0974b6614e8d8b4c7b806e963c685525e"
+    },
+    {
+      "path": "tests/demo-db.cjs",
+      "sha256": "9d7e22c1b3d2dd63d491881baa951391de0ea23dd97d9cfdd5c12292cb178725"
+    },
+    {
+      "path": "tests/demo.test.cjs",
+      "sha256": "0d98c1e191f70f88f929df3792fad3df97f338564497147d754f8357209997a7"
+    },
+    {
+      "path": "tests/guest-account.test.cjs",
+      "sha256": "ee92d797bb1c2971e7fd7f354e1166b0de202c40e68f9751d7b57e6f3eca425c"
+    },
+    {
+      "path": "tests/home.test.cjs",
+      "sha256": "e8eb4c2b49892fe15db35ac0b00b8381f5113c19165166392c8f450f79e1bcd7"
+    },
+    {
+      "path": "tests/load-ts.cjs",
+      "sha256": "92bf803b84e9cbc46e788078ab32d58f4557fdcf4539aed145df9fc0d7ea8a69"
+    },
+    {
+      "path": "tests/login.test.cjs",
+      "sha256": "0bdd08f8d7816dd8c6d87b543c1ee113a9b83825d786641d85799b3cd87c6590"
+    },
+    {
+      "path": "tests/money.test.cjs",
+      "sha256": "22cdd89705f54374a441141ec400c5744cf0a6f6890734c6f4b3b91ecdbac618"
+    },
+    {
+      "path": "tests/payment-db.cjs",
+      "sha256": "145cb33a60182e311ed2fbf1fbb003420ed5283940ddf748c5bbf5e3961a1ea1"
+    },
+    {
+      "path": "tests/payment-setup-db.cjs",
+      "sha256": "d6967d07391a09085a8709c5e59bdd638f429c6e1bdf8404da125a2b305db242"
+    },
+    {
+      "path": "tests/payment.test.cjs",
+      "sha256": "511f25126c4ab9e07fbe6b12c52724270f0a38dcfbf58fb483e4eaab315fdd57"
+    },
+    {
+      "path": "tests/profile.test.cjs",
+      "sha256": "716dba0ce2b32fb12e0a190dcffcdf67e694e7f701a0258d4086c5df53d10bf0"
+    },
+    {
+      "path": "tests/public-trip-search.test.cjs",
+      "sha256": "5019fc5292d2c0d21c6dac76c16aa28915cb7ef316a7859b04316740cefa33f2"
+    },
+    {
+      "path": "tests/register.test.cjs",
+      "sha256": "483435c3f391e9cac1ed7c4d353c1654ef5346935412d06a38c15a8ce04cdc4d"
+    },
+    {
+      "path": "tests/remote-data.test.cjs",
+      "sha256": "1c18f4ea6450044bed80f96ce3aa647e76aaa7d66e89ad5f50266bf9644af873"
+    },
+    {
+      "path": "tests/request-origin.test.cjs",
+      "sha256": "59ba9280a0cabf4adc34beb78c5da53dee1d38efbb762d7cd26e0898ba4c77d5"
+    },
+    {
+      "path": "tests/seat-realtime.browser.cjs",
+      "sha256": "9084aaa03077e3e20178ca89f11bca464a381e5abdd17ae05c5fa1315cdd5b94"
+    },
+    {
+      "path": "tests/seat-realtime.test.cjs",
+      "sha256": "47da0a80a3931626e861e301bbf97935427d291d16cc27276eba3ecbf0a504d1"
+    },
+    {
+      "path": "tests/seat-recovery.test.cjs",
+      "sha256": "0adcf697170c3ca25793722d9da3c9f2989a28dc83ce9e722424711844364952"
+    },
+    {
+      "path": "tests/security.test.cjs",
+      "sha256": "4c74bd8770e1956f3217bec98b3d9128a0a5df26e455a8b07e6144a777035ef1"
+    },
+    {
+      "path": "tests/setup-trips.test.cjs",
+      "sha256": "503b5fa4a77f15e26a563d4590fce70514c9e1be1dba642bde03c1966d267202"
+    },
+    {
+      "path": "tests/statistics.test.cjs",
+      "sha256": "47faf06540cb559888028d02702c301e8033b29a5a614c10948bd535aa543412"
+    },
+    {
+      "path": "tests/trip-id.test.cjs",
+      "sha256": "502ce4306f6362378fc89cfc6d824d2d3f7377d00f256e2614079e97566d6540"
+    },
+    {
+      "path": "tests/trip-locations.test.cjs",
+      "sha256": "e177e02df838aa1d375d87768474a8ebca9210981dae80930fd4e8558155c35d"
+    },
+    {
+      "path": "tests/trip-search.test.cjs",
+      "sha256": "9598e537322f04471196cc5c20f9b4fa6ea0546a70dd05d5ca714fbd2def566d"
+    },
+    {
+      "path": "tests/trip-setup-db.cjs",
+      "sha256": "aa8f5d90785aaa49f73ad3d25115c00efe53d72fe87f1a99733b7d4cccb9f825"
+    },
+    {
+      "path": "package.json",
+      "sha256": "4c9ff65e5c7f040b1f83aee8d08895e1a9d2e9b1637354510c507bb95c7be078"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "f1d2edb6194776b7bf87b9877161f040cfa3d939ec93ba682b7c9ee9d9c6cc55"
+    },
+    {
+      "path": "next.config.ts",
+      "sha256": "6d5b81021decfccb9e49dc230dab7f895e339911b757c56e8d1e8ebe2911f2c5"
+    },
+    {
+      "path": "proxy.ts",
+      "sha256": "aaa6978cb4e935103d225531e5103b4324790ff2d77ebda63b6d5b8adac738b2"
+    },
+    {
+      "path": "README.md",
+      "sha256": "9f4b51017884176b26d358a7dd8f36bb39094c371cbd9b85ed1d38667b162cff"
+    }
+  ],
+  "applicationCodeModifiedByChapterRevision": false
+}

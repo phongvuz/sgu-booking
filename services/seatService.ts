@@ -4,9 +4,10 @@ import { BusinessError } from "@/lib/business-error";
 import { getSeatCodes, normalizeSeat } from "@/lib/seats";
 import { assertTripId } from "@/lib/trip-id";
 
-export function getActiveSeatHolds(tripId: number) {
+export async function getActiveSeatHolds(tripId: number, ownerKey?: string) {
   assertTripId(tripId);
-  return prisma.seatHold.findMany({ where: { tripId, expiresAt: { gt: new Date() } }, select: { seatNumber: true, clientId: true } });
+  const holds = await prisma.seatHold.findMany({ where: { tripId, expiresAt: { gt: new Date() } }, select: { seatNumber: true, clientId: true } });
+  return holds.map((hold) => ({ seatNumber: hold.seatNumber, isOwn: !!ownerKey && hold.clientId === ownerKey }));
 }
 
 export async function holdSeat(tripId: number, seatNumber: string, clientId: string) {

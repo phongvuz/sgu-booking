@@ -58,9 +58,12 @@ export interface Seat {
 }
 
 export interface TripSearchParams {
-  from?: string;
-  to?: string;
-  date?: string;
+  from?: string | string[];
+  to?: string | string[];
+  date?: string | string[];
+  times?: string | string[];
+  vehicles?: string | string[];
+  page?: string | string[];
 }
 
 export interface TripSearchOption {

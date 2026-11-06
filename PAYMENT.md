@@ -22,7 +22,15 @@ PAYMENT_DEMO_ENABLED="true"
 
 `970436` là BIN Vietcombank. Các tài khoản và tên thật được cấu hình trong `.env` riêng, không đưa lên Git. Không cần `APP_URL`, mã Merchant hoặc khóa VNPAY. Không cần public domain hay tunnel, chạy được tại localhost.
 
-Database và Prisma Client của project đã có bảng `Payment`. Nếu cài đặt trên máy mới, dừng server rồi chạy:
+Schema của project định nghĩa bảng `Payment`, nhưng database đã import có thể chưa có bảng này. Nếu trang `/success?pnr=...` báo lỗi `The table payment does not exist`, chạy:
+
+```sh
+npm run db:payments
+```
+
+Lệnh tạo riêng bảng `Payment` từ migration có sẵn, giữ nguyên các vé và dữ liệu khác. Có thể chạy lại; nếu bảng đã tồn tại, lệnh kiểm tra cấu trúc mà không tạo lại hoặc xóa giao dịch. Lệnh này dùng được cho database import chưa có lịch sử migration. Cần cấu hình các biến VietQR bên trên để trang hiển thị QR.
+
+Nếu cài đặt trên máy mới bằng luồng migration, dừng server rồi chạy:
 
 ```sh
 npm run db:upgrade
@@ -62,6 +70,7 @@ Kiểm tra nghiệp vụ:
 
 ```sh
 node --test tests/payment.test.cjs
+node tests/payment-setup-db.cjs
 node tests/payment-db.cjs
 npm run lint
 npm run typecheck

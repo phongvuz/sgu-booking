@@ -16,27 +16,30 @@ test("search options use database locations and Vietnamese departure dates", asy
     { from: "Huế", to: "Hồ Chí Minh", date: "2026-10-03" },
   ]);
   assert.deepEqual(query.select, { from: true, to: true, time: true });
+  assert.ok(query.where.time.gt instanceof Date);
+  assert.deepEqual(query.where.availableSeats, { gt: 0 });
 });
 
 test("search applies both cities and the full Vietnam day regardless of server timezone", async () => {
   const trips = [
-    { id: 1, from: "Hồ Chí Minh", to: "Huế", time: new Date("2026-10-01T16:59:59Z") },
-    { id: 2, from: "Hồ Chí Minh", to: "Huế", time: new Date("2026-10-01T17:00:00Z") },
-    { id: 3, from: "Hồ Chí Minh", to: "Huế", time: new Date("2026-10-02T16:59:59Z") },
-    { id: 4, from: "Hồ Chí Minh", to: "Huế", time: new Date("2026-10-02T17:00:00Z") },
-    { id: 5, from: "Hà Nội", to: "Huế", time: new Date("2026-10-02T08:00:00Z") },
-    { id: 6, from: "Hồ Chí Minh", to: "Đà Lạt", time: new Date("2026-10-02T08:00:00Z") },
-  ];
+    { id: 1, from: "Hồ Chí Minh", to: "Huế", time: new Date("2099-10-01T16:59:59Z") },
+    { id: 2, from: "Hồ Chí Minh", to: "Huế", time: new Date("2099-10-01T17:00:00Z") },
+    { id: 3, from: "Hồ Chí Minh", to: "Huế", time: new Date("2099-10-02T16:59:59Z") },
+    { id: 4, from: "Hồ Chí Minh", to: "Huế", time: new Date("2099-10-02T17:00:00Z") },
+    { id: 5, from: "Hà Nội", to: "Huế", time: new Date("2099-10-02T08:00:00Z") },
+    { id: 6, from: "Hồ Chí Minh", to: "Đà Lạt", time: new Date("2099-10-02T08:00:00Z") },
+  ].map((trip) => ({ ...trip, availableSeats: 1 }));
   const prisma = { trip: { findMany: async ({ where }) => trips.filter((trip) =>
     trip.from.includes(where.from.contains) && trip.to.includes(where.to.contains) &&
-    trip.time >= where.time.gte && trip.time < where.time.lt
+    trip.time >= where.time.gte && trip.time < where.time.lt &&
+    trip.time > where.time.gt && trip.availableSeats > where.availableSeats.gt
   ) } };
   const { getTrips } = load("services/tripService.ts", { "@/lib/prisma": { prisma } });
   const originalTimezone = process.env.TZ;
   try {
     for (const timezone of ["UTC", "Asia/Ho_Chi_Minh", "America/Los_Angeles"]) {
       process.env.TZ = timezone;
-      const results = await getTrips({ fromCity: "Hồ Chí Minh", toCity: "Huế", date: "2026-10-02" });
+      const results = await getTrips({ fromCity: "Hồ Chí Minh", toCity: "Huế", date: "2099-10-02" });
       assert.deepEqual(results.map((trip) => trip.id), [2, 3]);
     }
   } finally {

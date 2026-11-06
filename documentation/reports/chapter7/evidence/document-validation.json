@@ -1,0 +1,21 @@
+{
+  "docx": "D:\\sgu-booking\\docs\\chapter7\\Chuong_7_Trien_khai_tich_hop_va_minh_chung_ket_qua_cap_nhat.docx",
+  "docxSha256": "b802ad69a666c5abefc80a2dd5c31edd23ec418ed4f142e2a073dada85ff066e",
+  "tables": 6,
+  "inlineFigures": 4,
+  "sourceUnchanged": true,
+  "sourceFilesCaptured": 251,
+  "previousEvidenceHashesVerified": true,
+  "baselineCommit": "1f2bedb",
+  "unitTestsPassed": 162,
+  "runtimeAndHttpEvidence": "Historical captures/checks on 809f9bc; not rerun after synchronization",
+  "structurePreserved": "7.1; 7.2.1–7.2.7; 6 tables and 4 figures",
+  "wordNativePaginationVerified": false,
+  "pdf": "D:\\sgu-booking\\docs\\chapter7\\Chuong_7_Trien_khai_tich_hop_va_minh_chung_ket_qua_cap_nhat.pdf",
+  "pdfSha256": "b9f03d478c51538e288c130b6932d68af4555757ba9f1d8855fec42f94ae009b",
+  "pdfPreviewPages": 16,
+  "previewRenderer": "PyMuPDF Story using shared report content and assets; not a Microsoft Word layout export",
+  "noBlocksOutsideSafeArea": true,
+  "sourceAndInputHashesVerifiedAfterRendering": true,
+  "lowContentPages": []
+}

@@ -1,0 +1,130 @@
+[
+  {
+    "page": 1,
+    "characters": 3074,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "CHƯƠNG 7: TRIỂN KHAI, TÍCH HỢP VÀ MINH CHỨNG\nKẾT QUẢ\nPhạm  vi  đối  chiếu:  mã  nguồn  cục  bộ  ngày  06/11/2026  trên  nền  commit  1f2bedb  và  các ",
+    "textEnd": "đặc tả\nDựng demo riêng; sinh/ kiểm tra\nOpenAPI và trang tài liệu\nscripts/ demo.cjs; scripts/ generate­api­\ndocs.cjs; documentation/ api/ \nBảng 7.1. Các lớp tích hợp và vị trí mã nguồn\nSGU BOOKING | CHUONG 7\nChuong 7 | 1\n"
+  },
+  {
+    "page": 2,
+    "characters": 1537,
+    "images": 1,
+    "outsidePageSafeArea": [],
+    "textStart": "Hình 7.1. Kiến trúc tích hợp theo mã nguồn hiện tại: đọc trang phía server, API có kiểm tra nguồn/\nquyền, SSE trong một tiến trình và worker xử lý vé ",
+    "textEnd": "ạn, trả kho ghế đúng\nmột lần, giữ lịch sử\nXác thực và bảo\nmật\nScrypt, phiên ký số, guard\nADMIN, origin và output\nescaping\nBảo vệ trang/ API; kiểm tra XSS/ CORS và\nghi rõ phạm vi OWASP\nSGU BOOKING | CHUONG 7\nChuong 7 | 2\n"
+  },
+  {
+    "page": 3,
+    "characters": 3067,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "Kiến thức/ cơ chế\nQuyết định hiện thực\nKết quả trong sản phẩm\nLogic giao diện\ndùng chung\nClient service, hooks, hủy\nrequest, debounce 350 ms\nCác danh ",
+    "textEnd": " báo làm mới ghế. Đây là hoàn kho ghế, không phải hoàn tiền;\nvé có expiresAt = null không tự hết hạn. Việc giải phóng không được cam kết đúng tại\ngiây thứ 300 và cần server đang chạy.\nSGU BOOKING | CHUONG 7\nChuong 7 | 3\n"
+  },
+  {
+    "page": 4,
+    "characters": 2879,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "7.1.4. Tích hợp realtime và ranh giới giữ ghế\nTrước khi mở realtime, useSeatRealtime gọi GET /api/trips/{id}/holds?clientId=...\nđể nhận cookie seat_se",
+    "textEnd": "  khi  chạy\nproduction. Khi dùng phiên, server đọc lại trạng thái hoạt động, vai trò và phiên bản\nmật khẩu, nhờ đó tài khoản bị khóa hoặc đổi mật khẩu không tiếp tục sử dụng phiên\ncũ.\nSGU BOOKING | CHUONG 7\nChuong 7 | 4\n"
+  },
+  {
+    "page": 5,
+    "characters": 3051,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "Layout và API quản trị kiểm tra ADMIN độc lập với menu. Trang /bookings chỉ\nlấy vé có userId thuộc phiên CUSTOMER. Tra cứu công khai GET /api/bookings",
+    "textEnd": "e và từ chối quyền admin\nQuản trị đơn\nDanh sách/ chi tiết/ tạo/ đổi trạng thái/ hủy\nđã nối API và service\nTest API và nghiệp vụ với mock;\nDELETE hủy giữ lịch sử, mỗi ID là\nmột vé/ ghế\nSGU BOOKING | CHUONG 7\nChuong 7 | 5\n"
+  },
+  {
+    "page": 6,
+    "characters": 1561,
+    "images": 1,
+    "outsidePageSafeArea": [],
+    "textStart": "Hạng mục\nKết quả thể hiện trong mã nguồn\nMinh chứng và giới hạn\nQuản trị dữ liệu\nQuản lý chuyến, xe, nhân viên, tài\nkhoản, đơn, thanh toán và thống kê",
+    "textEnd": "ồi\ntruyền  dữ  liệu  ban  đầu  cho  TripFilter.  Bộ  lọc  giờ/ngày  áp  dụng  theo  UTC+7  trước\nphân trang; bộ lọc loại xe hiện quy ước từ capacity, không suy đoán bằng số ghế trống.\nSGU BOOKING | CHUONG 7\nChuong 7 | 6\n"
+  },
+  {
+    "page": 7,
+    "characters": 1861,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "2. Khi mở /trips/{id}, server kiểm tra ID nguyên dương và đọc chuyến, sức chứa\ncùng ghế đã có vé. Hook tải /holds, thiết lập cookie phiên chọn ghế, mở",
+    "textEnd": "vé, sơ đồ, ghế đã có vé/đang giữ và chỗ\ntrống. CONFIRMED không chuyển ngược sang PENDING. Modal có thể dùng object\ntừ danh sách để hiển thị, nhưng API chi tiết vẫn đã được triển khai.\nSGU BOOKING | CHUONG 7\nChuong 7 | 7\n"
+  },
+  {
+    "page": 8,
+    "characters": 239,
+    "images": 1,
+    "outsidePageSafeArea": [],
+    "textStart": "Hình 7.3. Trang chủ NOMAD chụp từ bản demo cục bộ ngày 06/11/2026, trên nền 809f9bc trước khi\nđồng bộ nhánh. Ảnh minh chứng kết xuất giao diện trên dữ",
+    "textEnd": " NOMAD chụp từ bản demo cục bộ ngày 06/11/2026, trên nền 809f9bc trước khi\nđồng bộ nhánh. Ảnh minh chứng kết xuất giao diện trên dữ liệu demo; không phải ảnh của một triển\nkhai cloud.\nSGU BOOKING | CHUONG 7\nChuong 7 | 8\n"
+  },
+  {
+    "page": 9,
+    "characters": 1587,
+    "images": 1,
+    "outsidePageSafeArea": [],
+    "textStart": "Hình 7.4. Danh sách /trips trên demo riêng ngày 06/11/2026, nền 809f9bc trước đồng bộ, với chuyến\nkhởi hành trong tương lai. Ảnh chỉ minh chứng luồng ",
+    "textEnd": "pi/ bookings\nBắt buộc pnr và phone\nkhớp chính xác; công khai\n200: success, count,\ndata; không khớp trả\ndanh sách rỗng; no­store\n400 thiếu/ sai input; 429\nvượt giới hạn, có\nRetry­After\nSGU BOOKING | CHUONG 7\nChuong 7 | 9\n"
+  },
+  {
+    "page": 10,
+    "characters": 2760,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "Phương thức và đường\ndẫn\nĐầu vào / quyền\nKết quả chính\nLỗi đáng chú ý\nGET / api/ trips/ {id}/ \nholds\nID số; clientId để khởi\ntạo/ đối chiếu phiên chọn",
+    "textEnd": "iữ ghế độc lập, chưa được SeatSelector tự gọi khi người dùng chọn ghế.\nVí dụ body đặt vé để tái lập sau khi thay tripId bằng chuyến đang còn nhận khách\nvà A01 bằng ghế trống thực tế:\nSGU BOOKING | CHUONG 7\nChuong 7 | 10\n"
+  },
+  {
+    "page": 11,
+    "characters": 2866,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "{\n  \"tripId\": 123,\n  \"seats\": [\"A01\"],\n  \"fullName\": \"Khach kiem thu\",\n  \"phone\": \"0901234567\"\n}\nGiá và trạng thái không nằm trong body online. Thành ",
+    "textEnd": "hồ\nsơ security/ evidence/ \n8/ 8 đạt trước đồng bộ:\nheaders, origin lạ/ preflight\n403, cùng origin hoạt động\nNền 809f9bc; chưa chạy lại\nHTTP sau đồng bộ; không\nphải chứng nhận bảo mật\nSGU BOOKING | CHUONG 7\nChuong 7 | 11\n"
+  },
+  {
+    "page": 12,
+    "characters": 2841,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "Mã\nLệnh / bằng chứng\nKết quả quan sát\nPhạm vi kết luận\nMC­07 npm run api:docs:check;\ndocumentation/ evidence/ api­\nhttp.json\nSpec sinh lại/ khớp sourc",
+    "textEnd": " object­src,  frame­ancestors  và  form­action,  chưa  có  script­src  nonce/hash.\nChưa có số liệu độ bao phủ, latency/throughput, Lighthouse hoặc chứng nhận WCAG/\nkiểm toán bảo mật.\nSGU BOOKING | CHUONG 7\nChuong 7 | 12\n"
+  },
+  {
+    "page": 13,
+    "characters": 2430,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "7.2.5. Cài đặt và triển khai để tái lập\npackage­lock.json khóa Next.js 16.3.5, React/React DOM 19.2.8, Prisma 6.19.3,\nTypeScript 5.9.3, Tailwind CSS 4",
+    "textEnd": "i riêng bản build với SGU_DEMO=true. npm run build kiểm tra\nđộ khớp OpenAPI trước khi gọi Next:\nnpm run api:docs:check\nnpm run lint\nnpm run typecheck\nnpm test\nnpm run build\nnpm start\nSGU BOOKING | CHUONG 7\nChuong 7 | 13\n"
+  },
+  {
+    "page": 14,
+    "characters": 2728,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "npm start cần bản build production tương ứng đã hoàn tất. Source dùng next/font/\ngoogle nên cài/build có thể cần Internet để tải font; cấu hình produc",
+    "textEnd": "và SHA­256 tệp được chọn\nUnit và kiểm tra\ntĩnh\ndocumentation/ evidence/ pre­push­\nunit.log; pre­push­typecheck.log; pre­\npush­lint.log\n162 ca đạt; TypeScript/ ESLint trên\nnền 1f2bedb\nSGU BOOKING | CHUONG 7\nChuong 7 | 14\n"
+  },
+  {
+    "page": 15,
+    "characters": 2945,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "Nhóm bằng\nchứng\nĐường dẫn\nÝ nghĩa\nBuild và hồ sơ cũ\ndocumentation/ evidence/ pre­push­\nbuild.log; pre­push­build­result.json;\nverification­before­sync",
+    "textEnd": "gọi POST để tạo SeatHold khi bấm ghế.\nWorker hết hạn vé online đã có, song cần tiến trình Node đang chạy và xử lý theo đợt;\nkhông cam kết giải phóng đúng giây hết hạn hoặc hoàn tiền.\nSGU BOOKING | CHUONG 7\nChuong 7 | 15\n"
+  },
+  {
+    "page": 16,
+    "characters": 1031,
+    "images": 0,
+    "outsidePageSafeArea": [],
+    "textStart": "• VietQR và xác nhận Demo chưa kiểm chứng tiền vào ngân hàng, webhook hoặc hoàn\ntiền. Tra cứu vé đã yêu cầu PNR + điện thoại, nhưng /success và các AP",
+    "textEnd": "QL, đo tải, audit WCAG hoặc kiểm\ntoán bảo mật toàn hệ thống. Chưa có public deployment, GitHub Actions CI, minh\nchứng đầy đủ review chéo/bảo vệ main và mục AI Disclosure trong hồ sơ.\nSGU BOOKING | CHUONG 7\nChuong 7 | 16\n"
+  }
+]

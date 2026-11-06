@@ -210,6 +210,8 @@ export default function RegisterForm({ onLogin, onSuccess }: {
         </label>
       </div>
 
+      <p className="text-xs text-gray-500">Vé đã đặt khi chưa đăng nhập được tra cứu bằng mã đặt chỗ (PNR) và số điện thoại hành khách.</p>
+
       {/* Nút submit */}
       <button
         type="submit"

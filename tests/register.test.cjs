@@ -14,18 +14,26 @@ const valid = {
   address: " 123 đường A ", password: "secret123", confirmPassword: "secret123", agreeTerms: true,
 };
 
-function setup({ duplicate = false, duplicateCustomer = false, maxId = null, conflicts = 0, failure } = {}) {
+function setup({ duplicate = false, duplicateCustomer = false, maxId = null, conflicts = 0, failure,
+  existingUser = duplicate ? { id: 1, role: "CUSTOMER", isActive: true } : null,
+  currentUser = existingUser, currentCustomer = duplicateCustomer ? { id: "customer-id" } : null,
+} = {}) {
   const writes = [];
   const prisma = {
-    user: { findUnique: async () => duplicate ? { id: 1 } : null },
+    user: { findUnique: async () => existingUser },
     customer: { findFirst: async () => duplicateCustomer ? { id: "customer-id" } : null },
     $transaction: async (callback, options) => {
       assert.equal(options.isolationLevel, "Serializable");
       if (conflicts-- > 0) throw new Prisma.PrismaClientKnownRequestError("conflict", { code: "P2034", clientVersion: "6.19.3" });
       return callback({
       $queryRaw: async () => [{ maxId }],
-      user: { create: async ({ data }) => { writes.push(["user", data]); return { id: 1 }; } },
-      customer: { create: async ({ data }) => {
+      user: {
+        findUnique: async () => currentUser,
+        update: async (args) => { writes.push(["guest", args]); return { ...currentUser, ...args.data }; },
+        create: async ({ data }) => { writes.push(["user", data]); return { id: 1 }; },
+      },
+      booking: { updateMany: async (args) => { writes.push(["snapshot", args]); return { count: 1 }; } },
+      customer: { findFirst: async () => currentCustomer, create: async ({ data }) => {
         if (failure) throw failure;
         writes.push(["customer", data]); return { id: "customer-id" };
       } },
@@ -88,6 +96,53 @@ test("rejects an existing customer email or phone before writing", async () => {
   const { post, writes } = setup({ duplicateCustomer: true });
   assert.equal((await post(valid)).status, 409);
   assert.equal(writes.length, 0);
+});
+
+test("a former guest can register without inheriting existing guest bookings", async () => {
+  const existingUser = { id: 77, fullName: "Original passenger", role: "USER", isActive: true };
+  const { post, writes } = setup({ existingUser });
+  const response = await post(valid);
+  assert.equal(response.status, 201);
+  const detached = writes.find(([table]) => table === "guest")[1];
+  assert.deepEqual(detached.where, { id: 77 });
+  assert.match(detached.data.phone, /^guest:[a-f0-9]{32}$/);
+  assert.deepEqual(writes.filter(([table]) => table === "snapshot").map(([, args]) => args), [
+    { where: { userId: 77, passengerPhone: null }, data: { passengerPhone: valid.phone } },
+    { where: { userId: 77, passengerName: null }, data: { passengerName: "Original passenger" } },
+  ]);
+  const created = writes.find(([table]) => table === "user")[1];
+  assert.equal(created.phone, valid.phone);
+  assert.equal(created.role, "CUSTOMER");
+  assert.equal("id" in created, false);
+  assert.equal(writes.some(([, args]) => args?.data?.userId !== undefined), false);
+});
+
+test("registration never detaches active accounts, locked guests or a matching customer profile", async () => {
+  for (const existingUser of [
+    { id: 77, role: "ADMIN", isActive: true },
+    { id: 77, role: "CUSTOMER", isActive: true },
+    { id: 77, role: "USER", isActive: false },
+  ]) {
+    const { post, writes } = setup({ existingUser });
+    assert.equal((await post(valid)).status, 409);
+    assert.equal(writes.length, 0);
+  }
+  const s = setup({ existingUser: { id: 77, role: "USER", isActive: true }, duplicateCustomer: true });
+  assert.equal((await s.post(valid)).status, 409);
+  assert.equal(s.writes.length, 0);
+});
+
+test("registration rechecks eligibility inside the transaction before detaching a guest", async () => {
+  for (const changed of [
+    { currentUser: { id: 77, role: "ADMIN", isActive: true } },
+    { currentUser: { id: 77, role: "CUSTOMER", isActive: true } },
+    { currentUser: { id: 77, role: "USER", isActive: false } },
+    { currentCustomer: { id: "registered-in-another-request" } },
+  ]) {
+    const { post, writes } = setup({ existingUser: { id: 77, role: "USER", isActive: true }, ...changed });
+    assert.equal((await post(valid)).status, 409);
+    assert.equal(writes.length, 0);
+  }
 });
 
 test("accepts registration without an optional address", async () => {

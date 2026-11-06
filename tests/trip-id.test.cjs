@@ -1,6 +1,9 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { load } = require("./load-ts.cjs");
+process.env.SESSION_SECRET = "trip-id-seat-secret-".repeat(3);
+const seatSession = load("lib/seat-session.ts");
+const seatCookie = `${seatSession.SEAT_SESSION_COOKIE}=${seatSession.createSeatSessionToken()}`;
 
 const apiHelpers = {
   requireAdmin: async () => ({ id: 1 }),
@@ -78,10 +81,10 @@ test("seat hold API broadcasts numeric IDs and rejects string IDs", async () => 
   const route = load("app/api/seats/hold/route.ts", {
     "@/lib/admin-api": apiHelpers,
     "@/services/seatService": { holdSeat: async (id) => calls.push(id), releaseSeat: async (id) => calls.push(id) },
-    "@/lib/sse": { broadcast: (id) => calls.push(id) },
+    "@/lib/sse": { broadcastSeatRefresh: (id) => calls.push(id) },
   });
   for (const tripId of ["42", "OLD-CODE", 42]) {
-    const response = await route.POST(new Request("http://localhost/api/seats/hold", { method: "POST", body: JSON.stringify({ tripId, seatNumber: "A01", clientId: "client-one", action: "hold" }) }));
+    const response = await route.POST(new Request("http://localhost/api/seats/hold", { method: "POST", headers: { cookie: seatCookie }, body: JSON.stringify({ tripId, seatNumber: "A01", clientId: "client-one", action: "hold" }) }));
     assert.equal(response.status, tripId === 42 ? 200 : 400);
   }
   assert.deepEqual(calls, [42, 42]);
@@ -92,16 +95,17 @@ test("seat hold URLs validate before querying and streams use the canonical nume
   const holds = load("app/api/trips/[id]/holds/route.ts", {
     "@/lib/admin-api": apiHelpers,
     "@/services/seatService": { getActiveSeatHolds: async (id) => { calls.push(id); return []; } },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async () => ({ capacity: 6, booking: [] }) } } },
   });
   assert.equal((await holds.GET(new Request("http://localhost"), context("OLD-CODE"))).status, 400);
   assert.equal((await holds.GET(new Request("http://localhost"), context("0042"))).status, 200);
   const stream = load("app/api/trips/[id]/stream/route.ts", {
     "@/lib/admin-api": apiHelpers,
-    "@/lib/prisma": { prisma: { trip: { findUnique: async ({ where }) => ({ id: where.id }) } } },
+    "@/lib/prisma": { prisma: { trip: { findUnique: async ({ where }) => ({ id: where.id, booking: [] }) } } },
     "@/lib/sse": {
       addClient: (id) => calls.push(id),
       removeClient: (id) => calls.push(id),
-      getSeatSnapshot: (id) => ({ type: "SEAT_SNAPSHOT", tripId: id, selections: [], viewerCount: 0, timestamp: new Date().toISOString() }),
+      getSeatSnapshot: (id) => ({ type: "SEAT_SNAPSHOT", tripId: id, selections: [], bookedSeats: [], viewerCount: 0, timestamp: new Date().toISOString() }),
       broadcastViewerCount: () => {},
       encodeRealtimeMessage: (message) => new TextEncoder().encode(JSON.stringify(message)),
     },

@@ -4,6 +4,7 @@ const path = require("node:path");
 const os = require("node:os");
 const { spawnSync } = require("node:child_process");
 const { PrismaClient } = require("@prisma/client");
+const { createBaselineSchema } = require("./baseline-schema.cjs");
 const prisma = new PrismaClient();
 const baseline = "20261009000000_baseline";
 const migrationPath = path.resolve("prisma/admin-migrations", baseline, "migration.sql");
@@ -23,14 +24,14 @@ function normalizeSeat(value) {
 async function preflight() {
   const duplicates = await prisma.$queryRawUnsafe("SELECT phone FROM user GROUP BY phone HAVING COUNT(*) > 1");
   if (duplicates.length) throw new Error("Có số điện thoại tài khoản bị trùng. Dừng nâng cấp để giữ dữ liệu.");
-  const trips = await prisma.$queryRawUnsafe("SELECT id, availableSeats FROM trip");
+  const trips = await prisma.$queryRawUnsafe("SELECT id, availableSeats, price FROM trip");
   const bookings = await prisma.$queryRawUnsafe("SELECT id, tripId, userId, seatNumber, status, totalPrice FROM booking");
   const users = await prisma.$queryRawUnsafe("SELECT id FROM user");
   const userIds = new Set(users.map((user) => user.id));
   const activeSeats = new Set();
   for (const booking of bookings) {
     if (!trips.some((trip) => trip.id === booking.tripId) || !userIds.has(booking.userId)) throw new Error("Có vé thiếu chuyến hoặc tài khoản liên quan.");
-    if (!["CONFIRMED", "PENDING", "CANCELLED"].includes(booking.status) || booking.totalPrice < 0) throw new Error("Có vé mang trạng thái hoặc giá không hợp lệ.");
+    if (!["CONFIRMED", "PENDING", "CANCELLED"].includes(booking.status) || !Number.isSafeInteger(booking.totalPrice) || booking.totalPrice < 0 || booking.totalPrice > 2147483647) throw new Error("Có vé mang trạng thái hoặc giá không hợp lệ. Giá phải là số nguyên đồng; không tự làm tròn dữ liệu cũ.");
     const key = `${booking.tripId}:${normalizeSeat(booking.seatNumber)}`;
     if (booking.status !== "CANCELLED") {
       if (activeSeats.has(key)) throw new Error("Có vé hiệu lực trùng ghế sau chuẩn hóa. Dừng nâng cấp để giữ dữ liệu.");
@@ -38,6 +39,7 @@ async function preflight() {
     }
   }
   for (const trip of trips) {
+    if (!Number.isSafeInteger(trip.price) || trip.price < 0 || trip.price > 2147483647) throw new Error("Có giá chuyến xe không phải số nguyên đồng hoặc ngoài giới hạn. Cần kiểm tra trước khi nâng cấp.");
     const active = bookings.filter((booking) => booking.tripId === trip.id && booking.status !== "CANCELLED");
     const highest = Math.max(0, ...active.map((booking) => {
       const seat = normalizeSeat(booking.seatNumber);
@@ -86,31 +88,25 @@ async function main() {
     return;
   }
   const names = tables.map((name) => name.toLowerCase());
-  for (const table of ["user", "trip", "booking", "employee", "seathold"]) {
+  for (const table of ["user", "trip", "booking", "employee"]) {
     if (!names.includes(table)) throw new Error(`Database import thiếu bảng ${table}. Chưa thực hiện thay đổi.`);
   }
-  await preflight();
   await backup(tables);
   const sql = fs.readFileSync(migrationPath, "utf8");
-  for (const table of ["bus", "customer"]) {
-    if (names.includes(table)) continue;
+  for (const table of ["bus", "customer", "SeatHold"]) {
+    if (names.includes(table.toLowerCase())) continue;
     const statement = sql.split(";").find((part) => part.includes(`CREATE TABLE \`${table}\``));
     if (!statement) throw new Error(`Baseline thiếu định nghĩa ${table}`);
     await prisma.$executeRawUnsafe(statement);
   }
+  await preflight();
   const indexes = await prisma.$queryRawUnsafe("SHOW INDEX FROM user");
   if (!indexes.some((index) => index.Column_name === "phone" && Number(index.Non_unique) === 0)) {
     await prisma.$executeRawUnsafe("CREATE UNIQUE INDEX user_phone_key ON user(phone)");
   }
   // Chỉ ghi nhận baseline khi cấu trúc thật khớp; không đánh dấu sai migration là đã chạy.
   const temporary = path.join(os.tmpdir(), `nha-xe-baseline-${process.pid}.prisma`);
-  let schema = fs.readFileSync("prisma/schema.prisma", "utf8");
-  schema = schema.replace(/^model Payment \{[\s\S]*?^\}/gm, "")
-    .replace(/^\s*(pnr|passengerName|passengerPhone|activeSeat|capacity|seatHolds|isActive|confirmedAt)\s+.*$/gm, "")
-    .replace(/(model trip \{\s+id[^\n]*\n)/, '$1  code           String     @unique(map: "Trip_code_key")\n')
-    .replace(/onDelete: Restrict/g, "onDelete: Cascade")
-    .replace(/^\s*trip trip @relation.*$/gm, "")
-    .replace(/^\s*@@index\(\[(pnr|status, createdAt|status, confirmedAt|time|expiresAt)\]\).*$/gm, "");
+  const schema = createBaselineSchema(fs.readFileSync("prisma/schema.prisma", "utf8"));
   fs.writeFileSync(temporary, schema);
   try {
     const difference = runPrisma(["migrate", "diff", "--from-schema-datasource", temporary, "--to-schema-datamodel", temporary, "--script"]);
