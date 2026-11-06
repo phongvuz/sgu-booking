@@ -1,7 +1,10 @@
 // Browser mutations must come from this site. Requests without browser origin
 // headers are still usable by same-site tools and server-side clients.
 export function isSameOriginRequest(request: Request) {
-  if (request.headers.get("sec-fetch-site") === "cross-site") return false;
+  const fetchSite = request.headers.get("sec-fetch-site");
+  // A sibling subdomain is same-site but is still a different origin. Do not
+  // trust it to make authenticated changes, even if Origin is absent.
+  if (fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") return false;
   const origin = request.headers.get("origin");
   if (!origin) return true;
   const requestUrl = new URL(request.url);

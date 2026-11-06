@@ -3,7 +3,7 @@
 import { TableSort } from "@/components/admin/TableSort";
 import { tripSortOptions } from "@/lib/admin-table-sort";
 
-import { FiAlertTriangle, FiPlus, FiRefreshCw } from "react-icons/fi";
+import { FiAlertTriangle, FiPlus } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { useToast } from "@/components/admin/Toast";
 import { useTrips } from "@/hooks/useTrips";
