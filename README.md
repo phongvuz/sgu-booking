@@ -4,7 +4,11 @@
 
 Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [docs/seat-realtime.md](docs/seat-realtime.md).
 
+<<<<<<< Updated upstream
 Bài học CRUD thực hành: [tự viết API quản lý đơn hàng](docs/exercises/orders/README.md). Các API đơn hàng đang có TODO để hoàn thành theo bài học; bản gốc và hướng dẫn khôi phục nằm trong tài liệu.
+=======
+Quản trị đã tách trạng thái vé khỏi sổ thu/hoàn tiền, gom lượt đặt theo PNR và kiểm tra phân công xe/tài xế. Hướng dẫn nghiệp vụ và cách đọc code cho người mới: [documentation/admin-finance-dispatch.md](documentation/admin-finance-dispatch.md).
+>>>>>>> Stashed changes
 
 Ứng dụng đặt vé xe dùng Next.js App Router, React, TypeScript, Prisma và MySQL. Khách có thể tìm chuyến, chọn ghế, tra cứu vé; trang `/admin` quản lý chuyến xe, vé, xe, nhân viên và tài khoản.
 
@@ -58,6 +62,17 @@ npm start
 
 `npm start` chạy bản production đã tạo bằng `npm run build`. `npm test` chạy test độc lập với database. `npm run test:admin-db` tạo database tạm, kiểm tra nghiệp vụ với MySQL/MariaDB thật rồi xóa riêng database tạm đó. Người dùng database cần quyền CREATE DATABASE và DROP DATABASE để chạy lệnh kiểm tra này.
 
+<<<<<<< Updated upstream
+=======
+Nếu môi trường Windows/sandbox chặn test runner tạo tiến trình con (`spawn EPERM`), chạy `npm test` trong môi trường cho phép tiến trình con. Bộ test đầy đủ cần cách ly từng file vì có fixture thay đổi biến môi trường và module cache. `security:check` chỉ chạy nhóm kiểm tra đã xác minh tương thích cùng tiến trình; không thay thế toàn bộ unit test, kiểm thử database hoặc trình duyệt.
+
+`node tests/booking-fixes-db.cjs` kiểm tra riêng migration tiền nguyên đồng và các luồng guest, tra cứu, giữ ghế, quản lý vé, tìm chuyến trên database tạm rồi xóa database đó. Kiểm tra này dùng schema hiện tại, không thay thế việc kiểm tra toàn bộ lịch sử migration trong `test:admin-db`.
+
+Sau khi build, trên Windows có Google Chrome, chạy `node --test tests/booking-fixes.browser.cjs` để kiểm tra hai phiên trình duyệt độc lập: cookie chọn ghế, chặn giả mạo ID, đặt/hủy ghế và khôi phục sau mất mạng. Test tự tạo server, database và profile Chrome tạm rồi dọn riêng các tài nguyên đó; không cần cài Playwright.
+
+`npm run test:finance-db` tạo database tạm riêng để kiểm tra sổ thu/hoàn, nâng cấp dữ liệu cũ, thu/hoàn đồng thời, trùng lịch phân công và bảo vệ ghế đang giữ. Lệnh xóa riêng database kiểm thử khi kết thúc. Không sửa checksum migration đã áp dụng.
+
+>>>>>>> Stashed changes
 ## Tìm code ở đâu
 
 - `app/`: trang và API.

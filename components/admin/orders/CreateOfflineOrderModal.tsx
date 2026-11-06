@@ -42,6 +42,7 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
       fullName: "",
       phone: "",
       status: "CONFIRMED",
+      paymentMethod: "CASH",
     },
   });
 
@@ -116,6 +117,9 @@ function OfflineOrderForm({ onClose, onSubmit }: CreateOfflineOrderModalProps) {
 
         {/* Form Body */}
         <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 overflow-y-auto space-y-4 flex-1">
+          <label className="block text-xs font-semibold">Phương thức thu tiền
+            <select {...register("paymentMethod")} className="mt-1 w-full rounded border border-gray-300 p-2"><option value="CASH">Tiền mặt</option><option value="BANK_TRANSFER">Chuyển khoản</option></select>
+          </label>
           {/* Chọn chuyến xe */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">

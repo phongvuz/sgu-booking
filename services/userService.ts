@@ -7,6 +7,11 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { UserAccount, UserQueryParams, PaginationMeta, UserStats } from "@/types";
 import { UserFormValues } from "@/lib/validations/user";
+<<<<<<< Updated upstream
+=======
+import { isGuestPhone } from "@/lib/guest-account";
+import { getMoneySummary } from "@/lib/booking-money";
+>>>>>>> Stashed changes
 
 /**
  * Lấy danh sách người dùng với tìm kiếm, phân trang và thống kê số vé đặt
@@ -76,14 +81,14 @@ export async function queryUsers(params: UserQueryParams): Promise<{
         select: { booking: true },
       },
       booking: {
-        where: { status: "CONFIRMED" },
-        select: { totalPrice: true },
+        select: { totalPrice: true, status: true, transactions: true },
       },
     },
   });
 
   const data: UserAccount[] = users.map((u) => {
-    const totalSpent = u.booking.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+    const money = getMoneySummary(u.booking, false);
+    const totalSpent = money.received - money.refunded;
     return {
       id: u.id,
       fullName: u.fullName,
@@ -124,6 +129,7 @@ export async function getUserById(id: number | string) {
         orderBy: { createdAt: "desc" },
         include: {
           trip: true,
+          transactions: true,
         },
       },
     },
@@ -131,9 +137,8 @@ export async function getUserById(id: number | string) {
 
   if (!user) return null;
 
-  const totalSpent = user.booking
-    .filter((b) => b.status === "CONFIRMED")
-    .reduce((sum, b) => sum + b.totalPrice, 0);
+  const money = getMoneySummary(user.booking, false);
+  const totalSpent = money.received - money.refunded;
 
   return {
     id: user.id,

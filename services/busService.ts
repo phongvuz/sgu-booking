@@ -5,6 +5,8 @@ import { toBus } from "@/lib/record-mappers";
 import { prisma } from "@/lib/prisma";
 import { Bus, BusQueryParams, PaginationMeta, BusStats } from "@/types";
 import { BusFormValues } from "@/lib/validations/bus";
+import { runTransaction } from "@/lib/transaction";
+import { BusinessError } from "@/lib/business-error";
 
 /**
  * Lấy danh sách xe với bộ lọc tìm kiếm, loại xe, trạng thái và phân trang
@@ -164,9 +166,12 @@ export async function updateBus(id: string, data: Partial<BusFormValues>): Promi
   if (data.lastMaintenance !== undefined) updateData.lastMaintenance = data.lastMaintenance?.trim() || null;
   if (data.notes !== undefined) updateData.notes = data.notes?.trim() || null;
 
-  const updated = await prisma.bus.update({
-    where: { id: bus.id },
-    data: updateData,
+  const updated = await runTransaction(async (tx) => {
+    const current = await tx.bus.findUnique({ where: { id: bus.id } });
+    if (!current) throw new BusinessError("Xe không còn tồn tại.", 404);
+    const changesAssignment = (data.status !== undefined && data.status !== "Đang hoạt động") || (data.seats !== undefined && data.seats !== current.seats) || (data.type !== undefined && data.type !== current.type);
+    if (changesAssignment && await tx.trip.count({ where: { busId: current.id, status: { in: ["OPEN", "DEPARTED"] } } })) throw new BusinessError("Xe đang được phân công cho chuyến mở bán hoặc đang chạy. Đổi phân công trước khi sửa trạng thái hoặc sơ đồ ghế.", 409);
+    return tx.bus.update({ where: { id: current.id }, data: updateData });
   });
 
   return toBus(updated);
@@ -187,13 +192,5 @@ export async function deleteBus(id: string): Promise<boolean> {
  * Cập nhật nhanh trạng thái xe
  */
 export async function updateBusStatus(id: string, newStatus: string): Promise<Bus | null> {
-  const bus = await getBusById(id);
-  if (!bus) return null;
-
-  const updated = await prisma.bus.update({
-    where: { id: bus.id },
-    data: { status: newStatus },
-  });
-
-  return toBus(updated);
+  return updateBus(id, { status: newStatus as BusFormValues["status"] });
 }

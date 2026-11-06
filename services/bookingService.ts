@@ -39,6 +39,7 @@ export async function createBooking(
   const status = input.status ?? "PENDING";
   if (status === "CANCELLED")
     throw new BusinessError("Vé mới phải chờ thanh toán hoặc đã thanh toán.");
+  if (status === "CONFIRMED" && !input.actorId) throw new BusinessError("Thu tiền tại quầy cần tài khoản nhân viên xử lý.");
   const fullName = input.fullName.trim();
   const phone = input.phone.trim();
   const guestPassword = await hashPassword(randomBytes(32).toString("hex"));
@@ -46,9 +47,16 @@ export async function createBooking(
   return runTransaction(async (tx) => {
     const trip = await tx.trip.findUnique({ where: { id } });
     if (!trip) throw new TripNotFoundError(input.tripId);
+<<<<<<< Updated upstream
     if (trip.time <= new Date())
+=======
+    assertTripPrice(trip.price);
+    const now = new Date();
+
+    if (trip.time <= now || trip.status !== "OPEN") {
+>>>>>>> Stashed changes
       throw new BusinessError(
-        "Chuyến xe đã xuất bến, không thể đặt thêm vé.",
+        "Chuyến xe chưa mở bán hoặc đã xuất bến, không thể đặt thêm vé.",
         409,
       );
     const validSeats = getSeatCodes(trip.capacity);
@@ -116,6 +124,13 @@ export async function createBooking(
       where: { id: { in: bookings.map((booking) => booking.id) } },
       data: { pnr },
     });
+    if (status === "CONFIRMED") {
+      const reference = randomBytes(16).toString("hex");
+      await tx.bookingTransaction.createMany({ data: bookings.map((booking) => ({
+        bookingId: booking.id, kind: "RECEIPT", amount: booking.totalPrice,
+        method: input.paymentMethod ?? "CASH", reference, actorId: input.actorId,
+      })) });
+    }
     await tx.seatHold.deleteMany({
       where: { tripId: trip.id, seatNumber: { in: seats } },
     });

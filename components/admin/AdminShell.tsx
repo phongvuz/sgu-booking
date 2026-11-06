@@ -20,7 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Bảng điều khiển", icon: FiBarChart2, exact: true },
   { href: "/admin/trips", label: "Quản lý Chuyến xe", icon: FaRoad },
   { href: "/admin/orders", label: "Quản lý Đơn hàng", icon: FaTicketAlt },
-  { href: "/admin/payments", label: "Thanh toán online", icon: FiCreditCard },
+  { href: "/admin/payments", label: "Thu / hoàn tiền", icon: FiCreditCard },
   { href: "/admin/buses", label: "Quản lý Xe", icon: FaBus },
   { href: "/admin/employees", label: "Quản lý Nhân viên", icon: FiUsers },
   { href: "/admin/users", label: "Quản lý Tài khoản", icon: FiUser },

@@ -81,7 +81,13 @@ async function main() {
   assert.equal(await employees.deleteEmployee(employee.id), true);
   console.log("✓ Bus and employee CRUD, statuses, duplicate handling, filtered statistics.");
 
-  const trip = await trips.createTrip({ from: "Test Origin", to: "Test Destination", time: new Date(Date.now() + 86400000), price: 100000, capacity: 3 });
+  const dispatchBus = await buses.createBus({ plate: "99B-100.03", type: "Ghế ngồi", seats: 3, status: "Đang hoạt động" });
+  const largerBus = await buses.createBus({ plate: "99B-100.04", type: "Ghế ngồi", seats: 4, status: "Đang hoạt động" });
+  const smallerBus = await buses.createBus({ plate: "99B-100.02", type: "Ghế ngồi", seats: 2, status: "Đang hoạt động" });
+  const dispatchDriver = await employees.createEmployee({ name: "Dispatch Driver", email: "dispatch-driver@example.test", phone: "0999000011", role: "Tài xế", department: "Đội xe" });
+  const departure = new Date(Date.now() + 86400000);
+  const assignment = { time: departure, endsAt: new Date(departure.getTime() + 3600000), status: "OPEN", busId: dispatchBus.id, driverId: dispatchDriver.id };
+  const trip = await trips.createTrip({ from: "Test Origin", to: "Test Destination", ...assignment, price: 100000, capacity: 3 });
   assert.equal(typeof trip.id, "number");
   assert.equal("code" in trip, false);
   assert.equal((await trips.getTripById(trip.id)).id, trip.id);
@@ -114,14 +120,14 @@ async function main() {
   assert.equal((await prisma.trip.findUnique({ where: { id: trip.id } })).availableSeats, 2);
   await orders.updateOrderStatus(replacement.bookingIds[0], "CANCELLED");
   await orders.updateOrderStatus(firstId, "PENDING");
-  await orders.updateOrderStatus(firstId, "CONFIRMED");
+  await orders.updateOrderStatus(firstId, "CONFIRMED", admin.id);
   const paid = await prisma.booking.findUnique({ where: { id: firstId } });
   assert.ok(paid.confirmedAt);
-  await orders.updateOrderStatus(firstId, "CONFIRMED");
+  await orders.updateOrderStatus(firstId, "CONFIRMED", admin.id);
   assert.equal((await prisma.booking.findUnique({ where: { id: firstId } })).confirmedAt.getTime(), paid.confirmedAt.getTime());
   await fails(() => orders.updateOrderStatus(firstId, "PENDING"), 409);
   await fails(() => trips.updateTrip(trip.id, { from: "Changed Origin" }), 409);
-  await trips.updateTrip(trip.id, { price: 200000, capacity: 4 });
+  await trips.updateTrip(trip.id, { price: 200000, capacity: 4, busId: largerBus.id });
   assert.equal((await prisma.booking.findUnique({ where: { id: firstId } })).totalPrice, 100000);
   await fails(() => trips.deleteTrip(trip.id), 409);
   await fails(() => users.deleteUser(paid.userId, admin.id), 409);
@@ -134,8 +140,13 @@ async function main() {
   console.log("✓ Cancel/restore: idempotency, occupied-seat rejection, payment transitions, history and revenue.");
 
   const multi = await bookings.createBooking({ ...input, seats: ["B01", "C01"] });
+<<<<<<< Updated upstream
   assert.equal((await bookings.getBookings({ query: multi.pnr })).length, 2);
   await fails(() => trips.updateTrip(trip.id, { capacity: 2 }), 409);
+=======
+  assert.equal((await bookings.getBookings({ pnr: multi.pnr, phone: input.phone })).length, 2);
+  await fails(() => trips.updateTrip(trip.id, { capacity: 2, busId: smallerBus.id }), 409);
+>>>>>>> Stashed changes
   const snapshot = await prisma.booking.findUnique({ where: { id: multi.bookingIds[0] } });
   await users.updateUser(snapshot.userId, { fullName: "Renamed Account", phone: "0999000005" }, admin.id);
   assert.equal((await orders.getOrderById(snapshot.id)).user.fullName, "Passenger One");
@@ -146,7 +157,8 @@ async function main() {
   assert.equal(tripStats.stats.avgOccupancy, 50);
   console.log("✓ Multi-seat PNR, passenger snapshots, safe capacity edits, filtered trip statistics.");
 
-  const heldTrip = await trips.createTrip({ from: "Hold Origin", to: "Hold Destination", time: new Date(Date.now() + 86400000), price: 100000, capacity: 3 });
+  const heldDeparture = new Date(departure.getTime() + 7200000);
+  const heldTrip = await trips.createTrip({ from: "Hold Origin", to: "Hold Destination", ...assignment, time: heldDeparture, endsAt: new Date(heldDeparture.getTime() + 3600000), price: 100000, capacity: 3 });
   await holds.holdSeat(heldTrip.id, "a1", "client-one");
   await fails(() => holds.holdSeat(heldTrip.id, "A01", "client-two"), 409);
   await fails(() => bookings.createBooking({ ...input, tripId: heldTrip.id }), 409);
@@ -155,11 +167,11 @@ async function main() {
   assert.equal(await prisma.seatHold.count({ where: { tripId: heldTrip.id } }), 0);
   await orders.updateOrderStatus(owned.bookingIds[0], "CANCELLED");
   await holds.holdSeat(heldTrip.id, "C01", "client-one");
-  await fails(() => trips.updateTrip(heldTrip.id, { capacity: 2 }), 409);
+  await fails(() => trips.updateTrip(heldTrip.id, { capacity: 2, busId: smallerBus.id }), 409);
   await holds.releaseSeat(heldTrip.id, "c1", "client-one");
   const highSeat = await bookings.createBooking({ ...input, tripId: heldTrip.id, seats: ["C01"] });
   await orders.updateOrderStatus(highSeat.bookingIds[0], "CANCELLED");
-  await trips.updateTrip(heldTrip.id, { capacity: 2 });
+  await trips.updateTrip(heldTrip.id, { capacity: 2, busId: smallerBus.id });
   await fails(() => orders.updateOrderStatus(highSeat.bookingIds[0], "PENDING"), 409);
   console.log("✓ Holds: canonical codes, ownership, capacity validation and safe restoration after shrink.");
 

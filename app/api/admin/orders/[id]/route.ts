@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, { params }: ParamsContext) {
 // UPDATE: PATCH /api/admin/orders/[id]
 export async function PATCH(request: NextRequest, { params }: ParamsContext) {
   try {
-    await requireAdmin(request);
+    const admin = await requireAdmin(request);
     const { id } = await params;
 
     // 1. Kiểm tra ID trước khi đọc dữ liệu cần cập nhật.
@@ -75,6 +75,7 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
+<<<<<<< Updated upstream
     // 3. Kiểm tra đơn hàng có tồn tại trước khi cập nhật.
     const order = await getOrderById(orderId);
     if (!order) {
@@ -93,6 +94,10 @@ export async function PATCH(request: NextRequest, { params }: ParamsContext) {
       );
     }
 
+=======
+    const updated = await updateOrderStatus(orderId, status as BookingStatus, admin.id);
+    if (!updated) return notFoundResponse();
+>>>>>>> Stashed changes
     return NextResponse.json(
       { success: true, data: updated, message: "Cập nhật trạng thái đơn hàng thành công." },
       { status: 200 }

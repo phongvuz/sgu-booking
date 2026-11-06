@@ -17,10 +17,16 @@ export const offlineOrderSchema = z.object({
       "Số điện thoại không hợp lệ (VD: 0901234567)"
     ),
   status: z.enum(["CONFIRMED", "PENDING"]).default("CONFIRMED"),
+  paymentMethod: z.enum(["CASH", "BANK_TRANSFER"]).default("CASH"),
 });
 
+<<<<<<< Updated upstream
 export const onlineOrderSchema = offlineOrderSchema.omit({ status: true }).extend({
   clientId: z.string().min(1).max(191).optional(),
+=======
+export const onlineOrderSchema = offlineOrderSchema.omit({ status: true, paymentMethod: true }).extend({
+  clientId: realtimeClientIdSchema.optional(),
+>>>>>>> Stashed changes
 });
 
 export type OfflineOrderFormValues = z.infer<typeof offlineOrderSchema>;

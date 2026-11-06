@@ -1,12 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { FormEvent } from "react";
 import { FiX } from "react-icons/fi";
 import { formatDepartureDate, formatVietnamDateTime } from "@/lib/trip-search";
 import { tripSchema } from "@/lib/validations/trip";
 import type { TripFormValues } from "@/lib/validations/trip";
 import type { TripAdminItem } from "@/types/trip";
+<<<<<<< Updated upstream
+=======
+import { mergeTripLocations, sameTripLocation } from "@/lib/trip-locations";
+import { tripStatusLabels, tripStatusTransitions } from "@/lib/trip-status";
+import { requestJson } from "@/lib/api-client";
+import { useRemoteData } from "@/hooks/useRemoteData";
+
+interface DispatchOptions {
+  buses: Array<{ id: string; plate: string; seats: number; status: string }>;
+  drivers: Array<{ id: string; name: string; status: string }>;
+}
+>>>>>>> Stashed changes
 
 interface TripModalProps {
   isOpen: boolean;
@@ -35,6 +47,10 @@ export function TripModal({
         time: formatVietnamDateTime(initialData.time),
         price: initialData.price,
         capacity: initialData.totalSeats,
+        endsAt: initialData.endsAt ? formatVietnamDateTime(initialData.endsAt) : "",
+        status: initialData.status,
+        busId: initialData.busId ?? "",
+        driverId: initialData.driverId ?? "",
       };
     }
 
@@ -47,8 +63,29 @@ export function TripModal({
       time: formatDepartureDate(tomorrow) + "T08:00",
       price: 300000,
       capacity: 30,
+      endsAt: "",
+      status: "DRAFT",
+      busId: "",
+      driverId: "",
     };
   });
+<<<<<<< Updated upstream
+=======
+  const [from, setFrom] = useState(defaultValues.from);
+  const [to, setTo] = useState(defaultValues.to);
+  const [busId, setBusId] = useState(defaultValues.busId);
+  const [driverId, setDriverId] = useState(defaultValues.driverId);
+  const [capacity, setCapacity] = useState(defaultValues.capacity);
+  const loadDispatch = useCallback(async (signal: AbortSignal) => {
+    const response = await requestJson<{ data: DispatchOptions }>("/api/admin/dispatch", { signal });
+    return response.data;
+  }, []);
+  const dispatch = useRemoteData<DispatchOptions>(loadDispatch, { buses: [], drivers: [] });
+  const locationOptions = mergeTripLocations(locations, [from, to]);
+  const statusOptions = mode === "create"
+    ? ["DRAFT", "OPEN"]
+    : tripStatusTransitions[initialData?.status ?? "DRAFT"];
+>>>>>>> Stashed changes
 
   async function handleFormSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -61,6 +98,10 @@ export function TripModal({
       time: formData.get("time"),
       price: formData.get("price"),
       capacity: formData.get("capacity"),
+      endsAt: formData.get("endsAt"),
+      status: formData.get("status"),
+      busId,
+      driverId,
     });
 
     setErrors({});
@@ -135,7 +176,39 @@ export function TripModal({
         </div>
 
         <form onSubmit={handleFormSubmit} noValidate className="p-6 overflow-y-auto space-y-4 flex-1">
+          <div>
+            <label htmlFor="trip-status" className="block text-xs font-semibold">Trạng thái chuyến</label>
+            <select id="trip-status" name="status" defaultValue={defaultValues.status} disabled={isSubmitting} className="mt-1 w-full rounded border border-gray-300 p-2 text-xs">
+              {statusOptions.map((status) => <option key={status} value={status}>{tripStatusLabels[status]}</option>)}
+            </select>
+            <p className="mt-1 text-xs text-gray-500">Mở bán cần xe đang hoạt động, tài xế đang làm việc và khoảng giờ không trùng lịch.</p>
+            {errors.status && <p className="text-xs text-rose-600">{errors.status}</p>}
+          </div>
+          {dispatch.error && <p role="alert" className="text-xs text-rose-600">{dispatch.error} <button type="button" onClick={dispatch.refresh} className="underline">Tải lại</button></p>}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="block text-xs font-semibold">Xe
+              <select value={busId} disabled={isSubmitting || dispatch.loading} onChange={(event) => {
+                setBusId(event.target.value);
+                const bus = dispatch.data.buses.find((item) => item.id === event.target.value);
+                if (bus) setCapacity(bus.seats);
+              }} className="mt-1 w-full rounded border border-gray-300 p-2">
+                <option value="">Chưa phân công</option>
+                {dispatch.data.buses.map((bus) => <option key={bus.id} value={bus.id} disabled={bus.status !== "Đang hoạt động"}>{bus.plate} · {bus.seats} ghế · {bus.status}</option>)}
+              </select>
+            </label>
+            <label className="block text-xs font-semibold">Tài xế
+              <select value={driverId} disabled={isSubmitting || dispatch.loading} onChange={(event) => setDriverId(event.target.value)} className="mt-1 w-full rounded border border-gray-300 p-2">
+                <option value="">Chưa phân công</option>
+                {dispatch.data.drivers.map((driver) => <option key={driver.id} value={driver.id} disabled={driver.status !== "Đang làm việc"}>{driver.name} · {driver.status}</option>)}
+              </select>
+            </label>
+          </div>
 
+          <div>
+            <label htmlFor="trip-ends-at" className="block text-xs font-semibold">Giờ kết thúc dự kiến</label>
+            <input type="datetime-local" id="trip-ends-at" name="endsAt" defaultValue={defaultValues.endsAt} disabled={isSubmitting} className="mt-1 w-full rounded border border-gray-300 p-2 text-xs" />
+            {errors.endsAt && <p className="text-xs text-rose-600">{errors.endsAt}</p>}
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label htmlFor="trip-from" className="block text-xs font-semibold text-gray-700 mb-1">
@@ -219,7 +292,9 @@ export function TripModal({
                 type="number"
                 id="trip-capacity"
                 name="capacity"
-                defaultValue={defaultValues.capacity}
+                value={capacity}
+                readOnly={!!busId}
+                onChange={(event) => setCapacity(Number(event.target.value))}
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />

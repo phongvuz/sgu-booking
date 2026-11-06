@@ -6,6 +6,8 @@ import { toEmployee } from "@/lib/record-mappers";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { Employee, EmployeeQueryParams, PaginationMeta, EmployeeStats } from "@/types";
+import { runTransaction } from "@/lib/transaction";
+import { BusinessError } from "@/lib/business-error";
 
 /**
  * Lấy danh sách nhân viên từ MySQL với bộ lọc, tìm kiếm và phân trang
@@ -178,9 +180,12 @@ export async function updateEmployee(
   if (data.address !== undefined) updateData.address = data.address?.trim() || null;
   if (data.startDate !== undefined) updateData.startDate = data.startDate;
 
-  const updated = await prisma.employee.update({
-    where: { id },
-    data: updateData,
+  const updated = await runTransaction(async (tx) => {
+    const current = await tx.employee.findUnique({ where: { id } });
+    if (!current) throw new BusinessError("Nhân viên không còn tồn tại.", 404);
+    const cannotDrive = (data.status !== undefined && data.status !== "Đang làm việc") || (data.role !== undefined && data.role !== "Tài xế");
+    if (cannotDrive && await tx.trip.count({ where: { driverId: id, status: { in: ["OPEN", "DEPARTED"] } } })) throw new BusinessError("Tài xế đang được phân công cho chuyến mở bán hoặc đang chạy. Đổi tài xế trước khi cập nhật.", 409);
+    return tx.employee.update({ where: { id }, data: updateData });
   });
 
   return toEmployee(updated);
@@ -208,17 +213,7 @@ export async function updateEmployeeStatus(
   id: string,
   newStatus: string
 ): Promise<Employee | null> {
-  try {
-    const updated = await prisma.employee.update({
-      where: { id },
-      data: { status: newStatus },
-    });
-
-    return toEmployee(updated);
-  } catch (error) {
-    if (!hasDatabaseCode(error, "P2025")) throw error;
-    return null;
-  }
+  return updateEmployee(id, { status: newStatus as Employee["status"] });
 }
 
 /**

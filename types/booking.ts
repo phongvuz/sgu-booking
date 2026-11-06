@@ -8,6 +8,12 @@ export interface CreateBookingInput {
   status?: BookingStatus;
   clientId?: string;
   ownerId?: number;
+<<<<<<< Updated upstream
+=======
+  isOnline?: boolean;
+  actorId?: number;
+  paymentMethod?: import("./order").MoneyMethod;
+>>>>>>> Stashed changes
 }
 
 export interface BookingResult {
