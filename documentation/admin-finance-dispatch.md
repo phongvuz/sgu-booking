@@ -55,6 +55,10 @@ Tạo chuyến ở trạng thái **Dự kiến** (`DRAFT`). Trước khi chọn 
 4. Không trùng khoảng thời gian với chuyến `OPEN` hoặc `DEPARTED` dùng cùng xe hoặc tài xế.
 
 Chuyến trước kết thúc đúng lúc chuyến sau bắt đầu được chấp nhận. Chưa tính thời gian quay đầu, nghỉ bắt buộc hoặc thời gian di chuyển giữa hai bến.
+Riêng khi xuất bến hoặc sửa chuyến đã đến giờ: xe và tài xế không được còn chuyến `DEPARTED` khác chưa hoàn thành, dù đã quá giờ kết thúc dự kiến. Cần xác nhận hoàn thành chuyến trước khi xuất bến chuyến sau; không tự hoàn thành theo đồng hồ.
+Chuyến `OPEN` bị trễ vẫn được đổi tài xế trước khi xuất bến. Không được mở bán mới chuyến đã quá giờ.
+Danh sách tài xế kiểm tra lại khi đổi giờ chuyến, bỏ qua chính chuyến đang sửa. Hiển thị mã, tên và lý do không chọn được. Khi chưa nhập đủ giờ hoặc tải lịch lỗi, không coi tài xế là đang rảnh. Server luôn kiểm tra lại khi lưu để tránh hai admin phân công đồng thời.
+Trạng thái nghỉ hiện lấy từ hồ sơ nhân viên; chưa có lịch nghỉ theo ngày hoặc lịch sử phân công.
 Tên tài xế dạng chuỗi trên hồ sơ xe chỉ là thông tin cũ; phân công thực tế dùng `trip.driverId` liên kết nhân viên.
 
 Các bước chuyển trạng thái:
@@ -110,3 +114,25 @@ npm run build
 ```
 
 Unit test không cần database. Hai bộ database test tạo database riêng, cần MySQL/MariaDB local và quyền tạo/xóa database kiểm thử.
+
+## 7. Dữ liệu kiểm thử chọn tài xế
+
+Chạy `npm run db:seed-drivers` trên database phát triển local trong `.env`/`.env.local`. Không dùng trên database vận hành: chuyến `OPEN` mẫu có thể xuất hiện trên trang bán vé.
+Script chỉ thêm 9 nhân viên (8 tài xế, 1 phụ xe), 5 xe 30 ghế và 9 chuyến. Không tạo vé hoặc giao dịch, không sửa/xóa dữ liệu cũ, không chạy migration. Toàn bộ dữ liệu thêm trong cùng transaction; chạy lại sẽ dừng nếu đã có mã `DISPATCH-TEST`, không ghi đè kết quả đã thử.
+
+Tìm nhân viên theo `EMP-DISPATCH-TEST-`, xe theo `BUS-DISPATCH-TEST-`. Script in ID và giờ Việt Nam của từng chuyến; ngày mai được tính theo thời điểm chạy.
+
+| Ca kiểm thử | Thao tác và kết quả mong đợi |
+| --- | --- |
+| Rảnh/trùng lịch | Sửa chuyến `DRAFT` mẫu, giờ ngày mai 08:00–12:00. Tài xế `02` bị khóa do bận; `06` chọn được. |
+| Nghỉ phép/nghỉ việc | Tài xế `03` và `04` bị khóa, có lý do tương ứng. |
+| Sai vai trò | Nhân viên `09` là phụ xe, không xuất hiện trong danh sách tài xế. |
+| Trùng tên | `01` và `06` cùng tên Nguyễn Văn An, phân biệt bằng mã nhân viên. |
+| Giáp giờ | Tài xế `07` kết thúc lịch ngày mai lúc 08:00, được chọn cho chuyến bắt đầu đúng 08:00. |
+| Chuyến trễ | Chuyến `OPEN` của tài xế `01` đã qua giờ xuất bến; đổi sang `06` và lưu được. |
+| Tài xế chưa xong chuyến | Xuất bến chuyến `OPEN` của tài xế `05` bị chặn vì còn chuyến `DEPARTED`, dù giờ kết thúc dự kiến đã qua. |
+| Xe chưa xong chuyến | Xuất bến chuyến `OPEN` dùng xe `03` bị chặn dù tài xế khác chuyến đang chạy. |
+| Đã hoàn thành | Chuyến `OPEN` của tài xế `08` được xuất bến vì chuyến trước đã `COMPLETED`. |
+| Lập lịch tương lai | Tài xế `05` đang chạy hôm nay vẫn được chọn cho chuyến ngày mai không trùng lịch. |
+
+`01`–`09` trong bảng là hậu tố của `EMP-DISPATCH-TEST-`; số xe tương tự. Các ca có thể ảnh hưởng nhau sau khi sửa phân công hoặc trạng thái; dùng bảng dữ liệu ban đầu trước khi thay đổi. Bộ dữ liệu không tự cập nhật ngày/giờ khi chạy lại.

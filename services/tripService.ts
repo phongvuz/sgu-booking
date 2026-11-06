@@ -357,14 +357,17 @@ async function checkTripAssignment(tx: Prisma.TransactionClient, data: CreateTri
   const conflict = await tx.trip.findFirst({
     where: {
       ...(id ? { id: { not: id } } : {}),
-      status: { in: ["OPEN", "DEPARTED"] },
-      time: { lt: endsAt },
-      endsAt: { gt: time },
       OR: [{ busId: bus.id }, { driverId: driver.id }],
+      AND: [{
+        OR: [
+          { status: { in: ["OPEN", "DEPARTED"] }, time: { lt: endsAt }, endsAt: { gt: time } },
+          ...((data.status === "DEPARTED" || time <= new Date()) ? [{ status: "DEPARTED" }] : []),
+        ],
+      }],
     },
   });
   if (conflict) {
-    throw new BusinessError(`Xe hoặc tài xế đã được phân công cho chuyến ${conflict.id} trong khoảng giờ này.`, 409);
+    throw new BusinessError(`Xe hoặc tài xế đang bận ở chuyến ${conflict.id}. Kiểm tra lịch và trạng thái hoàn thành chuyến.`, 409);
   }
 }
 
@@ -407,7 +410,7 @@ export async function updateTrip(tripId: number, data: UpdateTripInput) {
     if (!tripStatuses.includes(status as TripStatus) || !tripStatusTransitions[trip.status]?.includes(status as TripStatus)) {
       throw new BusinessError("Không thể chuyển sang trạng thái chuyến này.", 409);
     }
-    if (status === "OPEN" && time <= new Date()) throw new BusinessError("Chuyến đã đến giờ xuất bến. Không thể mở bán.", 409);
+    if (status === "OPEN" && trip.status !== "OPEN" && time <= new Date()) throw new BusinessError("Chuyến đã đến giờ xuất bến. Không thể mở bán.", 409);
     if ((status === "DEPARTED" || status === "COMPLETED") && time > new Date()) throw new BusinessError("Chuyến chưa đến giờ xuất bến.", 409);
     const routeChanged = from !== trip.from || to !== trip.to || time.getTime() !== trip.time.getTime();
     if (trip.booking.length && routeChanged) {

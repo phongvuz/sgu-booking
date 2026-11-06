@@ -151,11 +151,37 @@ test("dispatch checks both vehicle and driver overlap using half-open intervals"
   const { trip, state, service } = dispatchSetup();
   state.conflict = { id: 99 };
   await assert.rejects(service.createTrip(trip), { status: 409 });
-  assert.equal(state.conflictQuery.where.time.lt, trip.endsAt);
-  assert.equal(state.conflictQuery.where.endsAt.gt, trip.time);
+  assert.equal(state.conflictQuery.where.AND[0].OR[0].time.lt, trip.endsAt);
+  assert.equal(state.conflictQuery.where.AND[0].OR[0].endsAt.gt, trip.time);
+  assert.equal(state.conflictQuery.where.AND[0].OR.length, 1);
   assert.deepEqual(state.conflictQuery.where.OR, [{ busId: trip.busId }, { driverId: trip.driverId }]);
   state.conflict = null;
   assert.equal((await service.createTrip(trip)).status, "OPEN");
+});
+
+test("a delayed OPEN trip can replace its driver but a past DRAFT cannot open sales", async () => {
+  const { trip, driver, state, service } = dispatchSetup();
+  trip.time = new Date(Date.now() - 7200000);
+  trip.endsAt = new Date(Date.now() - 3600000);
+  driver.id = "EMP-2";
+  assert.equal((await service.updateTrip(7, { driverId: driver.id })).driverId, "EMP-2");
+  assert.deepEqual(state.conflictQuery.where.id, { not: 7 });
+  assert.deepEqual(state.conflictQuery.where.AND[0].OR[1], { status: "DEPARTED" });
+  trip.status = "DRAFT";
+  await assert.rejects(service.updateTrip(7, { status: "OPEN" }), { status: 409 });
+});
+
+test("departure keeps unfinished trips occupied beyond their estimated end for both bus and driver", async () => {
+  const { trip, state, service } = dispatchSetup();
+  trip.time = new Date(Date.now() - 60000);
+  state.conflict = { id: 99, status: "DEPARTED", endsAt: new Date(Date.now() - 3600000) };
+  await assert.rejects(service.updateTrip(7, { status: "DEPARTED" }), { status: 409, message: /99/ });
+  assert.equal(trip.status, "OPEN");
+  assert.deepEqual(state.conflictQuery.where.OR, [{ busId: trip.busId }, { driverId: trip.driverId }]);
+  assert.deepEqual(state.conflictQuery.where.id, { not: trip.id });
+  assert.deepEqual(state.conflictQuery.where.AND[0].OR[1], { status: "DEPARTED" });
+  state.conflict = null;
+  assert.equal((await service.updateTrip(7, { status: "DEPARTED" })).status, "DEPARTED");
 });
 
 test("trip lifecycle cannot skip departure or reopen completed trips", async () => {

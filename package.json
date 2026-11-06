@@ -13,6 +13,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:payments": "node scripts/setup-payments.cjs",
     "db:trips": "node scripts/setup-trips.cjs",
+    "db:seed-drivers": "node scripts/seed-drivers.cjs",
     "test:admin-db": "node tests/admin-db.cjs",
     "test:finance-db": "node tests/finance-dispatch-db.cjs"
   },

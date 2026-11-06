@@ -1454,7 +1454,7 @@
         "tags": [
           "admin"
         ],
-        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.",
+        "description": "Yêu cầu đăng nhập bằng tài khoản ADMIN.\n\nMỗi tài xế có available, reason và conflictTripId. Không có khoảng giờ thì available=false, chưa xác định lịch rảnh. Chặn trùng lịch OPEN/DEPARTED; nếu giờ xuất bến đã đến thì mọi chuyến DEPARTED chưa hoàn thành cũng giữ tài xế, kể cả quá giờ kết thúc dự kiến. Phân công tương lai không bị chặn bởi chuyến hiện tại không trùng giờ. Server kiểm tra lại xe và tài xế trong transaction khi lưu chuyến.",
         "security": [
           {
             "SessionCookie": []
@@ -1462,6 +1462,40 @@
         ],
         "x-access": "admin",
         "x-source": "app/api/admin/dispatch/route.ts",
+        "parameters": [
+          {
+            "name": "time",
+            "in": "query",
+            "required": false,
+            "description": "Giờ xuất bến: datetime-local theo giờ Việt Nam (đến phút) hoặc ISO có múi giờ; phải gửi cùng endsAt.",
+            "schema": {
+              "type": "string",
+              "description": "Giờ xuất bến: datetime-local theo giờ Việt Nam (đến phút) hoặc ISO có múi giờ; phải gửi cùng endsAt."
+            }
+          },
+          {
+            "name": "endsAt",
+            "in": "query",
+            "required": false,
+            "description": "Giờ kết thúc, cùng định dạng time và phải sau time.",
+            "schema": {
+              "type": "string",
+              "description": "Giờ kết thúc, cùng định dạng time và phải sau time."
+            }
+          },
+          {
+            "name": "excludeTripId",
+            "in": "query",
+            "required": false,
+            "description": "Bỏ qua chính chuyến đang sửa.",
+            "schema": {
+              "type": "integer",
+              "description": "Bỏ qua chính chuyến đang sửa.",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Yêu cầu thành công.",
@@ -1469,6 +1503,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DataResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON, tham số hoặc dữ liệu không hợp lệ.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
                 }
               }
             }
@@ -5842,7 +5886,7 @@
     "check": "node scripts/generate-api-docs.cjs --check",
     "operationCount": 47,
     "sourceSha256": {
-      "app/api/admin/dispatch/route.ts": "080a8b0467f8e9abee6ec7281995578066b98d73a872d1116ad38b443e58230b",
+      "app/api/admin/dispatch/route.ts": "d6baf596c9c58a13cc8080cf5918996ad034ccfbeef1d20562faef8da003c830",
       "app/api/admin/orders/[id]/payment/route.ts": "d6484106109920342b945956364066bd3ef01d980db8f943c5902d0a0e8bb773",
       "app/api/admin/orders/[id]/route.ts": "f77bda0ed919cdc2a7d81c947139e3bc802ad9591225febaeed31eac2099dd5d",
       "app/api/admin/orders/route.ts": "c50e50a02eb6e1874f7d8a756fb2a364ae1ec1168690e9ccfd02138dd49a589d",
@@ -5891,7 +5935,7 @@
       "lib/validations/user.ts": "959c6e107d6ecb52039a31fadf78042d885e6281a9a2dc5040a19de6b1ac4833",
       "lib/vietqr.ts": "adb9e0a12b9ab148d631b08c566f678f31b9053246446e6ab2390c818e734a86",
       "proxy.ts": "aaa6978cb4e935103d225531e5103b4324790ff2d77ebda63b6d5b8adac738b2",
-      "scripts/api-docs-metadata.cjs": "a788b1358da28e30e042a693ba022dfd6761bd0108ebdbb0858f7710c6a32e38",
+      "scripts/api-docs-metadata.cjs": "f8f72fc661b295523111c9c9a23901c902ce4c9c4651561f4844b71cc048f1fa",
       "scripts/generate-api-docs.cjs": "535dc0643b4fcd6bd269a5a3c5245038c02843f25bb61e952db1f5c3620cf6ca",
       "services/bookingExpiryService.ts": "1a32e91498ee190b5ea054240539e065ae88c7eee49834d2b15664bf81bdc9c7",
       "services/bookingFinanceService.ts": "8c852ce3115f7e2c44a36e2a9c482083612a5008ad951a181c4fe8b0b2ee4b73",
@@ -5907,7 +5951,7 @@
       "services/orderService.ts": "e384d81ded2181a0c873500fee5d18d72d451571dc5ef4bcbca4871836c71fed",
       "services/paymentService.ts": "12d964980f001b050cd607f50c5e3d2ab34ad13d77584c9960eb002a4eed5642",
       "services/seatService.ts": "f9d8857698f6625e7254659aee307efa466979f717dfc2edb91bb48d5d70c57d",
-      "services/tripService.ts": "a94568bb8180d1c0b0e715e928701482cfcc7ea8c83d2cf2be861454c946e588",
+      "services/tripService.ts": "9ce05fe212e01342fd8cdea2de0098d848d8eed51378f8bf473030abaf9cd92a",
       "services/userService.ts": "3fb8d1d5acb1ddb1ffbe9dbd72806d54fc4b6faa440481c23d8109661caa6a92"
     }
   }
