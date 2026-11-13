@@ -105,6 +105,9 @@ function createSeedData(now = new Date(), password = demoPassword) {
     trips: departures.map(([from, to, price, capacity], index) => ({
       from, to, price, busId: capacity === 22 ? "BUS-DEMO-001" : "BUS-DEMO-002", availableSeats: capacity,
       time: new Date(now.getTime() + (index + 1) * 86400000),
+      endsAt: new Date(now.getTime() + (index + 1) * 86400000 + 12 * 3600000),
+      status: "OPEN",
+      driverId: "EMP-DEMO-001",
     })),
     buses: [
       { id: "BUS-DEMO-001", plate: "51B-111.11", type: "Limousine 22 phòng", capacity: 22, status: "Đang hoạt động", brand: "Xe minh họa", year: 2024 },
@@ -122,13 +125,14 @@ async function seedFreshDatabase(prisma, fingerprint, password) {
     const customer = await tx.user.findUnique({ where: { phone: accounts.customer } });
     await tx.bus.createMany({ data: data.buses });
     const trips = [];
-    for (const trip of data.trips) trips.push(await tx.trip.create({ data: trip }));
     await tx.employee.create({ data: data.employee });
-    await tx.booking.create({ data: {
+    for (const trip of data.trips) trips.push(await tx.trip.create({ data: trip }));
+    const booking = await tx.booking.create({ data: {
       pnr: "DEMO-HISTORY-001", passengerName: data.customer.name, passengerPhone: data.customer.phone,
       seatNumber: "A01", activeSeat: `${trips[0].id}:A01`, status: "CONFIRMED", totalPrice: trips[0].price,
       userId: customer.id, tripId: trips[0].id, confirmedAt: new Date(),
     } });
+    await tx.bookingTransaction.create({ data: { bookingId: booking.id, kind: "RECEIPT", amount: booking.totalPrice, method: "DEMO", reference: "DEMO-HISTORY-001" } });
     await tx.trip.update({ where: { id: trips[0].id }, data: { availableSeats: { decrement: 1 } } });
     await tx.$executeRawUnsafe("INSERT INTO `_sgu_demo_meta` (`id`, `purpose`, `schemaHash`) VALUES (1, ?, ?)", purpose, fingerprint);
   }, { timeout: 30000 });

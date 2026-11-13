@@ -34,7 +34,7 @@ Khi tạo/sửa xe, gửi `capacity` thay cho `seats`. Không gửi `capacity` h
 
 - Xe đã liên kết với bất kỳ chuyến nào không được xóa hoặc đổi sức chứa. Có thể tạo xe khác rồi chọn xe đó cho chuyến theo các điều kiện bên dưới.
 - Xe mới được chọn khi tạo/đổi xe phải đang hoạt động. Giữ nguyên xe cũ khi sửa thông tin khác không bắt buộc đổi xe.
-- Chuyến có bất kỳ lịch sử vé nào, kể cả vé đã hủy, hoặc có giữ ghế còn hạn chỉ được đổi sang xe cùng sức chứa. Mã ghế trong lịch sử và giữ ghế phải thuộc sơ đồ xe mới.
+- Khi có giữ ghế còn hạn, chưa được đổi xe. Sau khi hết giữ ghế, chuyến có bất kỳ lịch sử vé nào, kể cả vé đã hủy, chỉ được đổi sang xe cùng sức chứa; mã ghế trong lịch sử phải thuộc sơ đồ xe mới.
 - Chuyến chưa có lịch sử vé và không còn giữ ghế còn hạn có thể đổi sang xe khác sức chứa; server tính lại `availableSeats` từ xe và vé hiệu lực. Giữ ghế hết hạn nằm ngoài sơ đồ mới được dọn khi cập nhật chuyến.
 - Chuyến có vé hiệu lực không được đổi hành trình hoặc giờ xuất bến. Giá chuyến mới không sửa giá đã lưu trên vé.
 

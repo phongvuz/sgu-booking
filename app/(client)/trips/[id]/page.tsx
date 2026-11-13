@@ -85,7 +85,7 @@ export default async function TripDetailPage({ params }: PageProps) {
           </div>
         </div>
 
-        {tripInfo.time > new Date() && tripInfo.availableSeats > 0 ? <SeatSelector
+        {tripInfo.status === "OPEN" && tripInfo.time > new Date() && tripInfo.availableSeats > 0 ? <SeatSelector
           key={tripInfo.id}
           capacity={tripInfo.bus.capacity}
           tripId={tripInfo.id}

@@ -19,8 +19,9 @@ model booking {
   userId         Int
   tripId         Int
   createdAt      DateTime  @default(now())
-  expiresAt      DateTime?
   confirmedAt    DateTime?
+  expiresAt      DateTime?
+  transactions   BookingTransaction[]
   trip           trip      @relation(fields: [tripId], references: [id], onDelete: Restrict, map: "Booking_tripId_fkey")
   user           user      @relation(fields: [userId], references: [id], onDelete: Restrict, map: "Booking_userId_fkey")
 
@@ -37,6 +38,10 @@ model trip {
   from           String
   to             String
   time           DateTime
+  endsAt         DateTime?
+  status         String     @default("DRAFT")
+  driverId       String?
+  driver         employee?  @relation(fields: [driverId], references: [id], onDelete: Restrict)
   price          Int
   busId          String
   availableSeats Int
@@ -47,6 +52,8 @@ model trip {
 
   @@index([time])
   @@index([busId], map: "trip_busId_idx")
+  @@index([busId, time, endsAt])
+  @@index([driverId, time, endsAt])
 }
 
 model user {
@@ -58,6 +65,7 @@ model user {
   isActive  Boolean   @default(true)
   createdAt DateTime  @default(now())
   booking   booking[]
+  processedTransactions BookingTransaction[]
 }
 
 model Customer {
@@ -84,6 +92,7 @@ model employee {
   identityCard String?
   address      String?
   startDate    String
+  trips        trip[]
   createdAt    DateTime @default(now())
 }
 
@@ -113,11 +122,28 @@ model bus {
   driverPhone     String?
   lastMaintenance String?
   notes           String?  @db.Text
-  createdAt       DateTime @default(now())
   trips           trip[]
+  createdAt       DateTime @default(now())
 }
 
 // Một lượt thanh toán cho tất cả ghế có cùng mã PNR.
+model BookingTransaction {
+  id          Int      @id @default(autoincrement())
+  bookingId   Int
+  kind        String   @db.VarChar(10)
+  amount      Int
+  method      String   @db.VarChar(20)
+  reference   String   @db.VarChar(64)
+  actorId     Int?
+  createdAt   DateTime @default(now())
+  booking     booking  @relation(fields: [bookingId], references: [id], onDelete: Restrict)
+  actor       user?    @relation(fields: [actorId], references: [id], onDelete: Restrict)
+
+  @@unique([reference, bookingId])
+  @@index([bookingId, createdAt])
+  @@index([kind, createdAt])
+}
+
 model Payment {
   id                    String    @id @db.VarChar(32)
   pnr                   String    @db.VarChar(191)

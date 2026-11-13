@@ -10,7 +10,7 @@ function setup({ capacity = 22, targetCapacity = capacity, bookings = [], holds 
   const oldBus = bus("BUS-OLD", capacity, "Ngừng hoạt động");
   const targetBus = bus("BUS-NEW", targetCapacity);
   const buses = new Map([[oldBus.id, oldBus], [targetBus.id, targetBus]]);
-  const store = { trip: { id: 7, busId: oldBus.id, from: "Sài Gòn", to: "Đà Lạt", time: new Date(Date.now() + 86400000), price: 300000, availableSeats: capacity - bookings.filter(row => row.status !== "CANCELLED").length } };
+  const store = { trip: { id: 7, status: "DRAFT", driverId: null, endsAt: null, busId: oldBus.id, from: "Sài Gòn", to: "Đà Lạt", time: new Date(Date.now() + 86400000), price: 300000, availableSeats: capacity - bookings.filter(row => row.status !== "CANCELLED").length } };
   const writes = [];
   const notifications = [];
   let committed = false;
@@ -59,9 +59,13 @@ test("creating a trip rejects missing and inactive buses before writing", async 
   }
 });
 
-test("same-capacity reassignment preserves sold seats, cancelled history and active holds", async () => {
+test("same-capacity reassignment preserves sold seats and cancelled history after live holds expire", async () => {
   const bookings = [{ seatNumber: "A01", status: "CONFIRMED" }, { seatNumber: "B01", status: "CANCELLED" }];
-  const { tripService, notifications } = setup({ capacity: 3, bookings, holds: [{ seatNumber: "C01" }] });
+  const holds = [{ seatNumber: "C01" }];
+  const { tripService, notifications } = setup({ capacity: 3, bookings, holds });
+  await assert.rejects(tripService.updateTrip(7, { busId: "BUS-NEW" }), { status: 409 });
+  assert.deepEqual(notifications, []);
+  holds.length = 0;
   const result = await tripService.updateTrip(7, { busId: "BUS-NEW" });
   assert.equal(result.busId, "BUS-NEW");
   assert.equal(result.capacity, 3);

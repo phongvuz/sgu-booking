@@ -1,37 +1,12 @@
 # Nhà xe Sài Gòn
 
-Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [bảo mật và phân quyền](documentation/security/README.md).
+Đăng nhập/đăng ký dùng modal và cookie phiên 24 giờ; đăng ký tự đăng nhập, trang/API quản trị yêu cầu ADMIN. Chi tiết: [docs/authentication.md](docs/authentication.md).
 
-Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [documentation/seat-realtime.md](documentation/seat-realtime.md).
+Hướng dẫn Realtime chọn ghế bằng SSE, giải thích từng file và kiểm thử hai trình duyệt: [docs/seat-realtime.md](docs/seat-realtime.md).
 
-API quản lý đơn hàng đã hỗ trợ xem chi tiết, xác nhận và hủy vé có giữ lịch sử; mọi thao tác yêu cầu tài khoản ADMIN.
+Quản trị đã tách trạng thái vé khỏi sổ thu/hoàn tiền, gom lượt đặt theo PNR và kiểm tra phân công xe/tài xế. Hướng dẫn nghiệp vụ và cách đọc code cho người mới: [documentation/admin-finance-dispatch.md](documentation/admin-finance-dispatch.md).
 
 Ứng dụng đặt vé xe dùng Next.js App Router, React, TypeScript, Prisma và MySQL. Khách có thể tìm chuyến, chọn ghế, tra cứu vé; trang `/admin` quản lý chuyến xe, vé, xe, nhân viên và tài khoản.
-
-## Demo tái lập bằng một lệnh
-
-Trên máy có Node.js và MySQL/MariaDB local, dùng thông tin kết nối server từ `DEMO_SERVER_URL` hoặc `DATABASE_URL` trong `.env`, rồi chạy:
-
-```sh
-npm run demo
-```
-
-Lệnh chuẩn bị dependency, Prisma Client, database demo riêng, dữ liệu mẫu và khởi động ứng dụng tại `http://127.0.0.1:3001`. Database ứng dụng hiện tại không được dùng để tạo dữ liệu demo. Chỉ database do công cụ tạo và có dấu nhận diện phù hợp mới được dùng lại; công cụ không reset database có sẵn. Thư mục build demo `.next-demo` tách khỏi `.next`.
-
-Hướng dẫn điều kiện chạy, tài khoản ADMIN/CUSTOMER, cơ chế bảo vệ dữ liệu và kiểm chứng: [Khả năng tái lập](documentation/reproducibility.md). Chỉ chuẩn bị môi trường, chưa mở server: `npm run demo:prepare`.
-
-## Tài liệu API tự sinh và bảo mật
-
-Sau khi chạy server, mở `/api-docs` để đọc tài liệu và `/api/openapi` để lấy đặc tả OpenAPI. Sinh lại và kiểm tra tài liệu khớp route/schema:
-
-```sh
-npm run api:docs
-npm run api:docs:check
-```
-
-`npm run build` kiểm tra tài liệu API trước khi build. Đặc tả, hướng dẫn và phạm vi sinh tự động: [documentation/api/README.md](documentation/api/README.md).
-
-Checklist OWASP, chính sách cùng nguồn, kiểm tra XSS/CORS, header bảo mật và các giới hạn được ghi tại [documentation/security/README.md](documentation/security/README.md). Chạy bộ kiểm tra liên quan bằng `npm run security:check`. Đây là kiểm tra phạm vi đồ án, không phải chứng nhận kiểm toán bảo mật toàn hệ thống.
 
 ## Chạy ở máy cá nhân
 
@@ -60,8 +35,6 @@ Database đã import từ SQL cần đối chiếu schema và lịch sử trư�
 
 Migration đang dùng nằm tại `prisma/admin-migrations/` và được khai báo trong `prisma.config.ts`. Thư mục `prisma/migrations/` giữ lịch sử cũ để đối chiếu. Script nâng cấp dừng nếu database đang dùng một lịch sử migration khác.
 
-Migration `20261105000000_integer_vnd` chuyển giá chuyến và giá vé sang số nguyên đồng. Với database hiện có, dừng server rồi chạy `npm run db:upgrade`, `npx prisma generate` và khởi động lại. Migration dừng nếu dữ liệu cũ có giá lẻ hoặc ngoài giới hạn số nguyên; cần đối chiếu giá đó trước, không tự làm tròn hay thay đổi tiền trên vé cũ.
-
 Chuyến xe dùng `id` tự tăng và `tripId` kiểu số nguyên dương. API JSON nhận `tripId` là số (ví dụ `123`); tham số URL được chuyển sang số trước khi xử lý. Chuyến xe không còn trường `code`. Migration `20261009040000_numeric_trip_id` bỏ cột này và giữ nguyên ID, quan hệ vé/giữ ghế và các mã PNR đã lưu. Với database hiện có, chạy `npm run db:upgrade` để sao lưu trước khi áp dụng migration, sau đó chạy `npx prisma generate` và khởi động lại ứng dụng.
 
 Nếu database import đã có sức chứa và nghiệp vụ vé mới nhưng vẫn giữ cột `trip.code` bắt buộc, thao tác tạo chuyến sẽ thất bại dù form hợp lệ. Chạy `npm run db:trips` để sửa riêng phần lệch này. Lệnh kiểm tra schema/phụ thuộc, sao lưu toàn bộ bảng `trip` cùng ánh xạ ID–mã cũ vào `.local-backups/`, rồi bỏ cột `code`; không đổi ID, vé, PNR hoặc lịch sử migration. Chạy lại là no-op. Lệnh này không thay thế toàn bộ `db:upgrade`.
@@ -83,7 +56,6 @@ npm run lint
 npm run typecheck
 npm test
 npm run test:admin-db
-node tests/booking-fixes-db.cjs
 npm run build
 npm start
 ```
@@ -99,6 +71,8 @@ Sau khi build, trên Windows có Google Chrome, chạy `node --test tests/bookin
 Trên MySQL hiện tại, `test:admin-db` gặp lỗi 3823 ở migration cũ `20261009010000_admin_business_rules`: CHECK `booking_active_seat_check` tham chiếu cột đang dùng trong khóa ngoại có CASCADE. Cần xử lý tương thích lịch sử migration trước khi dùng `db:upgrade` trên máy này; các migration đã áp dụng không được tự sửa checksum. Kiểm thử các sửa lỗi mới dùng database tạm độc lập, không thay đổi database ứng dụng.
 
 Chạy `npm run test:booking-concurrency` để gửi hai yêu cầu đặt cùng ghế qua HTTP tới Next.js và MySQL thật. Lệnh tạo database demo mới riêng, lưu request/response và dữ liệu trước–sau vào `documentation/evidence/booking-concurrency/`, rồi dừng server thử; database được giữ lại để đối chiếu. Cách chạy, SQL chỉ đọc và nội dung dùng cho mục 5.3.4 của báo cáo: [Minh chứng kiểm thử đặt vé đồng thời](documentation/reports/chapter5/README.md).
+
+`npm run test:finance-db` tạo database tạm riêng để kiểm tra sổ thu/hoàn, nâng cấp dữ liệu cũ, thu/hoàn đồng thời, trùng lịch phân công và bảo vệ ghế đang giữ. Lệnh xóa riêng database kiểm thử khi kết thúc. Không sửa checksum migration đã áp dụng.
 
 ## Tìm code ở đâu
 
@@ -120,12 +94,11 @@ Màu thương hiệu và font được cấu hình trong `app/globals.css` và `
 - Tài khoản USER là hồ sơ người mua vé; CUSTOMER là khách đã đăng ký có hồ sơ email. Chỉnh sửa CUSTOMER đồng bộ tên, điện thoại và trạng thái với bảng customer. Khóa tài khoản giữ lịch sử vé và vô hiệu hóa các phiên đăng nhập hiện có.
 - Hồ sơ nhân viên quản lý thông tin nhân sự, không tự tạo tài khoản đăng nhập. Tạo tài khoản quản trị tại mục Tài khoản.
 - Xe lưu sức chứa tại `bus.capacity` (1–60); chuyến liên kết bằng `busId`, không lưu thêm `trip.capacity`. Ghế trống = sức chứa xe − số vé CONFIRMED/PENDING; admin chọn xe, không nhập sức chứa hoặc ghế trống trong form chuyến. API chuyến có thể trả `capacity` hoặc `totalSeats` được tính từ xe để hiển thị sơ đồ.
-- Xe đã được gán cho chuyến không được xóa hoặc thay đổi sức chứa. Chuyến có lịch sử vé hoặc ghế đang giữ chỉ đổi sang xe cùng sức chứa; chuyến chưa có lịch sử vé và không có giữ ghế còn hạn có thể đổi sang xe khác sức chứa, server tính lại ghế trống. Xe mới chọn phải đang hoạt động.
+- Xe đã được gán cho chuyến không được xóa hoặc thay đổi sức chứa. Khi có ghế đang giữ còn hạn, chưa được đổi xe. Chuyến có lịch sử vé chỉ đổi sang xe cùng sức chứa; chuyến chưa có lịch sử vé và không có giữ ghế còn hạn có thể đổi sang xe khác sức chứa, server tính lại ghế trống. Xe mới chọn phải đang hoạt động.
 - Chuyến đã có vé hiệu lực không đổi hành trình/giờ xuất bến. Giá mới chỉ áp dụng cho vé tạo sau đó. Chuyến và tài khoản có lịch sử vé không bị xóa.
 - Vé online bắt đầu PENDING. Vé tại quầy chọn PENDING hoặc CONFIRMED theo việc thu tiền. Mỗi lượt tối đa 5 ghế, cùng mã PNR; tên và điện thoại hành khách được lưu riêng với tài khoản.
-- Vé online PENDING hết hạn sau tối đa 5 phút, không muộn hơn giờ xuất bến. Worker chạy trong Node server, xử lý tối đa 100 vé mỗi lượt và chờ 15 giây sau mỗi lượt; khi hết hạn, vé được hủy và trả ghế đúng một lần. Server phải đang chạy để worker hoạt động. Vé tại quầy và vé cũ có expiresAt = NULL vẫn do nhân viên xác nhận hoặc hủy.
-- Hủy vé trả lại ghế đúng một lần và giữ lịch sử. Khôi phục chỉ khi chuyến chưa xuất bến, ghế thuộc sơ đồ hiện tại và chưa bị đặt/giữ. DELETE vé cũng là hủy có giữ lịch sử. Hoàn tiền thực tế xử lý tại quầy.
-- Doanh thu tính vé CONFIRMED theo thời điểm xác nhận thu tiền; vé hủy được loại khỏi doanh thu hiện tại. Với vé cũ, thời điểm này lấy từ ngày tạo vì dữ liệu trước đây chưa lưu ngày thu tiền. Thống kê tại các danh sách áp dụng cùng bộ lọc với bảng; ngày/tháng tính theo giờ Việt Nam.
+- Hủy vé trả lại ghế đúng một lần và giữ lịch sử thu tiền; khoản cần hoàn được ghi riêng. Khôi phục chỉ khi chuyến đang mở bán, chưa xuất bến, ghế thuộc sơ đồ hiện tại và chưa bị đặt/giữ. DELETE vé cũng là hủy có giữ lịch sử. Nhân viên xác nhận khoản hoàn riêng sau khi hoàn tiền thực tế.
+- Doanh thu dựa trên khoản thu trừ khoản hoàn đã ghi nhận; hủy vé chưa hoàn tiền vẫn giữ khoản thu. Báo cáo tiền thực loại giao dịch DEMO. Với vé cũ, migration giữ ngày xác nhận thu tiền hoặc ngày tạo nếu chưa có ngày xác nhận. Thống kê tại các danh sách áp dụng cùng bộ lọc với bảng; ngày/tháng tính theo giờ Việt Nam.
 - Database có khóa duy nhất cho ghế hiệu lực và khóa ngoại bảo vệ lịch sử. Chuyển đổi xe–chuyến bổ sung CHECK sức chứa xe và giới hạn ghế trống; quan hệ ghế trống với sức chứa xe được kiểm tra trong service. Các thao tác đặt, hủy, khôi phục và đổi xe dùng transaction Serializable.
 
 ## Tra cứu, tài khoản và tìm chuyến

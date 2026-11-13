@@ -1,160 +1,100 @@
 "use client";
 
-import { FaTicketAlt } from "react-icons/fa";
-import { FiArrowRight, FiEye, FiRefreshCw } from "react-icons/fi";
-import { OrderItem, BookingStatus } from "@/types";
+import type { OrderGroup, OrderItem, BookingStatus } from "@/types";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
+import { paymentStatusLabels } from "@/lib/booking-money";
 
 interface OrderTableProps {
-  orders: OrderItem[];
+  orders: OrderGroup[];
   loading: boolean;
+  busy?: boolean;
   onView: (order: OrderItem) => void;
   onUpdateStatus: (order: OrderItem, status: BookingStatus) => void;
   onCancel: (order: OrderItem) => void;
+  onPayment: (order: OrderItem, kind: "RECEIPT" | "REFUND") => void;
 }
 
-export function OrderTable({
-  orders,
-  loading,
-  onView,
-  onUpdateStatus,
-  onCancel,
-}: OrderTableProps) {
-  if (loading) {
-    return (
-      <div className="py-16 text-center text-gray-400">
-        <div className="inline-block animate-spin text-2xl mb-2"><FiRefreshCw aria-hidden="true" className="inline-block shrink-0 align-middle" /></div>
-        <p className="text-xs">Đang tải danh sách đơn vé...</p>
-      </div>
-    );
-  }
-
-  if (orders.length === 0) {
-    return (
-      <div className="py-16 text-center text-gray-500">
-        <span className="text-4xl block mb-2"><FaTicketAlt aria-hidden="true" className="inline-block shrink-0 align-middle" /></span>
-        <p className="text-sm font-semibold">Không tìm thấy đơn vé nào</p>
-        <p className="text-xs text-gray-400 mt-1">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
-      </div>
-    );
-  }
-
+export function OrderTable({ orders, loading, busy, onView, onUpdateStatus, onCancel, onPayment }: OrderTableProps) {
+  if (loading) return <p className="p-8 text-center text-sm text-gray-500">Đang tải lượt đặt...</p>;
+  if (!orders.length) return <p className="p-8 text-center text-sm text-gray-500">Không tìm thấy lượt đặt phù hợp.</p>;
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-xs text-left">
-        <thead className="bg-gray-50 text-gray-500 uppercase tracking-wider font-semibold border-b border-gray-200">
-          <tr>
-            <th className="px-5 py-3.5">Mã Vé</th>
-            <th className="px-5 py-3.5">Khách hàng</th>
-            <th className="px-5 py-3.5">Tuyến & Giờ đi</th>
-            <th className="px-5 py-3.5">Số ghế</th>
-            <th className="px-5 py-3.5">Tổng tiền</th>
-            <th className="px-5 py-3.5">Trạng thái</th>
-            <th className="px-5 py-3.5 text-right">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100">
-          {orders.map((order) => {
-            const timeInfo = formatTripTime(order.trip.time);
-            let statusClassName = "bg-rose-100 text-rose-800";
-            if (order.status === "CONFIRMED") {
-              statusClassName = "bg-emerald-100 text-emerald-800";
-            } else if (order.status === "PENDING") {
-              statusClassName = "bg-amber-100 text-amber-800";
-            }
-            let statusDotClassName = "bg-rose-500";
-            if (order.status === "CONFIRMED") {
-              statusDotClassName = "bg-emerald-500";
-            } else if (order.status === "PENDING") {
-              statusDotClassName = "bg-amber-500";
-            }
-            let statusLabel = "Đã hủy";
-            if (order.status === "CONFIRMED") {
-              statusLabel = "Đã xác nhận";
-            } else if (order.status === "PENDING") {
-              statusLabel = "Chờ thanh toán";
-            }
-
-            return (
-              <tr key={order.id} className="hover:bg-gray-50/80 transition-colors">
-                <td className="px-5 py-3.5">
-                  <span className="font-bold text-gray-900 block">{order.pnr}</span>
-                  <span className="text-[10px] text-gray-400">ID: #{order.id}</span>
-                </td>
-                <td className="px-5 py-3.5">
-                  <p className="font-bold text-gray-900">{order.user.fullName}</p>
-                  <p className="text-[11px] text-gray-500">{order.user.phone}</p>
-                </td>
-                <td className="px-5 py-3.5">
-                  <p className="font-semibold text-gray-800">
-                    {order.trip.from} <FiArrowRight aria-hidden="true" className="inline-block shrink-0 align-middle" /> {order.trip.to}
-                  </p>
-                  <p className="text-[11px] text-gray-400">
-                    {timeInfo.departureTime} • {timeInfo.dateFormatted} ({order.trip.id})
-                  </p>
-                </td>
-                <td className="px-5 py-3.5">
-                  <span className="inline-block px-2.5 py-1 bg-emerald-50 text-emerald-700 font-extrabold rounded-md text-xs border border-emerald-200">
-                    {order.seatNumber}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 font-bold text-gray-900 text-sm">
-                  {formatPrice(order.totalPrice)}
-                </td>
-                <td className="px-5 py-3.5">
-                  <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold ${statusClassName}`}
-                  >
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${statusDotClassName}`}
-                    />
-                    <span>
-                      {statusLabel}
-                    </span>
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 text-right">
-                  <div className="flex items-center justify-end gap-1.5">
-                    <button
-                      aria-label="Xem chi tiết vé"
-                      onClick={() => onView(order)}
-                      className="p-1.5 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded transition-colors"
-                      title="Xem chi tiết vé"
-                    >
-                      <FiEye aria-hidden="true" className="inline-block shrink-0 align-middle" />
-                    </button>
-
-                    {order.status === "PENDING" && (
-                      <button
-                        onClick={() => onUpdateStatus(order, "CONFIRMED")}
-                        className="px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-semibold rounded text-[11px] transition-colors"
-                        title="Xác nhận thanh toán"
-                      >
-                        Thu tiền
-                      </button>
-                    )}
-
-                    {order.status === "CANCELLED" && new Date(order.trip.time) > new Date() && (
-                      <button onClick={() => onUpdateStatus(order, "PENDING")} className="px-2 py-1 text-blue-700 hover:bg-blue-50 rounded text-[11px]">
-                        Khôi phục
-                      </button>
-                    )}
-                    {order.status !== "CANCELLED" && new Date(order.trip.time) > new Date() && (
-                      <button
-                        onClick={() => onCancel(order)}
-                        className="px-2 py-1 text-rose-600 hover:bg-rose-50 font-semibold rounded text-[11px] transition-colors"
-                        title="Hủy vé"
-                      >
-                        Hủy
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div className="divide-y divide-gray-200">
+      {orders.map((group) => {
+        const first = group.tickets[0];
+        if (!first) return null;
+        const time = formatTripTime(first.trip.time);
+        return (
+          <details key={group.pnr} className="group p-4">
+            <summary className="cursor-pointer rounded-lg p-2 focus-visible:outline-2 focus-visible:outline-brand-primary">
+              <span className="font-bold text-brand-primary">{group.pnr}</span>
+              <span className="ml-3 text-sm">{first.user.fullName} · {group.tickets.length} vé</span>
+              <span className="mt-2 block text-xs text-gray-600">{first.trip.from} — {first.trip.to} · {time.departureTime}, {time.dateFormatted}</span>
+              <span className="mt-2 flex flex-wrap gap-4 text-xs">
+                <span>Giá trị vé: {formatPrice(group.totalPrice)}</span>
+                <span>Đã thu: {formatPrice(group.received)}</span>
+                <span>Đã hoàn: {formatPrice(group.refunded)}</span>
+                <span className="text-rose-700">Chờ hoàn: {formatPrice(group.refundDue)}</span>
+                <span>Còn phải thu: {formatPrice(group.amountDue)}</span>
+              </span>
+            </summary>
+            <div className="mt-3 overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {["Vé / Ghế", "Trạng thái vé", "Thanh toán", "Cần thu / hoàn", "Thao tác"].map((label) => (
+                      <th key={label} className="p-3">{label}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {group.tickets.map((ticket) => (
+                    <tr key={ticket.id} className="border-t border-gray-100">
+                      <td className="p-3">#{ticket.id} · <strong>{ticket.seatNumber}</strong></td>
+                      <td className="p-3">{ticket.status === "CANCELLED" ? "Đã hủy" : ticket.status === "CONFIRMED" ? "Đã xác nhận" : "Chờ xác nhận"}</td>
+                      <td className="p-3">
+                        <strong>{paymentStatusLabels[ticket.paymentStatus]}</strong>
+                        <p>Đã thu {formatPrice(ticket.received)}</p>
+                        <p>Đã hoàn {formatPrice(ticket.refunded)}</p>
+                        {ticket.transactions.some((entry) => entry.method === "DEMO") && (
+                          <span className="block text-amber-700">Giao dịch demo</span>
+                        )}
+                      </td>
+                      <td className="p-3">{ticket.refundDue > 0 ? `Chờ hoàn ${formatPrice(ticket.refundDue)}` : ticket.amountDue > 0 ? `Cần thu ${formatPrice(ticket.amountDue)}` : "Đã đối chiếu"}</td>
+                      <td className="p-3">
+                        <div className="flex flex-wrap gap-2">
+                          <button type="button" className="rounded border px-2 py-1" onClick={() => onView(ticket)}>
+                            Chi tiết
+                          </button>
+                          {ticket.status !== "CANCELLED" && ticket.amountDue > 0 && (
+                            <button type="button" disabled={busy} className="rounded bg-emerald-50 px-2 py-1 text-emerald-800 disabled:opacity-50" onClick={() => onPayment(ticket, "RECEIPT")}>
+                              Thu tiền
+                            </button>
+                          )}
+                          {ticket.refundDue > 0 && (
+                            <button type="button" disabled={busy} className="rounded bg-amber-50 px-2 py-1 text-amber-800 disabled:opacity-50" onClick={() => onPayment(ticket, "REFUND")}>
+                              Hoàn tiền
+                            </button>
+                          )}
+                          {ticket.status === "CANCELLED" && new Date(ticket.trip.time) > new Date() && (
+                            <button type="button" disabled={busy} className="rounded border px-2 py-1 disabled:opacity-50" onClick={() => onUpdateStatus(ticket, "PENDING")}>
+                              Khôi phục
+                            </button>
+                          )}
+                          {ticket.status !== "CANCELLED" && new Date(ticket.trip.time) > new Date() && (
+                            <button type="button" disabled={busy} className="rounded bg-rose-50 px-2 py-1 text-rose-800 disabled:opacity-50" onClick={() => onCancel(ticket)}>
+                              Hủy vé
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+        );
+      })}
     </div>
   );
 }

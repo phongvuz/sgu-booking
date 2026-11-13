@@ -18,7 +18,7 @@ export default async function CustomerMenu() {
   if (admin) {
     return <div className="flex items-center gap-3 text-sm">
       <Link href="/profile" className="font-semibold text-brand-primary hover:underline">Hồ sơ cá nhân</Link>
-      <LogoutButton />
+      <LogoutButton audience="admin" />
     </div>;
   }
   return (

@@ -1,5 +1,6 @@
 import type { bus as BusRecord, employee as EmployeeRecord, Prisma } from "@prisma/client";
 import type { Bus, Employee, OrderItem, BookingStatus } from "@/types";
+import { getBookingMoney } from "@/lib/booking-money";
 
 export function toEmployee(record: EmployeeRecord): Employee {
   return {
@@ -35,11 +36,17 @@ export function toBus(record: BusRecord): Bus {
   };
 }
 
-type BookingWithRelations = Prisma.bookingGetPayload<{ include: { user: true; trip: true } }>;
+type BookingWithRelations = Prisma.bookingGetPayload<{ include: { user: true; trip: true; transactions: { include: { actor: true } } } }>;
 
 export function toOrderItem(record: BookingWithRelations): OrderItem {
   return {
     id: record.id,
+    ...getBookingMoney(record.totalPrice, record.status, record.transactions),
+    transactions: record.transactions.map((entry) => ({
+      id: entry.id, kind: entry.kind, amount: entry.amount, method: entry.method,
+      reference: entry.reference, actorName: entry.actor?.fullName ?? (entry.method === "DEMO" ? "Khách / hệ thống demo" : "Dữ liệu cũ: chưa rõ người xử lý"),
+      createdAt: entry.createdAt.toISOString(),
+    })),
     pnr: record.pnr ?? `NHAXE-${record.trip.id}-${record.userId}${record.id}`,
     seatNumber: record.seatNumber,
     status: record.status as BookingStatus,

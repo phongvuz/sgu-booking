@@ -132,6 +132,7 @@ test("seed includes usable ADMIN and CUSTOMER hashes, matching customer profile,
   assert.equal(data.trips.every((trip) => trip.time > now && trip.availableSeats === buses.get(trip.busId).capacity && trip.price > 0), true);
   assert.equal(data.trips.every((trip) => !Object.hasOwn(trip, "capacity")), true);
   assert.equal(new Set(data.trips.map((trip) => buses.get(trip.busId).capacity)).size, 2);
+  assert.equal(data.trips.every((trip) => trip.status === "OPEN" && trip.endsAt > trip.time && trip.driverId === data.employee.id), true);
 });
 
 test("existing database without an owned schema marker is never changed or pushed", async () => {

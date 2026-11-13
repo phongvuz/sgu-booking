@@ -167,6 +167,8 @@ export async function updateBus(id: string, data: Partial<BusFormValues>): Promi
   return runTransaction(async (tx) => {
     const bus = await tx.bus.findFirst({ where: { OR: [{ id }, { plate: id }] } });
     if (!bus) return null;
+    const changesAssignment = (data.status !== undefined && data.status !== "Đang hoạt động") || (data.type !== undefined && data.type !== bus.type);
+    if (changesAssignment && await tx.trip.count({ where: { busId: bus.id, status: { in: ["OPEN", "DEPARTED"] } } })) throw new BusinessError("Xe đang được phân công cho chuyến mở bán hoặc đang chạy. Đổi phân công trước khi sửa trạng thái hoặc sơ đồ ghế.", 409);
     if (data.capacity !== undefined && data.capacity !== bus.capacity && await tx.trip.count({ where: { busId: bus.id } })) {
       throw new BusinessError("Xe đã được gán cho chuyến. Không thể đổi sức chứa vì sẽ thay đổi sơ đồ ghế; hãy tạo xe khác.", 409);
     }
@@ -211,13 +213,5 @@ export async function deleteBus(id: string): Promise<boolean> {
  * Cập nhật nhanh trạng thái xe
  */
 export async function updateBusStatus(id: string, newStatus: string): Promise<Bus | null> {
-  const bus = await getBusById(id);
-  if (!bus) return null;
-
-  const updated = await prisma.bus.update({
-    where: { id: bus.id },
-    data: { status: newStatus },
-  });
-
-  return toBus(updated);
+  return updateBus(id, { status: newStatus as BusFormValues["status"] });
 }

@@ -1,4 +1,5 @@
 "use client";
+import { paymentMethodLabels, paymentStatusLabels } from "@/lib/booking-money";
 
 import { FaBus } from "react-icons/fa";
 import { FiArrowRight, FiPrinter, FiX } from "react-icons/fi";
@@ -68,7 +69,7 @@ export function OrderDetailModal({
         </div>
 
         {/* Ticket Body */}
-        <div className="p-6 space-y-4 text-xs">
+        <div className="p-6 space-y-4 text-xs max-h-[65vh] overflow-y-auto">
           {/* Status badge */}
           <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <span className="text-gray-500 font-medium">Trạng thái vé:</span>
@@ -117,6 +118,20 @@ export function OrderDetailModal({
           </div>
 
           {/* Total Price */}
+          <div className="grid grid-cols-2 gap-2 rounded-lg bg-gray-50 p-3">
+            <p className="col-span-2 font-semibold">Thanh toán: {paymentStatusLabels[order.paymentStatus]}</p>
+            <p>Đã thu: {formatPrice(order.received)}</p><p>Đã hoàn: {formatPrice(order.refunded)}</p>
+            <p>Cần thu: {formatPrice(order.amountDue)}</p><p>Chờ hoàn: {formatPrice(order.refundDue)}</p>
+          </div>
+          <section aria-label="Lịch sử thu hoàn tiền" className="space-y-2">
+            <h3 className="font-bold">Lịch sử thu / hoàn tiền của ghế {order.seatNumber}</h3>
+            {order.transactions.length === 0 && <p>Chưa có giao dịch tiền.</p>}
+            {order.transactions.map((entry) => <div key={entry.id} className="rounded border border-gray-200 p-3">
+              <p className="font-semibold">{entry.kind === "RECEIPT" ? "Thu" : "Hoàn"}: {formatPrice(entry.amount)} · {paymentMethodLabels[entry.method]}</p>
+              <p>{entry.actorName} · {new Date(entry.createdAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>
+              <p className="break-all text-gray-500">Mã giao dịch: {entry.reference}</p>
+            </div>)}
+          </section>
           <div className="flex items-center justify-between pt-1">
             <div>
               <span className="text-gray-400 block text-[11px]">Tổng cước thanh toán:</span>

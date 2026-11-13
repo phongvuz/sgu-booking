@@ -15,11 +15,11 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
   try {
     const admin = await prisma.user.findFirst({ where: { role: "ADMIN", isActive: true }, select: { id: true, password: true } });
     assert.ok(admin, "Cần tài khoản admin đang hoạt động để kiểm tra giao diện.");
-    const { createSessionToken } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
+    const { createSessionToken, ADMIN_SESSION_COOKIE } = load("lib/session.ts", { "@/lib/prisma": { prisma } });
     const executablePath = ["C:/Program Files/Google/Chrome/Application/chrome.exe", "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"].find((file) => fs.existsSync(file));
     browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) });
     const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-    await context.addCookies([{ name: "customer_session", value: createSessionToken(admin.id, admin.password), url: baseUrl, httpOnly: true, sameSite: "Lax" }]);
+    await context.addCookies([{ name: ADMIN_SESSION_COOKIE, value: createSessionToken(admin.id, admin.password), url: baseUrl, httpOnly: true, sameSite: "Lax" }]);
     const page = await context.newPage();
     const pageErrors = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));

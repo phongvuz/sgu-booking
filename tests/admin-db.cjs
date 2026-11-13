@@ -85,7 +85,10 @@ async function main() {
   const replacementBus = await buses.createBus({ plate: "99B-123.47", type: "Ghế ngồi", capacity: 3, status: "Đang hoạt động" });
   const largerBus = await buses.createBus({ plate: "99B-123.48", type: "Ghế ngồi", capacity: 4, status: "Đang hoạt động" });
   const smallerBus = await buses.createBus({ plate: "99B-123.49", type: "Ghế ngồi", capacity: 2, status: "Đang hoạt động" });
-  const trip = await trips.createTrip({ from: "Test Origin", to: "Test Destination", time: new Date(Date.now() + 86400000), price: 100000, busId: tripBus.id });
+  const dispatchDriver = await employees.createEmployee({ name: "Dispatch Driver", email: "dispatch-driver@example.test", phone: "0999000011", role: "Tài xế", department: "Đội xe" });
+  const departure = new Date(Date.now() + 86400000);
+  const assignment = { time: departure, endsAt: new Date(departure.getTime() + 3600000), status: "OPEN", busId: tripBus.id, driverId: dispatchDriver.id };
+  const trip = await trips.createTrip({ from: "Test Origin", to: "Test Destination", ...assignment, price: 100000 });
   assert.equal(typeof trip.id, "number");
   assert.equal("code" in trip, false);
   assert.equal((await trips.getTripById(trip.id)).id, trip.id);
@@ -118,10 +121,10 @@ async function main() {
   assert.equal((await prisma.trip.findUnique({ where: { id: trip.id } })).availableSeats, 2);
   await orders.updateOrderStatus(replacement.bookingIds[0], "CANCELLED");
   await orders.updateOrderStatus(firstId, "PENDING");
-  await orders.updateOrderStatus(firstId, "CONFIRMED");
+  await orders.updateOrderStatus(firstId, "CONFIRMED", admin.id);
   const paid = await prisma.booking.findUnique({ where: { id: firstId } });
   assert.ok(paid.confirmedAt);
-  await orders.updateOrderStatus(firstId, "CONFIRMED");
+  await orders.updateOrderStatus(firstId, "CONFIRMED", admin.id);
   assert.equal((await prisma.booking.findUnique({ where: { id: firstId } })).confirmedAt.getTime(), paid.confirmedAt.getTime());
   await fails(() => orders.updateOrderStatus(firstId, "PENDING"), 409);
   await fails(() => trips.updateTrip(trip.id, { from: "Changed Origin" }), 409);
@@ -155,7 +158,8 @@ async function main() {
   assert.equal(tripStats.stats.avgOccupancy, 67);
   console.log("✓ Multi-seat PNR, passenger snapshots, safe capacity edits, filtered trip statistics.");
 
-  const heldTrip = await trips.createTrip({ from: "Hold Origin", to: "Hold Destination", time: new Date(Date.now() + 86400000), price: 100000, busId: tripBus.id });
+  const heldDeparture = new Date(departure.getTime() + 7200000);
+  const heldTrip = await trips.createTrip({ from: "Hold Origin", to: "Hold Destination", ...assignment, time: heldDeparture, endsAt: new Date(heldDeparture.getTime() + 3600000), price: 100000 });
   await holds.holdSeat(heldTrip.id, "a1", "client-one");
   await fails(() => holds.holdSeat(heldTrip.id, "A01", "client-two"), 409);
   await fails(() => bookings.createBooking({ ...input, tripId: heldTrip.id }), 409);

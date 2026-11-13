@@ -1,7 +1,11 @@
 import { parseVietnamDateTime } from "@/lib/trip-search";
 import { z } from "zod";
+import { tripStatuses } from "@/lib/trip-status";
 
 export const tripSchema = z.object({
+  status: z.enum(tripStatuses).default("DRAFT"),
+  driverId: z.string().trim().max(191).nullish().transform((value) => value || null),
+  endsAt: z.string().nullish().transform((value) => value || null).refine((value) => !value || !Number.isNaN(parseVietnamDateTime(value).getTime()), "Giờ kết thúc không hợp lệ"),
   from: z
     .string()
     .trim()

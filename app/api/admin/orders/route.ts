@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 // CREATE: POST /api/admin/orders
 export async function POST(request: NextRequest) {
   try {
-    await requireAdmin(request);
+    const admin = await requireAdmin(request);
     const body = await readJson(request);
     const validationResult = offlineOrderSchema.safeParse(body);
 
@@ -56,8 +56,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { tripId, seats, fullName, phone, status } = validationResult.data;
-    const bookingResult = await createBooking({ tripId, seats, fullName, phone, status });
+    const { tripId, seats, fullName, phone, status, paymentMethod } = validationResult.data;
+    const bookingResult = await createBooking({ tripId, seats, fullName, phone, status, paymentMethod, actorId: admin.id });
 
     return NextResponse.json(
       {

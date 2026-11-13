@@ -1,4 +1,5 @@
 "use client";
+import { tripStatusLabels } from "@/lib/trip-status";
 
 import { FaRoad } from "react-icons/fa";
 import { FiArrowRight, FiEdit, FiEye, FiRefreshCw, FiTrash2 } from "react-icons/fi";
@@ -70,6 +71,8 @@ export function TripTable({
                   <span className="px-2 py-0.5 bg-gray-100 border border-gray-200 rounded font-extrabold text-brand-primary">
                     {trip.id}
                   </span>
+                  <span className="mt-2 block text-[11px] font-normal">{tripStatusLabels[trip.status]}</span>
+                  <span className="mt-1 block text-[11px] font-normal">{trip.busPlate || "Chưa có xe"} · {trip.driverName || "Chưa có tài xế"}</span>
                 </td>
                 <td className="px-5 py-3.5">
                   <div className="flex items-center gap-1.5 font-bold text-gray-900 text-sm">

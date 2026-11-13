@@ -4,6 +4,8 @@ import { FaRoad } from "react-icons/fa";
 import { FiArrowRight, FiX } from "react-icons/fi";
 import type { TripAdminItem } from "@/types/trip";
 import { formatPrice, formatTripTime } from "@/lib/trip-display";
+import { tripStatusLabels } from "@/lib/trip-status";
+import { paymentStatusLabels } from "@/lib/booking-money";
 
 interface TripDetailModalProps {
   isOpen: boolean;
@@ -88,6 +90,8 @@ export function TripDetailModal({
               </span>
             </div>
           </div>
+          <p className="text-xs text-gray-600">{tripStatusLabels[trip.status]} · Xe {trip.busPlate || "chưa phân công"} · Tài xế {trip.driverName || "chưa phân công"}</p>
+          {trip.endsAt && <p className="text-xs text-gray-600">Kết thúc dự kiến: {new Date(trip.endsAt).toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}</p>}
 
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -124,7 +128,7 @@ export function TripDetailModal({
                             : "bg-amber-100 text-amber-700"
                         }`}
                       >
-                        {booking.status === "CONFIRMED" ? "Đã thu tiền" : "Chờ thu"}
+                        {paymentStatusLabels[booking.paymentStatus]}
                       </span>
                     </div>
                   </div>

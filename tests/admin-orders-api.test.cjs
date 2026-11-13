@@ -86,8 +86,8 @@ test("missing orders return 404 and business conflicts remain 409", async () => 
 });
 
 test("cancel and restore return seats once, preserve history and notify viewers after commit", async () => {
-  const row = { id: 42, tripId: 7, status: "PENDING", seatNumber: "A01", confirmedAt: null,
-    trip: { bus: { capacity: 3 }, availableSeats: 2, time: new Date(Date.now() + 86400000) } };
+  const row = { id: 42, tripId: 7, status: "PENDING", seatNumber: "A01", confirmedAt: null, totalPrice: 100000, transactions: [],
+    trip: { status: "OPEN", bus: { capacity: 3 }, availableSeats: 2, time: new Date(Date.now() + 86400000) } };
   const events = [];
   let committed = false;
   const tx = {
@@ -101,6 +101,7 @@ test("cancel and restore return seats once, preserve history and notify viewers 
       updateMany: async ({ data }) => { row.trip.availableSeats -= data.availableSeats.decrement; return { count: 1 }; },
     },
     seatHold: { findFirst: async () => null },
+    bookingTransaction: { create: async ({ data }) => { row.transactions.push(data); return data; } },
   };
   const service = load("services/orderService.ts", {
     "@/lib/prisma": { prisma: tx },
@@ -117,10 +118,11 @@ test("cancel and restore return seats once, preserve history and notify viewers 
   await service.updateOrderStatus(42, "PENDING");
   assert.equal(row.activeSeat, "7:A01");
   assert.equal(row.trip.availableSeats, 2);
-  await service.updateOrderStatus(42, "CONFIRMED");
+  await service.updateOrderStatus(42, "CONFIRMED", 1);
   const confirmedAt = row.confirmedAt;
-  await service.updateOrderStatus(42, "CONFIRMED");
+  await service.updateOrderStatus(42, "CONFIRMED", 1);
   assert.equal(row.confirmedAt, confirmedAt);
   await assert.rejects(service.updateOrderStatus(42, "PENDING"), { status: 409 });
-  assert.deepEqual(events, [7, 7, 7]);
+  assert.equal(row.transactions.length, 1);
+  assert.deepEqual(events, [7, 7]);
 });

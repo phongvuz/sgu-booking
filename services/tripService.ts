@@ -4,12 +4,14 @@ import { runTransaction } from "@/lib/transaction";
 import { getSeatCodes } from "@/lib/seats";
 import { formatDepartureDate, getDepartureDayRange, parseVietnamDateTime } from "@/lib/trip-search";
 import { positiveInteger } from "@/lib/query-params";
-import { assertTripPrice } from "@/lib/money";
 import { Prisma } from "@prisma/client";
-import { tripTimeSlots, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
 import { prisma } from "@/lib/prisma";
 import { broadcastSeatRefresh } from "@/lib/sse";
 import type { PaginationMeta, TripAdminItem, TripQueryParams, TripStats, TripSearchOption } from "@/types";
+import { tripStatuses, tripStatusTransitions, type TripStatus } from "@/lib/trip-status";
+import { getBookingMoney } from "@/lib/booking-money";
+import { assertTripPrice } from "@/lib/money";
+import { tripTimeSlots, type TripTimeSlot, type TripVehicleFilter } from "@/lib/public-trip-search";
 
 interface GetTripsFilter {
   fromCity?: string;
@@ -31,6 +33,7 @@ function bookableTripWhere({ fromCity, toCity, date }: GetTripsFilter, now: Date
   const dayRange = date ? getDepartureDayRange(date) : null;
   if (date && !dayRange) throw new BusinessError("Ngày lọc không hợp lệ.");
   return {
+    status: "OPEN",
     from: fromCity ? { contains: fromCity } : undefined,
     to: toCity ? { contains: toCity } : undefined,
     time: { ...dayRange, gt: now },
@@ -56,6 +59,9 @@ interface CreateTripInput {
   time: Date | string;
   price: number;
   busId: string;
+  endsAt?: Date | string | null;
+  status?: TripStatus;
+  driverId?: string | null;
 }
 
 interface UpdateTripInput {
@@ -64,6 +70,9 @@ interface UpdateTripInput {
   time?: Date | string;
   price?: number;
   busId?: string;
+  endsAt?: Date | string | null;
+  status?: TripStatus;
+  driverId?: string | null;
 }
 
 // Sức chứa chỉ được lưu trên xe; DTO giữ capacity để sơ đồ ghế dùng chung.
@@ -93,7 +102,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
 
   const where: Prisma.tripWhereInput = {};
 
-  if (bookable) { where.time = { gt: new Date() }; where.availableSeats = { gt: 0 }; }
+  if (bookable) { where.status = "OPEN"; where.time = { gt: new Date() }; where.availableSeats = { gt: 0 }; }
 
   if (search.trim()) {
     const s = search.trim();
@@ -143,8 +152,10 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
       take: numLimit,
       include: {
         bus: { select: tripBusSelect },
+        driver: true,
         booking: {
           include: {
+            transactions: true,
             user: {
               select: {
                 fullName: true,
@@ -182,8 +193,13 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
       from: t.from,
       to: t.to,
       time: t.time.toISOString(),
-      price: t.price,
+      endsAt: t.endsAt?.toISOString() ?? null,
+      status: t.status,
       busId: t.busId,
+      driverId: t.driverId,
+      busPlate: t.bus?.plate ?? "",
+      driverName: t.driver?.name ?? "",
+      price: t.price,
       bus: {
         id: t.bus.id,
         plate: t.bus.plate,
@@ -197,6 +213,7 @@ export async function queryTripsAdmin(params: TripQueryParams): Promise<{
       occupancyRate,
       createdAt: t.createdAt.toISOString(),
       bookings: t.booking.map((b) => ({
+        ...getBookingMoney(b.totalPrice, b.status, b.transactions),
         id: b.id,
         seatNumber: b.seatNumber,
         status: b.status,
@@ -232,8 +249,8 @@ export async function getTrips({
   const trips = await prisma.trip.findMany({
     where: bookableTripWhere({ fromCity, toCity, date }, new Date()),
     orderBy: [{ time: "asc" }, { id: "asc" }],
-    take,
     skip: (positiveInteger(page, 1, Math.floor(2147483647 / take) + 1) - 1) * take,
+    take,
     include: {
       bus: { select: tripBusSelect },
       ...(includeBookings ? {
@@ -261,7 +278,7 @@ export async function queryPublicTrips({
 
   // MySQL stores Prisma DateTimes in UTC. Use the same Vietnam hours as the UI,
   // and filter before LIMIT so the total and every page share the same filters.
-  const conditions = [Prisma.sql`t.time > ${now}`, Prisma.sql`t.availableSeats > 0`];
+  const conditions = [Prisma.sql`t.status = 'OPEN'`, Prisma.sql`t.time > ${now}`, Prisma.sql`t.availableSeats > 0`];
   if (fromCity) conditions.push(Prisma.sql`t.\`from\` LIKE ${`%${fromCity}%`}`);
   if (toCity) conditions.push(Prisma.sql`t.\`to\` LIKE ${`%${toCity}%`}`);
   const dayRange = date ? getDepartureDayRange(date) : null;
@@ -294,7 +311,6 @@ export async function queryPublicTrips({
   });
   return { data: data.map(withBusCapacity), pagination: { page: validPage, limit: take, total, totalPages } };
 }
-
 /**
  * Lấy chi tiết chuyến xe theo ID số.
  */
@@ -334,17 +350,59 @@ export async function getBookedSeats(tripId: number): Promise<string[]> {
   return bookings.map((b) => b.seatNumber.trim());
 }
 
+async function checkTripAssignment(tx: Prisma.TransactionClient, data: CreateTripInput, id?: number) {
+  const time = parseVietnamDateTime(data.time);
+  const endsAt = data.endsAt ? parseVietnamDateTime(data.endsAt) : null;
+  if (endsAt && (!Number.isFinite(endsAt.getTime()) || endsAt <= time)) {
+    throw new BusinessError("Giờ kết thúc phải sau giờ xuất bến.");
+  }
+  const bus = data.busId ? await tx.bus.findUnique({ where: { id: data.busId } }) : null;
+  const driver = data.driverId ? await tx.employee.findUnique({ where: { id: data.driverId } }) : null;
+  if (!bus) throw new BusinessError("Xe không tồn tại.", 404);
+  if (data.driverId && !driver) throw new BusinessError("Tài xế không tồn tại.");
+  if (data.status !== "OPEN" && data.status !== "DEPARTED") return bus;
+  if (!bus || !driver || !endsAt) {
+    throw new BusinessError("Cần chọn xe, tài xế và giờ kết thúc trước khi mở bán.");
+  }
+  if (bus.status !== "Đang hoạt động") {
+    throw new BusinessError("Xe đang bảo dưỡng hoặc ngừng hoạt động.", 409);
+  }
+  if (driver.status !== "Đang làm việc" || driver.role !== "Tài xế") {
+    throw new BusinessError("Nhân viên phải là tài xế đang làm việc.", 409);
+  }
+  const conflict = await tx.trip.findFirst({
+    where: {
+      ...(id ? { id: { not: id } } : {}),
+      OR: [{ busId: bus.id }, { driverId: driver.id }],
+      AND: [{
+        OR: [
+          { status: { in: ["OPEN", "DEPARTED"] }, time: { lt: endsAt }, endsAt: { gt: time } },
+          ...((data.status === "DEPARTED" || time <= new Date()) ? [{ status: "DEPARTED" }] : []),
+        ],
+      }],
+    },
+  });
+  if (conflict) {
+    throw new BusinessError(`Xe hoặc tài xế đang bận ở chuyến ${conflict.id}. Kiểm tra lịch và trạng thái hoàn thành chuyến.`, 409);
+  }
+  return bus;
+}
+
 export async function createTrip(data: CreateTripInput) {
-  assertTripPrice(data.price);
   const time = parseVietnamDateTime(data.time);
   if (!Number.isFinite(time.getTime()) || time <= new Date()) throw new BusinessError("Chọn thời gian xuất bến trong tương lai.");
+  assertTripPrice(data.price);
+  const status = data.status ?? "DRAFT";
+  if (status !== "DRAFT" && status !== "OPEN") throw new BusinessError("Chuyến mới chỉ được ở trạng thái dự kiến hoặc mở bán.");
+  if (typeof data.busId !== "string" || !data.busId.trim()) throw new BusinessError("Vui lòng chọn xe cho chuyến.");
   return runTransaction(async (tx) => {
-    const bus = await tx.bus.findUnique({ where: { id: data.busId.trim() } });
-    if (!bus) throw new BusinessError("Xe được chọn không tồn tại.", 404);
+    const bus = await checkTripAssignment(tx, { ...data, busId: data.busId.trim(), status });
     if (bus.status !== "Đang hoạt động") throw new BusinessError("Chỉ có thể tạo chuyến với xe đang hoạt động.", 409);
     const trip = await tx.trip.create({ data: {
       from: data.from.trim(), to: data.to.trim(), time, price: data.price,
       busId: bus.id, availableSeats: bus.capacity,
+      status, driverId: data.driverId || null,
+      endsAt: data.endsAt ? parseVietnamDateTime(data.endsAt) : null,
     }, include: { bus: { select: tripBusSelect } } });
     return withBusCapacity(trip);
   });
@@ -361,8 +419,15 @@ export async function updateTrip(tripId: number, data: UpdateTripInput) {
     if (time.getTime() !== trip.time.getTime() && time <= new Date()) throw new BusinessError("Chọn thời gian xuất bến trong tương lai.");
     const from = data.from ?? trip.from;
     const to = data.to ?? trip.to;
+    const status = data.status ?? trip.status;
+    if (!tripStatuses.includes(status as TripStatus) || !tripStatusTransitions[trip.status]?.includes(status as TripStatus)) {
+      throw new BusinessError("Không thể chuyển sang trạng thái chuyến này.", 409);
+    }
+    if (status === "OPEN" && trip.status !== "OPEN" && time <= new Date()) throw new BusinessError("Chuyến đã đến giờ xuất bến. Không thể mở bán.", 409);
+    if ((status === "DEPARTED" || status === "COMPLETED") && time > new Date()) throw new BusinessError("Chuyến chưa đến giờ xuất bến.", 409);
+    const routeChanged = from !== trip.from || to !== trip.to || time.getTime() !== trip.time.getTime();
     const activeBookings = trip.booking.filter((booking) => booking.status !== "CANCELLED");
-    if (activeBookings.length && (from !== trip.from || to !== trip.to || time.getTime() !== trip.time.getTime())) {
+    if (activeBookings.length && routeChanged) {
       throw new BusinessError("Chuyến có vé đang hiệu lực. Không thể đổi hành trình hoặc giờ xuất bến.", 409);
     }
     const busId = data.busId?.trim() ?? trip.busId;
@@ -371,6 +436,13 @@ export async function updateTrip(tripId: number, data: UpdateTripInput) {
     if (!bus) throw new BusinessError("Xe được chọn không tồn tại.", 404);
     if (busChanged && bus.status !== "Đang hoạt động") throw new BusinessError("Chỉ có thể đổi sang xe đang hoạt động.", 409);
     const activeHolds = await tx.seatHold.findMany({ where: { tripId: trip.id, expiresAt: { gt: new Date() } }, select: { seatNumber: true } });
+    const driverId = data.driverId === undefined ? trip.driverId : data.driverId;
+    const endsAt = data.endsAt === undefined ? trip.endsAt : data.endsAt ? parseVietnamDateTime(data.endsAt) : null;
+    const closesSales = status !== trip.status && (status === "DRAFT" || status === "CANCELLED");
+    if (closesSales && activeBookings.length) throw new BusinessError("Hủy từng vé trước khi đóng hoặc hủy chuyến. Tiền đã thu sẽ được đưa vào chờ hoàn.", 409);
+    if (activeHolds.length && (routeChanged || busChanged || closesSales)) throw new BusinessError("Khách đang giữ ghế. Chưa thể đổi hành trình, xe hoặc đóng chuyến.", 409);
+    if (["DEPARTED", "COMPLETED", "CANCELLED"].includes(trip.status) && (routeChanged || busChanged || driverId !== trip.driverId || endsAt?.getTime() !== trip.endsAt?.getTime())) throw new BusinessError("Chuyến đã xuất bến hoặc kết thúc. Không thể đổi phân công hay hành trình.", 409);
+    await checkTripAssignment(tx, { from, to, time, price: data.price ?? trip.price, status: status as TripStatus, busId, driverId, endsAt }, id);
     if (busChanged && bus.capacity !== trip.bus.capacity && (trip.booking.length || activeHolds.length)) {
       throw new BusinessError("Chuyến có lịch sử vé hoặc ghế đang giữ. Chỉ được đổi sang xe có cùng sức chứa.", 409);
     }
@@ -385,7 +457,7 @@ export async function updateTrip(tripId: number, data: UpdateTripInput) {
       throw new BusinessError("Xe được chọn không có đầy đủ ghế đang được giữ. Vui lòng chờ hết thời gian giữ ghế.", 409);
     }
     await tx.seatHold.deleteMany({ where: { tripId: trip.id, seatNumber: { notIn: validSeats } } });
-    const updated = await tx.trip.update({ where: { id: trip.id }, data: { from, to, time, price: data.price, busId: bus.id, availableSeats: capacity - activeBookings.length }, include: { bus: { select: tripBusSelect } } });
+    const updated = await tx.trip.update({ where: { id: trip.id }, data: { from, to, time, price: data.price, busId: bus.id, driverId, endsAt, status, availableSeats: capacity - activeBookings.length }, include: { bus: { select: tripBusSelect } } });
     return withBusCapacity(updated);
   });
   if (updated) broadcastSeatRefresh(updated.id);
@@ -398,13 +470,14 @@ export async function deleteTrip(tripId: number) {
     const trip = await tx.trip.findUnique({ where: { id } });
     if (!trip) return null;
     if (await tx.booking.count({ where: { tripId: trip.id } })) throw new BusinessError("Chuyến có lịch sử vé, không thể xóa.", 409);
+    if (await tx.seatHold.count({ where: { tripId: trip.id, expiresAt: { gt: new Date() } } })) throw new BusinessError("Khách đang giữ ghế, chưa thể xóa chuyến.", 409);
     return tx.trip.delete({ where: { id: trip.id } });
   });
 }
 
 export async function getTripSearchOptions(): Promise<TripSearchOption[]> {
   const trips = await prisma.trip.findMany({
-    where: { time: { gt: new Date() }, availableSeats: { gt: 0 } },
+    where: { status: "OPEN", time: { gt: new Date() }, availableSeats: { gt: 0 } },
     select: { from: true, to: true, time: true },
     distinct: ["from", "to", "time"],
     orderBy: { time: "asc" },
@@ -419,7 +492,7 @@ export async function getTripSearchOptions(): Promise<TripSearchOption[]> {
 export function getFeaturedRoutes() {
   return prisma.trip.groupBy({
     by: ["from", "to"],
-    where: { time: { gte: new Date() }, availableSeats: { gt: 0 } },
+    where: { status: "OPEN", time: { gte: new Date() }, availableSeats: { gt: 0 } },
     _min: { price: true },
     orderBy: { _min: { price: "asc" } },
     take: 3,
