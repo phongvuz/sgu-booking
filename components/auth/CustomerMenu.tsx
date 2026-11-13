@@ -17,7 +17,7 @@ export default async function CustomerMenu() {
   const admin = await getCurrentAdmin();
   if (admin) {
     return <div className="flex items-center gap-3 text-sm">
-      <Link href="/profile" className="font-semibold text-brand-primary hover:underline">Hồ sơ cá nhân</Link>
+      <Link href="/admin" className="font-semibold text-brand-primary hover:underline">Trang quản trị</Link>
       <LogoutButton audience="admin" />
     </div>;
   }

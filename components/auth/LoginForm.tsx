@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FaSpinner } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import { useRef, useState } from "react";
@@ -141,6 +142,12 @@ export default function LoginForm({ onSuccess, onRegister, variant = "customer" 
           Đăng ký ngay
         </button>
       </div>}
+      {!isAdmin && <p className="text-center text-sm text-gray-500">
+        Bạn là quản trị viên?{" "}
+        <Link href="/admin/login" className="font-bold text-brand-primary hover:underline">
+          Đăng nhập quản trị
+        </Link>
+      </p>}
     </form>
   );
 }
