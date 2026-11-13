@@ -18,9 +18,10 @@ export const offlineOrderSchema = z.object({
       "Số điện thoại không hợp lệ (VD: 0901234567)"
     ),
   status: z.enum(["CONFIRMED", "PENDING"]).default("CONFIRMED"),
+  paymentMethod: z.enum(["CASH", "BANK_TRANSFER"]).default("CASH"),
 });
 
-export const onlineOrderSchema = offlineOrderSchema.omit({ status: true }).extend({
+export const onlineOrderSchema = offlineOrderSchema.omit({ status: true, paymentMethod: true }).extend({
   clientId: realtimeClientIdSchema.optional(),
 });
 

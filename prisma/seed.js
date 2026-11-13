@@ -192,10 +192,14 @@ async function main() {
 
   for (const b of bookingsData) {
     const passenger = createdUsers.find((user) => user.id === b.userId);
-    await tx.booking.create({ data: { ...b, pnr: `NHAXE-SEED-${randomBytes(8).toString("hex").toUpperCase()}`,
+    const booking = await tx.booking.create({ data: { ...b, pnr: `NHAXE-SEED-${randomBytes(8).toString("hex").toUpperCase()}`,
       passengerName: passenger.fullName, passengerPhone: passenger.phone,
       activeSeat: b.status === "CANCELLED" ? null : `${b.tripId}:${b.seatNumber}`,
       confirmedAt: b.status === "CONFIRMED" ? new Date() : null } });
+    if (b.status === "CONFIRMED") await tx.bookingTransaction.create({ data: {
+      bookingId: booking.id, kind: "RECEIPT", amount: booking.totalPrice,
+      method: "DEMO", reference: `SEED-${booking.id}`,
+    } });
     if (b.status !== "CANCELLED") await tx.trip.update({ where: { id: b.tripId }, data: { availableSeats: { decrement: 1 } } });
   }
 
@@ -473,6 +477,17 @@ async function main() {
 
   for (const emp of employeesData) {
     await tx.employee.create({ data: emp });
+  }
+
+  const driver = employeesData.find((employee) => employee.role === "Tài xế" && employee.status === "Đang làm việc");
+  for (const trip of createdTrips) {
+    const bus = busesData.find((bus) => bus.status === "Đang hoạt động" && bus.seats >= trip.capacity);
+    if (!bus || !driver) continue;
+    const booked = await tx.booking.count({ where: { tripId: trip.id, status: { not: "CANCELLED" } } });
+    await tx.trip.update({ where: { id: trip.id }, data: {
+      busId: bus.id, driverId: driver.id, capacity: bus.seats, availableSeats: bus.seats - booked,
+      endsAt: new Date(trip.time.getTime() + 12 * 3600000), status: "OPEN",
+    } });
   }
 
   console.log("✅ Đã tạo thành công dữ liệu mẫu hoàn chỉnh cho tất cả các bảng!");

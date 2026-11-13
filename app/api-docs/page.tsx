@@ -72,7 +72,7 @@ export default async function ApiDocumentationPage({
         </div>
 
         <aside className="my-8 rounded-xl border border-slate-200 bg-white p-5 text-sm leading-6 text-slate-600">
-          <p><strong className="text-slate-900">Xác thực:</strong> đăng nhập cấp cookie HttpOnly <code>customer_session</code>; server kiểm tra vai trò ADMIN hoặc CUSTOMER. Realtime sử dụng cookie <code>seat_session</code> cùng mã tab <code>clientId</code>. Yêu cầu ghi phải cùng origin với ứng dụng.</p>
+          <p><strong className="text-slate-900">Xác thực:</strong> đăng nhập cấp cookie HttpOnly riêng <code>admin_session</code> cho ADMIN và <code>customer_session</code> cho CUSTOMER, thời hạn 24 giờ. Hai phiên độc lập; bản demo thêm tiền tố <code>demo_</code>. Realtime sử dụng cookie <code>seat_session</code> cùng mã tab <code>clientId</code>. Yêu cầu ghi phải cùng origin với ứng dụng.</p>
           <p className="mt-2">Schema request được sinh từ Zod. Các kiểm tra liên quan nhiều trường và quy tắc nghiệp vụ tiếp tục chạy ở server. Dữ liệu service chưa có schema response được để mở. Thanh toán demo là giả lập.</p>
         </aside>
 

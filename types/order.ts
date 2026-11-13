@@ -1,6 +1,7 @@
 import type { PaginationMeta } from "./common";
 
 export type BookingStatus = "CONFIRMED" | "PENDING" | "CANCELLED";
+export type MoneyMethod = "CASH" | "BANK_TRANSFER";
 
 export interface OrderItem {
   id: number;
@@ -9,6 +10,20 @@ export interface OrderItem {
   status: BookingStatus;
   totalPrice: number;
   createdAt: string;
+  received: number;
+  refunded: number;
+  refundDue: number;
+  amountDue: number;
+  paymentStatus: string;
+  transactions: Array<{
+    id: number;
+    kind: string;
+    amount: number;
+    method: string;
+    reference: string;
+    actorName: string;
+    createdAt: string;
+  }>;
   user: {
     id: number;
     fullName: string;
@@ -38,7 +53,7 @@ export interface OrderQueryParams {
 
 export interface OrderListResponse {
   success: boolean;
-  data: OrderItem[];
+  data: OrderGroup[];
   pagination: PaginationMeta;
   message?: string;
   stats: OrderStats;
@@ -57,4 +72,21 @@ export interface OrderStats {
   pending: number;
   cancelled: number;
   totalRevenue: number;
+  orderCount: number;
+  transactionCount: number;
+  received: number;
+  refunded: number;
+  refundDue: number;
+  amountDue: number;
+}
+
+export interface OrderGroup {
+  pnr: string;
+  createdAt: string;
+  totalPrice: number;
+  received: number;
+  refunded: number;
+  refundDue: number;
+  amountDue: number;
+  tickets: OrderItem[];
 }

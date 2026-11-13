@@ -73,6 +73,7 @@ test("ticket details escape hostile passenger and route data in their real UI co
   const { OrderDetailModal } = load("components/admin/orders/OrderDetailModal.tsx");
   const order = {
     pnr: payload, seatNumber: "A01", status: "PENDING", totalPrice: 100000,
+    received: 0, refunded: 0, refundDue: 0, amountDue: 100000, transactions: [],
     createdAt: "2026-11-06T00:00:00Z", user: { fullName: payload, phone: "0901234567" },
     trip: { id: 1, from: payload, to: payload, time: "2026-12-01T00:00:00Z" },
   };

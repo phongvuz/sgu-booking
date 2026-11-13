@@ -5,7 +5,7 @@ import { isSameOriginRequest } from "@/lib/request-origin";
 import { BusinessError, hasDatabaseCode } from "@/lib/business-error";
 
 export async function requireAdmin(request?: Request) {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser("admin");
   const isMutation = request && !["GET", "HEAD"].includes(request.method);
   if (isMutation && !isSameOriginRequest(request)) {
     throw new BusinessError("Nguồn yêu cầu không hợp lệ.", 403);

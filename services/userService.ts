@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 import { UserAccount, UserQueryParams, PaginationMeta, UserStats } from "@/types";
 import { UserFormValues } from "@/lib/validations/user";
 import { isGuestPhone } from "@/lib/guest-account";
+import { getMoneySummary } from "@/lib/booking-money";
 
 /**
  * Lấy danh sách người dùng với tìm kiếm, phân trang và thống kê số vé đặt
@@ -78,14 +79,14 @@ export async function queryUsers(params: UserQueryParams): Promise<{
         select: { booking: true },
       },
       booking: {
-        where: { status: "CONFIRMED" },
-        select: { totalPrice: true },
+        select: { totalPrice: true, status: true, transactions: true },
       },
     },
   });
 
   const data: UserAccount[] = users.map((u) => {
-    const totalSpent = u.booking.reduce((sum, b) => sum + (b.totalPrice || 0), 0);
+    const money = getMoneySummary(u.booking, false);
+    const totalSpent = money.received - money.refunded;
     return {
       id: u.id,
       fullName: u.fullName,
@@ -127,6 +128,7 @@ export async function getUserById(id: number | string) {
         orderBy: { createdAt: "desc" },
         include: {
           trip: true,
+          transactions: true,
         },
       },
     },
@@ -134,9 +136,8 @@ export async function getUserById(id: number | string) {
 
   if (!user) return null;
 
-  const totalSpent = user.booking
-    .filter((b) => b.status === "CONFIRMED")
-    .reduce((sum, b) => sum + b.totalPrice, 0);
+  const money = getMoneySummary(user.booking, false);
+  const totalSpent = money.received - money.refunded;
 
   return {
     id: user.id,
@@ -204,8 +205,8 @@ export async function updateUser(id: number | string, data: Partial<UserFormValu
   return runTransaction(async (tx) => {
     const current = await tx.user.findUnique({ where: { id: Number(id) }, select: safeUserSelect });
     if (!current) return null;
-    if (isGuestPhone(current.phone) && (data.phone !== undefined || data.password || (data.role !== undefined && data.role !== "USER"))) {
-      throw new BusinessError("Hồ sơ khách vãng lai chỉ lưu lịch sử vé. Tạo tài khoản mới nếu cần đăng nhập.", 409);
+    if (isGuestPhone(current.phone) && (data.phone !== undefined || data.role !== undefined || data.password)) {
+      throw new BusinessError("Hồ sơ khách vãng lai không phải tài khoản đăng nhập. Không thể đổi số điện thoại, vai trò hoặc mật khẩu.", 409);
     }
     await checkRoleChange(tx, current.id, current.role, data.role ?? current.role, actorId, current.isActive);
     if (current.role === "USER" && data.role === "ADMIN" && !data.password) {
@@ -221,7 +222,7 @@ export async function updateUser(id: number | string, data: Partial<UserFormValu
       await tx.customer.update({ where: { id: customer.id }, data: { name: data.fullName, phone: data.phone, status: data.isActive === undefined ? undefined : data.isActive ? "Đang hoạt động" : "Ngừng hoạt động" } });
     }
     const updated = await tx.user.update({ where: { id: current.id }, data: { fullName: data.fullName, phone: data.phone, role: data.role, isActive: data.isActive, password }, select: safeUserSelect });
-    return isGuestPhone(updated.phone) ? { ...updated, phone: "", isGuest: true } : updated;
+    return { ...updated, phone: isGuestPhone(updated.phone) ? "" : updated.phone, isGuest: isGuestPhone(updated.phone) };
   });
 }
 

@@ -7,7 +7,6 @@ const services = [
   ["services/tripService.ts", "queryTripsAdmin", "trip", ["createdAt", "time", "price", "availableSeats", "id"]],
   ["services/busService.ts", "queryBuses", "bus", ["createdAt", "plate", "seats", "id"]],
   ["services/employeeService.ts", "queryEmployees", "employee", ["createdAt", "name", "id"]],
-  ["services/orderService.ts", "queryOrdersAdmin", "booking", ["createdAt", "totalPrice", "id"]],
   ["services/userService.ts", "queryUsers", "user", ["createdAt", "fullName", "id"]],
 ];
 
@@ -81,7 +80,7 @@ test("payment sorting preserves review filters and sorting in pagination links",
   let sortProps;
   const { default: PaymentsPage } = load("app/admin/payments/page.tsx", {
     "@/lib/admin-api": { requireAdmin: async () => ({ role: "ADMIN" }) },
-    "@/lib/prisma": { prisma: { payment: {
+    "@/lib/prisma": { prisma: { bookingTransaction: { count: async () => 0, findMany: async () => [] }, payment: {
       count: async () => 41,
       findMany: async (query) => { pageQuery = query; return []; },
     } } },

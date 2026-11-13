@@ -1,6 +1,8 @@
 // Reconstruct the imported schema without connecting to or modifying a database.
 function createBaselineSchema(schema) {
-  return schema.replace(/^model Payment \{[\s\S]*?^\}/gm, "")
+  return schema.replace(/^model (?:Payment|BookingTransaction) \{[\s\S]*?^\}/gm, "")
+    .replace(/^\s*(transactions|processedTransactions|trips|endsAt|busId|driverId|bus|driver)\s+.*$/gm, "")
+    .replace(/^model trip \{[\s\S]*?^\}/gm, (trip) => trip.replace(/^\s*status\s+.*$/gm, "").replace(/^\s*@@index\(\[(busId|driverId)[^\n]*$/gm, ""))
     // Booking expiry was added after the baseline. SeatHold expiry already existed.
     .replace(/^model booking \{[\s\S]*?^\}/gm, (booking) => booking
       .replace(/^\s*expiresAt\s+.*$/gm, "")

@@ -128,6 +128,8 @@ test("seed includes usable ADMIN and CUSTOMER hashes, matching customer profile,
   }
   assert.equal(data.trips.length, 6);
   assert.equal(data.trips.every((trip) => trip.time > now && trip.availableSeats === trip.capacity && trip.price > 0), true);
+  assert.equal(data.trips.every((trip) => trip.status === "OPEN" && trip.endsAt > trip.time && trip.driverId === data.employee.id), true);
+  assert.equal(data.trips.every((trip) => data.buses.some((bus) => bus.id === trip.busId && bus.seats === trip.capacity)), true);
   assert.equal(new Set(data.trips.map((trip) => trip.capacity)).size, 2);
 });
 

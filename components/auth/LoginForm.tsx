@@ -29,6 +29,7 @@ export default function LoginForm({ onSuccess, onRegister, variant = "customer" 
 
     submitting.current = true;
     setIsPending(true);
+    let navigationStarted = false;
 
     try {
       const response = await fetch("/api/auth/login", {
@@ -43,11 +44,15 @@ export default function LoginForm({ onSuccess, onRegister, variant = "customer" 
         return;
       }
       onSuccess(data.redirectTo);
+      navigationStarted = true;
     } catch {
       setError("Không thể kết nối máy chủ. Vui lòng thử lại!");
     } finally {
-      submitting.current = false;
-      setIsPending(false);
+      // Keep the form locked until the authenticated destination replaces this page.
+      if (!navigationStarted) {
+        submitting.current = false;
+        setIsPending(false);
+      }
     }
   };
 

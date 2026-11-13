@@ -22,9 +22,11 @@ export default async function SuccessPage({ searchParams }: {
   const state = await getPaymentStatus(params.pnr);
   const now = new Date();
 
-  const canPay = bookings.every(
+  const pendingBookings = bookings.filter((booking) => booking.status === "PENDING");
+  const canPay = pendingBookings.length > 0 && pendingBookings.every(
     (booking) =>
       booking.status === "PENDING" &&
+      booking.trip.status === "OPEN" &&
       booking.trip.time > now &&
       (
         booking.expiresAt === null ||

@@ -9,6 +9,8 @@ export interface CreateBookingInput {
   holdOwnerKey?: string;
   ownerId?: number;
   isOnline?: boolean;
+  actorId?: number;
+  paymentMethod?: import("./order").MoneyMethod;
 }
 
 export interface BookingResult {

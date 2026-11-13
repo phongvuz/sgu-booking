@@ -1,6 +1,10 @@
 import { OrderItem } from "./order";
 
 export interface DashboardStats {
+  received: number;
+  refunded: number;
+  refundDue: number;
+  amountDue: number;
   revenueThisMonth: number;
   revenueToday: number;
   revenueGrowthPercent: number;

@@ -5,12 +5,25 @@ import { formatPrice } from "@/lib/trip-display";
 
 export function DashboardOverview({ stats, loading }: { stats: DashboardStats | null; loading: boolean }) {
   return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {([
+          ["Tiền đã thu", stats?.received], ["Tiền đã hoàn", stats?.refunded],
+          ["Tiền chờ hoàn", stats?.refundDue], ["Tiền còn phải thu", stats?.amountDue],
+        ] as const).map(([label, amount]) => (
+          <div key={label} className="rounded-xl border border-gray-200 bg-white p-4">
+            <p className="text-xs text-gray-500">{label} · toàn bộ thời gian</p>
+            <p className="mt-2 text-xl font-bold text-gray-900">{loading ? "Đang tải..." : formatPrice(amount ?? 0)}</p>
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-gray-500">Không tính giao dịch demo. Dữ liệu cũ được ghi theo lịch sử vé, chưa phải xác minh ngân hàng. Doanh thu tiền thuần = tiền thu trừ tiền hoàn trong kỳ.</p>
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Doanh thu tháng này */}
       <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-2xs hover:shadow-xs transition-shadow">
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
-            Doanh thu tháng này
+            Tiền thuần tháng này
           </span>
           <span className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm font-bold">
             <FaMoneyBillWave aria-hidden="true" className="inline-block shrink-0 align-middle" />
@@ -103,6 +116,7 @@ export function DashboardOverview({ stats, loading }: { stats: DashboardStats | 
           </p>
         </div>
       </div>
+    </div>
     </div>
   );
 }

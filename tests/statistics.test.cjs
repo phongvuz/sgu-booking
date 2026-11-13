@@ -30,6 +30,13 @@ test("dashboard uses aggregates and displays only alerts supported by data", asy
   const aggregates = [];
   let recentQuery;
   const prisma = {
+    bookingTransaction: {
+      groupBy: async (query) => {
+        aggregates.push(query);
+        return [{ kind: "RECEIPT", _sum: { amount: revenue[aggregates.length - 1] }, _count: { _all: 5 } }];
+      },
+      count: async () => 10,
+    },
     booking: {
       aggregate: async (query) => {
         aggregates.push(query);
@@ -42,7 +49,7 @@ test("dashboard uses aggregates and displays only alerts supported by data", asy
     employee: { groupBy: async () => [{ status: "Đang làm việc", _count: { _all: 30 } }], findMany: async () => [] },
     trip: { count: async () => 200 }, user: { count: async () => 500 },
   };
-  const { getDashboardStats } = load("services/dashboardService.ts", { "@/lib/prisma": { prisma } });
+  const { getDashboardStats } = load("services/dashboardService.ts", { "@/lib/prisma": { prisma }, "@/services/bookingFinanceService": { getFinancePositions: async () => [] } });
   const result = await getDashboardStats();
   assert.equal(result.revenueThisMonth, 2000);
   assert.equal(result.revenueToday, 500);
@@ -52,8 +59,8 @@ test("dashboard uses aggregates and displays only alerts supported by data", asy
   assert.equal(result.totalEmployees, 30);
   assert.deepEqual(result.systemAlerts, []);
   assert.equal(recentQuery.take, 6);
-  assert.ok(aggregates.every((query) => query.where.status === "CONFIRMED"));
-  assert.ok(aggregates.every((query) => query.where.confirmedAt && !query.where.createdAt));
+  assert.ok(aggregates.every((query) => query.where.method.not === "DEMO"));
+  assert.ok(aggregates.every((query) => query.where.createdAt && !query.where.status));
 });
 
 test("featured routes exclude departed and full trips and use database prices", async () => {
