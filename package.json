@@ -13,9 +13,14 @@
     "db:deploy": "prisma migrate deploy",
     "db:payments": "node scripts/setup-payments.cjs",
     "db:trips": "node scripts/setup-trips.cjs",
+    "db:trip-buses": "node scripts/setup-trip-buses.cjs",
     "db:seed-drivers": "node scripts/seed-drivers.cjs",
     "test:admin-db": "node tests/admin-db.cjs",
-    "test:finance-db": "node tests/finance-dispatch-db.cjs"
+    "test:finance-db": "node tests/finance-dispatch-db.cjs",
+    "test:trip-bus-db": "node tests/trip-bus-db.cjs",
+    "test:trip-bus-dispatch-db": "node tests/trip-bus-dispatch-db.cjs",
+    "test:trip-bus-browser": "node --test tests/trip-bus.browser.cjs",
+    "test:booking-concurrency": "node tests/booking-concurrency-http.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",

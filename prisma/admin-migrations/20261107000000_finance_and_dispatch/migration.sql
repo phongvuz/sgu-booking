@@ -1,7 +1,6 @@
 ALTER TABLE `trip`
   ADD COLUMN `endsAt` DATETIME(3) NULL,
   ADD COLUMN `status` VARCHAR(191) NOT NULL DEFAULT 'DRAFT',
-  ADD COLUMN `busId` VARCHAR(191) NULL,
   ADD COLUMN `driverId` VARCHAR(191) NULL;
 
 UPDATE `trip` SET `status` = 'DEPARTED' WHERE `time` <= CURRENT_TIMESTAMP(3);
@@ -9,7 +8,6 @@ UPDATE `booking` SET `pnr` = CONCAT('NHAXE-', `tripId`, '-', `userId`, `id`) WHE
 
 CREATE INDEX `trip_busId_time_endsAt_idx` ON `trip`(`busId`, `time`, `endsAt`);
 CREATE INDEX `trip_driverId_time_endsAt_idx` ON `trip`(`driverId`, `time`, `endsAt`);
-ALTER TABLE `trip` ADD CONSTRAINT `trip_busId_fkey` FOREIGN KEY (`busId`) REFERENCES `bus`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE `trip` ADD CONSTRAINT `trip_driverId_fkey` FOREIGN KEY (`driverId`) REFERENCES `employee`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 CREATE TABLE `BookingTransaction` (

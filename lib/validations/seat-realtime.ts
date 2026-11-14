@@ -9,10 +9,20 @@ const seatSelectionSchema = z.object({
   clientId: realtimeClientIdSchema,
 }).strict();
 
-export const seatInteractionRequestSchema = seatSelectionSchema.extend({
-  tripId: tripIdSchema,
+// TODO 3: schema tối thiểu theo đề, không ép chuỗi tripId thành số.
+export const seatEventSchema = z.object({
+  tripId: z.number().int().positive(),
+  clientId: z.string().min(1),
+  seatNumber: z.string().min(1),
   type: z.enum(["SEAT_SELECTED", "SEAT_DESELECTED"]),
 });
+
+// API thật bổ sung giới hạn ID, định dạng ghế/client và chặn trường lạ.
+export const seatInteractionRequestSchema = seatEventSchema.extend({
+  tripId: tripIdSchema,
+  clientId: realtimeClientIdSchema,
+  seatNumber: realtimeSeatNumberSchema,
+}).strict();
 
 export const seatSyncRequestSchema = z.object({
   tripId: tripIdSchema,

@@ -20,6 +20,7 @@ const bookings = load("services/bookingService.ts", mocks, cache);
 const orders = load("services/orderService.ts", mocks, cache);
 const trips = load("services/tripService.ts", mocks, cache);
 const holds = load("services/seatService.ts", mocks, cache);
+const buses = load("services/busService.ts", mocks, cache);
 const registration = load("app/api/auth/register/route.ts", mocks, cache);
 const { isGuestPhone } = load("lib/guest-account.ts", mocks, cache);
 let created = false;
@@ -69,9 +70,10 @@ async function main() {
   assert.equal(pushed.status, 0, pushed.error?.message || pushed.stderr || pushed.stdout);
 
   const future = new Date(Date.now() + 2 * 86400000);
-  const trip = await trips.createTrip({ from: "Fix Origin", to: "Fix Destination", time: future, price: 100000, capacity: 6 });
+  const bus = await buses.createBus({ plate: "99B-101.01", type: "Ghế ngồi", capacity: 6, status: "Đang hoạt động" });
+  const trip = await trips.createTrip({ from: "Fix Origin", to: "Fix Destination", time: future, price: 100000, busId: bus.id });
   const input = { tripId: trip.id, seats: ["A01"], fullName: "Guest Passenger", phone: "0999000001" };
-  await assert.rejects(trips.createTrip({ from: "Bad Price", to: "Destination", time: future, price: 10000.5, capacity: 6 }), { status: 400 });
+  await assert.rejects(trips.createTrip({ from: "Bad Price", to: "Destination", time: future, price: 10000.5, busId: bus.id }), { status: 400 });
   const result = await bookings.createBooking(input);
   const original = await prisma.booking.findUnique({ where: { id: result.bookingIds[0] }, include: { user: true } });
   assert.equal(original.status, "PENDING");
@@ -117,27 +119,45 @@ async function main() {
   assert.equal((await orders.getOrderById(own.bookingIds[0])).status, "CONFIRMED");
   console.log("PASS: hold owner keys remain private; completed admin services cancel and restore seats exactly once.");
 
+  const sameBus = await buses.createBus({ plate: "99B-101.02", type: "Ghế ngồi", capacity: 6, status: "Đang hoạt động" });
+  const largerBus = await buses.createBus({ plate: "99B-101.03", type: "Ghế ngồi", capacity: 12, status: "Đang hoạt động" });
+  await assert.rejects(buses.updateBus(bus.id, { capacity: 12 }), { status: 409 });
+  await assert.rejects(buses.deleteBus(bus.id), { status: 409 });
+  await assert.rejects(trips.updateTrip(trip.id, { busId: largerBus.id }), { status: 409 });
+  const oldAvailability = (await trips.getTripById(trip.id)).availableSeats;
+  const reassigned = await trips.updateTrip(trip.id, { busId: sameBus.id });
+  assert.equal(reassigned.availableSeats, oldAvailability);
+  assert.equal(reassigned.capacity, 6);
+  assert.equal(reassigned.busId, sameBus.id);
+  console.log("PASS: referenced bus capacity/deletion are protected and equal-capacity reassignment preserves active seats.");
+
   const instant = new Date(Date.now() + 3 * 86400000);
   instant.setUTCHours(0, 0, 0, 0); // 07:00 Vietnam.
-  const morning = await trips.createTrip({ from: "Search Origin", to: "Search Destination", time: instant, price: 200000, capacity: 34 });
+  const sleeperBus = await buses.createBus({ plate: "99B-101.04", type: "Giường nằm 28 chỗ", capacity: 28, status: "Đang hoạt động" });
+  const limousineBus = await buses.createBus({ plate: "99B-101.05", type: "Limousine 34 phòng", capacity: 34, status: "Đang hoạt động" });
+  const morning = await trips.createTrip({ from: "Search Origin", to: "Search Destination", time: instant, price: 200000, busId: sleeperBus.id });
   await prisma.trip.update({ where: { id: morning.id }, data: { availableSeats: 22 } });
-  await prisma.trip.create({ data: { from: "Search Origin", to: "Search Destination", time: new Date(Date.now() - 86400000), price: 100000, capacity: 34, availableSeats: 34 } });
-  await prisma.trip.create({ data: { from: "Search Origin", to: "Search Destination", time: instant, price: 100000, capacity: 34, availableSeats: 0 } });
+  await prisma.trip.create({ data: { from: "Search Origin", to: "Search Destination", time: new Date(Date.now() - 86400000), price: 100000, busId: sleeperBus.id, availableSeats: sleeperBus.capacity } });
+  await prisma.trip.create({ data: { from: "Search Origin", to: "Search Destination", time: instant, price: 100000, busId: sleeperBus.id, availableSeats: 0 } });
+  await trips.createTrip({ from: "Search Origin", to: "Search Destination", time: instant, price: 200000, busId: limousineBus.id });
   const matches = await trips.queryPublicTrips({ fromCity: "Search Origin", times: ["morning"], vehicles: ["sleeper"], limit: 1 });
   assert.equal(matches.pagination.total, 1);
   assert.equal(matches.data[0].id, morning.id);
-  assert.equal(matches.data[0].capacity, 34);
+  assert.equal(matches.data[0].capacity, 28);
+  const withoutTime = await trips.queryPublicTrips({ fromCity: "Search Origin", vehicles: ["sleeper"] });
+  assert.equal(withoutTime.pagination.total, 1);
+  assert.equal(withoutTime.data[0].id, morning.id);
   const excluded = await trips.queryPublicTrips({ fromCity: "Search Origin", times: ["early"] });
   assert.equal(excluded.pagination.total, 0);
   const extraTrips = [];
   for (let index = 0; index < 3; index++) {
-    extraTrips.push(await trips.createTrip({ from: "Search Origin", to: "Search Destination", time: instant, price: 200000, capacity: 34 }));
+    extraTrips.push(await trips.createTrip({ from: "Search Origin", to: "Search Destination", time: instant, price: 200000, busId: sleeperBus.id }));
   }
   const secondPage = await trips.queryPublicTrips({ fromCity: "Search Origin", times: ["morning"], vehicles: ["sleeper"], page: 2, limit: 2 });
   assert.equal(secondPage.pagination.total, 4);
   assert.equal(secondPage.pagination.page, 2);
   assert.deepEqual(secondPage.data.map(({ id }) => id), extraTrips.slice(1).map(({ id }) => id));
-  console.log("PASS: MySQL filters Vietnam hours, fixed vehicle capacity, availability and pagination correctly.");
+  console.log("PASS: MySQL filters Vietnam hours, actual bus type independent of capacity, availability and pagination correctly.");
 }
 
 main().catch((error) => { console.error(error); process.exitCode = 1; }).finally(async () => {

@@ -64,6 +64,11 @@ export function TripDetailModal({
 
    
         <div className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
+          <div className="rounded-xl border border-gray-200 p-3.5">
+            <span className="text-[11px] text-gray-500">Xe phục vụ</span>
+            <p className="mt-1 font-bold text-gray-900">{trip.bus.plate} · {trip.bus.type}</p>
+            <p className="mt-1 text-gray-500">Sức chứa: {trip.bus.capacity} chỗ · {trip.bus.status}</p>
+          </div>
     
           <div className="grid grid-cols-3 gap-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200 text-center">
             <div>

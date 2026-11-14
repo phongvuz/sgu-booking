@@ -48,7 +48,7 @@ function buildDriverTestData(now = new Date()) {
 
   const buses = Array.from({ length: 5 }, (_, index) => ({
     id: busId(index + 1), plate: `51B-997.${String(index + 1).padStart(2, "0")}`,
-    type: "Giường nằm 30 chỗ", seats: 30, status: "Đang hoạt động",
+    type: "Giường nằm 30 chỗ", capacity: 30, status: "Đang hoạt động",
     brand: "[TEST] Xe kiểm thử", notes: "Dữ liệu giả để kiểm thử phân công; không vận hành thực tế.",
   }));
 
@@ -64,7 +64,7 @@ function buildDriverTestData(now = new Date()) {
     ["Chuyến dự kiến: chọn tài xế ngày mai 08:00–12:00", "DRAFT", 4, null, atTomorrow("08:00"), atTomorrow("12:00")],
   ].map(([label, status, bus, driver, time, endsAt]) => ({
     label,
-    data: { from: "Hồ Chí Minh", to: "Cần Thơ", status, busId: busId(bus), driverId: driver ? employeeId(driver) : null, time, endsAt, price: 180000, capacity: 30, availableSeats: 30 },
+    data: { from: "Hồ Chí Minh", to: "Cần Thơ", status, busId: busId(bus), driverId: driver ? employeeId(driver) : null, time, endsAt, price: 180000, availableSeats: 30 },
   }));
   return { employees, buses, trips };
 }

@@ -25,6 +25,7 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     page.on("pageerror", (error) => pageErrors.push(error.message));
     const trip = {
       id: 101, from: "Sài Gòn", to: "Đà Lạt", time: "2099-12-02T01:00:45.000Z",
+      busId: "BUS-UI-30", bus: { id: "BUS-UI-30", plate: "51B-003.00", type: "Ghế ngồi", capacity: 30, status: "Đang hoạt động" },
       price: 300000, availableSeats: 28, totalSeats: 30, bookedSeatsCount: 2,
       occupancyRate: 7, createdAt: "2026-10-11T00:00:00.000Z",
       bookings: [
@@ -36,6 +37,7 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     const writes = [];
     let failedCreate = false;
     let failedDelete = false;
+    await page.route("**/api/buses?selectable=true", (route) => route.fulfill({ json: { success: true, data: [trip.bus] } }));
     await page.route("**/api/trips**", async (route) => {
       const request = route.request();
       if (request.method() === "GET") {
@@ -65,6 +67,7 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     const row = page.locator("tbody tr").first();
     await row.waitFor();
     await page.getByRole("button", { name: "Thêm chuyến xe mới" }).click();
+    await page.locator("#trip-bus").selectOption(trip.busId);
     await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
     await page.getByText("Điểm khởi hành không được để trống", { exact: true }).waitFor();
     assert.equal(writes.length, 0);
@@ -72,17 +75,15 @@ test("trip forms validate, retry failures, reset on reopen and preserve departur
     assert.equal(await page.locator('#trip-to option[value="Sài Gòn"]').isDisabled(), true);
     assert.equal(writes.length, 0);
     await page.locator("#trip-to").selectOption("Đà Lạt");
-    await page.locator("#trip-capacity").fill("22.5");
-    await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
-    await page.getByText("Sức chứa phải là số nguyên", { exact: true }).waitFor();
-    assert.equal(writes.length, 0);
-    await page.locator("#trip-capacity").fill("30");
+    assert.equal(await page.locator("#trip-capacity").textContent(), "30 chỗ");
+    assert.equal(await page.locator('input[name="capacity"]').count(), 0);
     await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
     await page.locator("form [role=alert]").filter({ hasText: "Lỗi lưu thử nghiệm" }).waitFor();
     await page.getByRole("button", { name: "Tạo chuyến xe", exact: true }).click();
     await page.locator("#trip-from").waitFor({ state: "detached" });
     assert.equal(writes[1].data.from, "Sài Gòn");
-    assert.equal(writes[1].data.capacity, 30);
+    assert.equal(writes[1].data.busId, trip.busId);
+    assert.equal(Object.hasOwn(writes[1].data, "capacity"), false);
     assert.equal(typeof writes[1].data.price, "number");
 
     await page.getByRole("button", { name: "Thêm chuyến xe mới" }).click();

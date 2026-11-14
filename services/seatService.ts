@@ -14,10 +14,10 @@ export async function holdSeat(tripId: number, seatNumber: string, clientId: str
   assertTripId(tripId);
   const seat = normalizeSeat(seatNumber);
   return runTransaction(async (tx) => {
-    const trip = await tx.trip.findUnique({ where: { id: tripId } });
+    const trip = await tx.trip.findUnique({ where: { id: tripId }, include: { bus: true } });
     if (!trip) throw new BusinessError("Không tìm thấy chuyến xe.", 404);
     if (trip.status !== "OPEN" || trip.time <= new Date() || trip.availableSeats <= 0) throw new BusinessError("Chuyến chưa mở bán, đã xuất bến hoặc hết ghế.", 409);
-    if (!getSeatCodes(trip.capacity).includes(seat)) throw new BusinessError("Ghế không thuộc sơ đồ chuyến xe.");
+    if (!getSeatCodes(trip.bus.capacity).includes(seat)) throw new BusinessError("Ghế không thuộc sơ đồ chuyến xe.");
     if (await tx.booking.findFirst({ where: { activeSeat: `${tripId}:${seat}` } })) throw new BusinessError("Ghế đã được đặt.", 409);
     const now = new Date();
     const existing = await tx.seatHold.findUnique({ where: { tripId_seatNumber: { tripId, seatNumber: seat } } });

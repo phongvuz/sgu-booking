@@ -33,8 +33,8 @@ test("driver fixtures match employee and bus validation and contain no bookings 
   assert.equal(new Set(data.employees.map((employee) => employee.phone)).size, 9);
   for (const { data: trip } of data.trips) {
     assert.ok(trip.endsAt > trip.time);
-    assert.equal(trip.capacity, data.buses.find((bus) => bus.id === trip.busId).seats);
-    assert.equal(trip.availableSeats, trip.capacity);
+    assert.equal(Object.hasOwn(trip, "capacity"), false);
+    assert.equal(trip.availableSeats, data.buses.find((bus) => bus.id === trip.busId).capacity);
     if (trip.driverId) {
       const driver = data.employees.find((employee) => employee.id === trip.driverId);
       assert.equal(driver.role, "Tài xế");

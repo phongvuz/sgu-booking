@@ -40,18 +40,18 @@ model trip {
   time           DateTime
   endsAt         DateTime?
   status         String     @default("DRAFT")
-  busId          String?
   driverId       String?
-  bus            bus?       @relation(fields: [busId], references: [id], onDelete: Restrict)
   driver         employee?  @relation(fields: [driverId], references: [id], onDelete: Restrict)
   price          Int
-  capacity       Int
+  busId          String
   availableSeats Int
   createdAt      DateTime   @default(now())
+  bus            bus        @relation(fields: [busId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "trip_busId_fkey")
   booking        booking[]
   seatHolds      SeatHold[]
 
   @@index([time])
+  @@index([busId], map: "trip_busId_idx")
   @@index([busId, time, endsAt])
   @@index([driverId, time, endsAt])
 }
@@ -114,7 +114,7 @@ model bus {
   id              String   @id
   plate           String   @unique
   type            String
-  seats           Int
+  capacity        Int
   status          String   @default("Đang hoạt động")
   brand           String?
   year            Int?

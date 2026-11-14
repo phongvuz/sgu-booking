@@ -16,14 +16,6 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
--- Current Database: `sgu-booking`
---
-
-CREATE DATABASE /*!32312 IF NOT EXISTS*/ `sgu-booking` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
-
-USE `sgu-booking`;
-
---
 -- Table structure for table `booking`
 --
 
@@ -78,7 +70,7 @@ CREATE TABLE `bus` (
   `id` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   `plate` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
   `type` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL,
-  `seats` int NOT NULL,
+  `capacity` int NOT NULL,
   `status` varchar(191) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'Đang hoạt động',
   `brand` varchar(191) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `year` int DEFAULT NULL,
@@ -88,7 +80,8 @@ CREATE TABLE `bus` (
   `notes` text COLLATE utf8mb4_unicode_ci,
   `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (`id`),
-  UNIQUE KEY `bus_plate_key` (`plate`)
+  UNIQUE KEY `bus_plate_key` (`plate`),
+  CONSTRAINT `bus_capacity_check` CHECK ((`capacity` between 1 and 60))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -98,6 +91,7 @@ CREATE TABLE `bus` (
 
 LOCK TABLES `bus` WRITE;
 /*!40000 ALTER TABLE `bus` DISABLE KEYS */;
+INSERT INTO `bus` VALUES ('SAMPLE-TRIP-10','50F-90010','Giường nằm',34,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 10, giữ nguyên sức chứa 34 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.532'),('SAMPLE-TRIP-11','50F-90011','Xe ghế ngồi',28,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 11, giữ nguyên sức chứa 28 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.533'),('SAMPLE-TRIP-13','50F-90013','Xe ghế ngồi',30,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 13, giữ nguyên sức chứa 30 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.534'),('SAMPLE-TRIP-14','50F-90014','Xe ghế ngồi',3,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 14, giữ nguyên sức chứa 3 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.535'),('SAMPLE-TRIP-6','50F-90006','Giường nằm',34,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 6, giữ nguyên sức chứa 34 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.525'),('SAMPLE-TRIP-7','50F-90007','Xe ghế ngồi',23,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 7, giữ nguyên sức chứa 23 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.528'),('SAMPLE-TRIP-8','50F-90008','Xe ghế ngồi',30,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 8, giữ nguyên sức chứa 30 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.530'),('SAMPLE-TRIP-9','50F-90009','Xe ghế ngồi',26,'Đang hoạt động',NULL,NULL,NULL,NULL,NULL,'Xe mẫu được tạo theo yêu cầu cho chuyến 9, giữ nguyên sức chứa 26 ghế. Biển số là dữ liệu minh họa; cần xác minh trước khi sử dụng thực tế.','2026-11-07 03:43:57.531');
 /*!40000 ALTER TABLE `bus` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -247,9 +241,12 @@ CREATE TABLE `trip` (
   `price` double NOT NULL,
   `availableSeats` int NOT NULL,
   `createdAt` datetime(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-  `capacity` int NOT NULL,
+  `busId` varchar(191) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `trip_time_idx` (`time`)
+  KEY `trip_time_idx` (`time`),
+  KEY `trip_busId_idx` (`busId`),
+  CONSTRAINT `trip_busId_fkey` FOREIGN KEY (`busId`) REFERENCES `bus` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT,
+  CONSTRAINT `trip_seat_counts_check` CHECK ((`availableSeats` between 0 and 60))
 ) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -259,7 +256,7 @@ CREATE TABLE `trip` (
 
 LOCK TABLES `trip` WRITE;
 /*!40000 ALTER TABLE `trip` DISABLE KEYS */;
-INSERT INTO `trip` VALUES (6,'Hồ Chí Minh','Đà Lạt','2026-10-27 00:00:00.000',300000,22,'2026-09-21 08:31:45.298',34),(7,'Hồ Chí Minh','Đà Lạt','2026-10-01 23:00:00.000',350000,22,'2026-09-21 08:31:45.302',23),(8,'Hồ Chí Minh','Nha Trang','2026-10-01 22:30:00.000',280000,30,'2026-09-21 08:31:45.305',30),(9,'Hồ Chí Minh','Vũng Tàu','2026-10-01 07:30:00.000',160000,26,'2026-09-21 08:31:45.308',26),(10,'Hồ Chí Minh','Hà Nội','2026-10-01 08:00:00.000',900000,34,'2026-09-21 08:31:45.312',34),(11,'Đà Lạt','Hồ Chí Minh','2026-10-17 00:00:00.000',300000,26,'2026-09-21 08:31:45.315',28),(13,'Hồ Chí Minh','Đà Lạt','2026-11-16 01:00:00.000',300000,29,'2026-11-05 18:04:47.501',30),(14,'Hồ Chí Minh','Đà Nẵng','2026-11-17 01:00:00.000',300000,2,'2026-11-05 19:27:57.347',3);
+INSERT INTO `trip` VALUES (6,'Hồ Chí Minh','Đà Lạt','2026-10-27 00:00:00.000',300000,22,'2026-09-21 08:31:45.298','SAMPLE-TRIP-6'),(7,'Hồ Chí Minh','Đà Lạt','2026-10-01 23:00:00.000',350000,22,'2026-09-21 08:31:45.302','SAMPLE-TRIP-7'),(8,'Hồ Chí Minh','Nha Trang','2026-10-01 22:30:00.000',280000,30,'2026-09-21 08:31:45.305','SAMPLE-TRIP-8'),(9,'Hồ Chí Minh','Vũng Tàu','2026-10-01 07:30:00.000',160000,26,'2026-09-21 08:31:45.308','SAMPLE-TRIP-9'),(10,'Hồ Chí Minh','Hà Nội','2026-10-01 08:00:00.000',900000,34,'2026-09-21 08:31:45.312','SAMPLE-TRIP-10'),(11,'Đà Lạt','Hồ Chí Minh','2026-10-17 00:00:00.000',300000,26,'2026-09-21 08:31:45.315','SAMPLE-TRIP-11'),(13,'Hồ Chí Minh','Đà Lạt','2026-11-16 01:00:00.000',300000,29,'2026-11-05 18:04:47.501','SAMPLE-TRIP-13'),(14,'Hồ Chí Minh','Đà Nẵng','2026-11-17 01:00:00.000',300000,2,'2026-11-05 19:27:57.347','SAMPLE-TRIP-14');
 /*!40000 ALTER TABLE `trip` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -292,6 +289,10 @@ LOCK TABLES `user` WRITE;
 INSERT INTO `user` VALUES (7,'Nguyễn Văn An','0901234567','password123','USER','2026-09-21 08:31:45.290',1),(8,'Trần Thị Bình','0987654321','scrypt:3b1eee0ac382dc97bbb518c7f24c44d7:ec38da25cc135951e932671bfba9ed956cb277617451b0d5845fa69bb5a9e723f5327d1a24857dacc7c2cc050917b00c3ed47cfe0e860edd0c1de052fb9556ca','ADMIN','2026-09-21 08:31:45.294',1),(9,'Lê Khang Huy','0348582040','scrypt:543afbd1456767cca72a276a76d6e10a:bb319e7f2211c59e91319affc01dd7a94a7c950cc3d86200c03af509082b84a4d33a45d615a3e24e13bb0f85ebd624af7529680ee6b3ee3d48f60d18428d0346','CUSTOMER','2026-09-26 09:31:09.098',1),(10,'lê văn si','0897567865','scrypt:0a3036cfae014746c8c95bc58f368c45:171ade64e45b4dbae231d5ead767d8794f62a63118c9d7f9d3fde7a3cccdc207547ceee2b40cf1c06e19b4f608fad25a2c67b612f35e06baf5758d36f6dce439','CUSTOMER','2026-09-26 09:44:50.229',1),(11,'Lê Khang Huy','0358160688','scrypt:4573c290fb70b3f3ff9b770d72b5193c:fb2c742986ea82999f29dbc5ebb3348ff741c66c89a538969c444721d6feb02dbe04f01734a2bc729a3e1feedb30bbe0cd54f469957bc664c82eaf11151a5535','ADMIN','2026-09-30 15:46:54.123',1),(12,'nguyễn văn huy','0987654123','scrypt:e83b9768f0a876e7ecbd065f8c8a47ba:abc3d226ed16df538abbfca29ed118ae197a7ec5a1a7bea2a198423374fcef90d495e7964bef7bd9a9a1a4f25fec1054068de7054de5f746feff84f6509b4d5e','CUSTOMER','2026-10-05 10:40:09.072',1),(13,'Lê Khang Huy','guest:48c4b38ea1e9bb9365dcf4a505097f7d','scrypt:ddfbdfcb977467bbf42c8452dc9d148e:5ecf109f335bcf844e765a9dc2a46a63b926ac356212385ec439c0314feab8914f944d42b2256e9ca1a7a92cfa86d7300e1280e4c8020a62bce07b01bdf5087c','USER','2026-11-05 18:11:15.087',1),(14,'Lê Khang Huy','guest:897768744365dc28a3d861b055e1dd2e','scrypt:fda18492d505d5b61c5e91c2922f4967:b0c042b3691f36386ce77206f7a8f0adc7966056efb601c846ab90c95543e38f7bfb10f576bd8bd7cf43ad4fc24b5f3c603b213262a4ef602b5f749570992d92','USER','2026-11-05 18:44:03.386',1),(15,'Lê Khang Huy','guest:88656bcc90c966c4b5ea6a19e70a8cef','scrypt:c167ba80fdcecb260de6f9733ee59741:03a61fe19f879b8145b5c62ac2071455f5b9f5deb1f9c261fbb54f74eb0089d4d740539f8cda05a55587844997bada2d53bf9f1ddd402d08c6c5f91d9844bf21','USER','2026-11-05 19:02:03.594',1),(16,'Lê Khang Huy','guest:8533189430b61427b7945a3fac47021f','scrypt:039f1ebd6e6510cf2f60bce75896891c:0d16aebb7c4e629434b738a2a3012de2361356d5b5551aa693cc8d6f18fe1928abe108e6b44c3528553984dceff0716c896183921e3994487935310e1728d252','USER','2026-11-05 19:03:33.627',1),(17,'Lê Khang Huy','guest:636a6206e55b95b8d269b35b56719775','scrypt:208737a9387dc96299d5f7569cdbf1ea:474950d827a9bf13e3978f71030720e1a07834c45208bfed6e0588647e9a5e25229a24829b34ff8ecd15712a7ce0ded7c99a5741ed200c2205f4b600a89e96fa','USER','2026-11-05 19:13:22.739',1),(18,'Lê Khang Huy','guest:9344c1c7387bbb39fba4da7edfab03ed','scrypt:71fa270a4e70509ad656bd07476ea938:d71eaada9b9f758b87d22891049b40946c032e58e5a8069eb1ca84ed193387f9d59fa3200459d2faa226b779ed4b6dbc6b8e731692453baf7c970b669a8d33bb','USER','2026-11-05 19:28:21.925',1),(19,'Lê Khang Huy','guest:d0e364c40f926a9e3aa8f0556ebac3b7','scrypt:83d0556e2607c685531bc2c7b9f02c53:0741e9214eb8bb58537cca23bc8c3419c622fd157eefed7b78158e6d90c51956b9d4e44983cad3610732633e4c7b1bc5f3f2cb1d61c2cd8a7f3fce8d020873f6','USER','2026-11-05 19:34:53.379',1),(20,'Lê Khang Huy','guest:44441be873edaceddc2c470903d16694','scrypt:209e53e4bc52b14e9c1cfb97a21c1940:e85ec9c6de1c40160e123f0a8b41e592ad2b04791de6b2c83a0813423db39a53c2606a8dc67764ba61db2b887cbad0c5479654ec237d37acdd3d7427a3bd00c4','USER','2026-11-05 20:15:31.682',1);
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Dumping routines for database 'sgu-booking'
+--
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -302,4 +303,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-11-06 13:20:35
+-- Dump completed on 2026-11-07  3:45:20

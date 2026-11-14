@@ -57,73 +57,186 @@ async function main() {
     createdUsers.push(user);
   }
 
-  // 2. Tạo danh sách Chuyến xe (Trip) mẫu
+  // 2. Tạo danh sách Xe (Bus) mẫu
+  const busesData = [
+    {
+      id: "BUS-001",
+      plate: "51B-123.45",
+      type: "Limousine 22 phòng",
+      capacity: 22,
+      status: "Đang hoạt động",
+      brand: "Thaco Mobihome",
+      year: 2023,
+      driverName: "Nguyễn Văn A",
+      driverPhone: "0901234567",
+      lastMaintenance: "2026-08-15",
+      notes: "Xe VIP chuyên tuyến Sài Gòn - Đà Lạt",
+    },
+    {
+      id: "BUS-002",
+      plate: "51B-987.65",
+      type: "Giường nằm 34 chỗ",
+      capacity: 34,
+      status: "Đang hoạt động",
+      brand: "Hyundai Tracomeco",
+      year: 2022,
+      driverName: "Phạm Văn D",
+      driverPhone: "0934567890",
+      lastMaintenance: "2026-07-20",
+      notes: "Tuyến Sài Gòn - Nha Trang",
+    },
+    {
+      id: "BUS-003",
+      plate: "51B-456.78",
+      type: "Giường nằm 34 chỗ",
+      capacity: 34,
+      status: "Bảo dưỡng",
+      brand: "Thaco King Long",
+      year: 2021,
+      driverName: "Vũ Minh Tuấn",
+      driverPhone: "0967890123",
+      lastMaintenance: "2026-09-25",
+      notes: "Đang thay dầu máy và bảo dưỡng hệ thống phanh",
+    },
+    {
+      id: "BUS-004",
+      plate: "51B-333.33",
+      type: "Limousine 22 phòng",
+      capacity: 22,
+      status: "Đang hoạt động",
+      brand: "Thaco Mobihome VIP",
+      year: 2024,
+      driverName: "Đinh Công Trình",
+      driverPhone: "0932145678",
+      lastMaintenance: "2026-09-01",
+      notes: "Xe mới đưa vào khai thác tuyến TP.HCM - Vũng Tàu",
+    },
+    {
+      id: "BUS-005",
+      plate: "49B-111.11",
+      type: "Giường nằm 34 chỗ",
+      capacity: 34,
+      status: "Ngừng hoạt động",
+      brand: "Samco Universe",
+      year: 2019,
+      driverName: "",
+      driverPhone: "",
+      lastMaintenance: "2026-05-10",
+      notes: "Chờ đại tu tổng thể động cơ",
+    },
+    {
+      id: "BUS-006",
+      plate: "51B-777.89",
+      type: "Ghế ngồi 28 chỗ",
+      capacity: 28,
+      status: "Đang hoạt động",
+      brand: "Hyundai County",
+      year: 2023,
+      driverName: "Nguyễn Văn A",
+      driverPhone: "0901234567",
+      lastMaintenance: "2026-08-30",
+      notes: "Chạy tăng cường các dịp lễ và cuối tuần",
+    },
+    {
+      id: "BUS-007",
+      plate: "51B-888.66",
+      type: "Limousine 22 phòng",
+      capacity: 22,
+      status: "Đang hoạt động",
+      brand: "Thaco Mobihome",
+      year: 2023,
+      driverName: "Phạm Văn D",
+      driverPhone: "0934567890",
+      lastMaintenance: "2026-08-10",
+      notes: "Tuyến Sài Gòn - Đà Nẵng",
+    },
+    {
+      id: "BUS-008",
+      plate: "51B-555.22",
+      type: "Giường nằm 34 chỗ",
+      capacity: 34,
+      status: "Bảo dưỡng",
+      brand: "Thaco TB120",
+      year: 2022,
+      driverName: "Vũ Minh Tuấn",
+      driverPhone: "0967890123",
+      lastMaintenance: "2026-09-22",
+      notes: "Kiểm tra định kỳ 50,000km",
+    },
+  ];
+
+  for (const bus of busesData) {
+    await tx.bus.create({ data: bus });
+  }
+
+  // 3. Tạo danh sách Chuyến xe (Trip) mẫu
   const tripsData = [
     {
       from: "Hồ Chí Minh",
       to: "Đà Lạt",
       time: new Date("2026-10-04T21:00:00Z"),
       price: 300000,
-      availableSeats: 30,
+      busId: "BUS-002",
     },
     {
       from: "Hồ Chí Minh",
       to: "Đà Lạt",
       time: new Date("2026-10-04T23:00:00Z"),
       price: 350000,
-      availableSeats: 20,
+      busId: "BUS-001",
     },
     {
       from: "Hồ Chí Minh",
       to: "Nha Trang",
       time: new Date("2026-10-04T22:30:00Z"),
       price: 280000,
-      availableSeats: 28,
+      busId: "BUS-002",
     },
     {
       from: "Hồ Chí Minh",
       to: "Vũng Tàu",
       time: new Date("2026-10-04T07:30:00Z"),
       price: 160000,
-      availableSeats: 25,
+      busId: "BUS-006",
     },
     {
       from: "Hồ Chí Minh",
       to: "Hà Nội",
       time: new Date("2026-10-05T08:00:00Z"),
       price: 900000,
-      availableSeats: 34,
+      busId: "BUS-002",
     },
     {
       from: "Đà Lạt",
       to: "Hồ Chí Minh",
       time: new Date("2026-10-04T21:30:00Z"),
       price: 300000,
-      availableSeats: 26,
+      busId: "BUS-002",
     },
     {
       from: "Hồ Chí Minh",
       to: "Đà Nẵng",
       time: new Date("2026-10-05T14:00:00Z"),
       price: 450000,
-      availableSeats: 32,
+      busId: "BUS-002",
     },
     {
       from: "Hồ Chí Minh",
       to: "Cần Thơ",
       time: new Date("2026-10-04T09:00:00Z"),
       price: 180000,
-      availableSeats: 28,
+      busId: "BUS-006",
     },
   ];
 
   const createdTrips = [];
   for (const t of tripsData) {
-    const created = await tx.trip.create({ data: { ...t, time: new Date(Date.now() + (createdTrips.length + 1) * 24 * 60 * 60 * 1000), capacity: t.availableSeats } });
+    const assignedBus = busesData.find((bus) => bus.id === t.busId);
+    const created = await tx.trip.create({ data: { ...t, time: new Date(Date.now() + (createdTrips.length + 1) * 24 * 60 * 60 * 1000), availableSeats: assignedBus.capacity } });
     createdTrips.push(created);
   }
 
-  // 3. Tạo Đơn đặt vé (Booking) mẫu
+  // 4. Tạo Đơn đặt vé (Booking) mẫu
   const bookingsData = [
     {
       seatNumber: "A01",
@@ -201,118 +314,6 @@ async function main() {
       method: "DEMO", reference: `SEED-${booking.id}`,
     } });
     if (b.status !== "CANCELLED") await tx.trip.update({ where: { id: b.tripId }, data: { availableSeats: { decrement: 1 } } });
-  }
-
-  // 4. Tạo danh sách Xe (Bus) mẫu
-  const busesData = [
-    {
-      id: "BUS-001",
-      plate: "51B-123.45",
-      type: "Limousine 22 phòng",
-      seats: 22,
-      status: "Đang hoạt động",
-      brand: "Thaco Mobihome",
-      year: 2023,
-      driverName: "Nguyễn Văn A",
-      driverPhone: "0901234567",
-      lastMaintenance: "2026-08-15",
-      notes: "Xe VIP chuyên tuyến Sài Gòn - Đà Lạt",
-    },
-    {
-      id: "BUS-002",
-      plate: "51B-987.65",
-      type: "Giường nằm 34 chỗ",
-      seats: 34,
-      status: "Đang hoạt động",
-      brand: "Hyundai Tracomeco",
-      year: 2022,
-      driverName: "Phạm Văn D",
-      driverPhone: "0934567890",
-      lastMaintenance: "2026-07-20",
-      notes: "Tuyến Sài Gòn - Nha Trang",
-    },
-    {
-      id: "BUS-003",
-      plate: "51B-456.78",
-      type: "Giường nằm 34 chỗ",
-      seats: 34,
-      status: "Bảo dưỡng",
-      brand: "Thaco King Long",
-      year: 2021,
-      driverName: "Vũ Minh Tuấn",
-      driverPhone: "0967890123",
-      lastMaintenance: "2026-09-25",
-      notes: "Đang thay dầu máy và bảo dưỡng hệ thống phanh",
-    },
-    {
-      id: "BUS-004",
-      plate: "51B-333.33",
-      type: "Limousine 22 phòng",
-      seats: 22,
-      status: "Đang hoạt động",
-      brand: "Thaco Mobihome VIP",
-      year: 2024,
-      driverName: "Đinh Công Trình",
-      driverPhone: "0932145678",
-      lastMaintenance: "2026-09-01",
-      notes: "Xe mới đưa vào khai thác tuyến TP.HCM - Vũng Tàu",
-    },
-    {
-      id: "BUS-005",
-      plate: "49B-111.11",
-      type: "Giường nằm 34 chỗ",
-      seats: 34,
-      status: "Ngừng hoạt động",
-      brand: "Samco Universe",
-      year: 2019,
-      driverName: "",
-      driverPhone: "",
-      lastMaintenance: "2026-05-10",
-      notes: "Chờ đại tu tổng thể động cơ",
-    },
-    {
-      id: "BUS-006",
-      plate: "51B-777.89",
-      type: "Ghế ngồi 28 chỗ",
-      seats: 28,
-      status: "Đang hoạt động",
-      brand: "Hyundai County",
-      year: 2023,
-      driverName: "Nguyễn Văn A",
-      driverPhone: "0901234567",
-      lastMaintenance: "2026-08-30",
-      notes: "Chạy tăng cường các dịp lễ và cuối tuần",
-    },
-    {
-      id: "BUS-007",
-      plate: "51B-888.66",
-      type: "Limousine 22 phòng",
-      seats: 22,
-      status: "Đang hoạt động",
-      brand: "Thaco Mobihome",
-      year: 2023,
-      driverName: "Phạm Văn D",
-      driverPhone: "0934567890",
-      lastMaintenance: "2026-08-10",
-      notes: "Tuyến Sài Gòn - Đà Nẵng",
-    },
-    {
-      id: "BUS-008",
-      plate: "51B-555.22",
-      type: "Giường nằm 34 chỗ",
-      seats: 34,
-      status: "Bảo dưỡng",
-      brand: "Thaco TB120",
-      year: 2022,
-      driverName: "Vũ Minh Tuấn",
-      driverPhone: "0967890123",
-      lastMaintenance: "2026-09-22",
-      notes: "Kiểm tra định kỳ 50,000km",
-    },
-  ];
-
-  for (const bus of busesData) {
-    await tx.bus.create({ data: bus });
   }
 
   // 5. Tạo danh sách Nhân viên (Employee)
@@ -481,11 +482,11 @@ async function main() {
 
   const driver = employeesData.find((employee) => employee.role === "Tài xế" && employee.status === "Đang làm việc");
   for (const trip of createdTrips) {
-    const bus = busesData.find((bus) => bus.status === "Đang hoạt động" && bus.seats >= trip.capacity);
+    const bus = busesData.find((bus) => bus.id === trip.busId && bus.status === "Đang hoạt động");
     if (!bus || !driver) continue;
     const booked = await tx.booking.count({ where: { tripId: trip.id, status: { not: "CANCELLED" } } });
     await tx.trip.update({ where: { id: trip.id }, data: {
-      busId: bus.id, driverId: driver.id, capacity: bus.seats, availableSeats: bus.seats - booked,
+      driverId: driver.id, availableSeats: bus.capacity - booked,
       endsAt: new Date(trip.time.getTime() + 12 * 3600000), status: "OPEN",
     } });
   }

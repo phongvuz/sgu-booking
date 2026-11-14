@@ -118,7 +118,11 @@ function formSetup(status = "OPEN") {
       if (!(position in values)) values[position] = typeof initial === "function" ? initial() : initial;
       return [values[position], (value) => { values[position] = value; }];
     } },
-    "@/hooks/useRemoteData": { useRemoteData: (callback) => { loadDispatch = callback; return remote; } },
+    "@/hooks/useRemoteData": { useRemoteData: (callback, initial) => {
+      if (Array.isArray(initial)) return { ...remote, data: [] };
+      loadDispatch = callback;
+      return remote;
+    } },
     "@/lib/api-client": { requestJson: async (url, options) => { requests.push({ url, options }); return { data: remote.data }; } },
   });
   return {

@@ -7,6 +7,8 @@ import { getSeatCodes, normalizeSeat } from "@/lib/seats";
 import { positiveInteger } from "@/lib/query-params";
 import { assertTripId } from "@/lib/trip-id";
 import { assertTripPrice } from "@/lib/money";
+import { broadcastSeatRefresh } from "@/lib/sse";
+import { createGuestPhone } from "@/lib/guest-account";
 import type { CreateBookingInput, BookingResult } from "@/types";
 
 class BookingConflictError extends BusinessError {
@@ -45,8 +47,8 @@ export async function createBooking(
   const phone = input.phone.trim();
   const guestPassword = await hashPassword(randomBytes(32).toString("hex"));
 
-  return runTransaction(async (tx) => {
-    const trip = await tx.trip.findUnique({ where: { id } });
+  const result = await runTransaction(async (tx) => {
+    const trip = await tx.trip.findUnique({ where: { id }, include: { bus: true } });
     if (!trip) throw new TripNotFoundError(input.tripId);
     assertTripPrice(trip.price);
     const now = new Date();
@@ -57,31 +59,25 @@ export async function createBooking(
         409,
       );
     }
-    const validSeats = getSeatCodes(trip.capacity);
-    if (seats.some((seat) => !validSeats.includes(seat)))
-      throw new BusinessError(
-        "Ghế đã chọn không thuộc sơ đồ ghế của chuyến xe.",
-      );
-    const booked = await tx.booking.findMany({
-      where: {
-        tripId: trip.id,
-        status: { not: "CANCELLED" },
-        seatNumber: { in: seats },
-      },
-      select: { seatNumber: true },
-    });
-    const held = await tx.seatHold.findMany({
-      where: {
-        tripId: trip.id,
-        seatNumber: { in: seats },
-        expiresAt: { gt: new Date() },
-        ...(input.holdOwnerKey ? { clientId: { not: input.holdOwnerKey } } : {}),
-      },
-      select: { seatNumber: true },
-    });
-    const conflicts = [
-      ...new Set([...booked, ...held].map((record) => record.seatNumber)),
-    ];
+
+    const expiresAt =
+      input.isOnline && status === "PENDING"
+        ? new Date(
+            Math.min(
+              now.getTime() + 5 * 60 * 1000,
+              trip.time.getTime(),
+            ),
+          )
+        : null;
+    const validSeats = getSeatCodes(trip.bus.capacity);
+    if (seats.some((seat) => !validSeats.includes(seat))) throw new BusinessError("Ghế đã chọn không thuộc sơ đồ ghế của chuyến xe.");
+    const booked = await tx.booking.findMany({ where: { tripId: trip.id, status: { not: "CANCELLED" },
+      seatNumber: { in: seats } }, select: { seatNumber: true } });
+    const held = await tx.seatHold.findMany({ where: {
+      tripId: trip.id, seatNumber: { in: seats }, expiresAt: { gt: new Date() },
+      ...(input.holdOwnerKey ? { clientId: { not: input.holdOwnerKey } } : {}),
+    }, select: { seatNumber: true } });
+    const conflicts = [...new Set([...booked, ...held].map((record) => record.seatNumber))];
     if (conflicts.length) throw new BookingConflictError(conflicts);
 
     // Điều kiện gte giữ số ghế trống không bao giờ âm.
@@ -91,12 +87,11 @@ export async function createBooking(
     });
     if (reserved.count !== 1)
       throw new BusinessError("Chuyến xe không còn đủ ghế trống.", 409);
-    let user = input.ownerId
-      ? await tx.user.findUnique({ where: { id: input.ownerId } })
-      : await tx.user.findUnique({ where: { phone } });
+    let user = input.ownerId ? await tx.user.findUnique({ where: { id: input.ownerId } }) : null;
+    if (input.ownerId && !user) throw new BusinessError("Tài khoản đặt vé không còn tồn tại.", 409);
     if (!user)
       user = await tx.user.create({
-        data: { fullName, phone, password: guestPassword, role: "USER" },
+        data: { fullName, phone: createGuestPhone(), password: guestPassword, role: "USER" },
       });
     const bookings = [];
     for (const seatNumber of seats) {
@@ -112,6 +107,7 @@ export async function createBooking(
             passengerPhone: phone,
             activeSeat: `${trip.id}:${seatNumber}`,
             confirmedAt: status === "CONFIRMED" ? new Date() : null,
+            expiresAt,
           },
         }),
       );
@@ -141,6 +137,8 @@ export async function createBooking(
       bookingIds: bookings.map((booking) => booking.id),
     };
   });
+  broadcastSeatRefresh(result.tripId);
+  return result;
 }
 
 interface GetBookingsFilter {

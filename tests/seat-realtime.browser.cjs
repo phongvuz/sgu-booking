@@ -18,6 +18,7 @@ test("browser sessions disable remote seats, count viewers, isolate trips and re
   const baseUrl = process.env.REALTIME_TEST_URL || "http://localhost:3000";
   const testLabel = "SSE TEST " + Date.now();
   const createdTripIds = [];
+  const busId = `sse-browser-${Date.now()}`;
   let browser;
   const results = [];
   const executablePath = [
@@ -31,11 +32,12 @@ test("browser sessions disable remote seats, count viewers, isolate trips and re
   }
 
   try {
+    await prisma.bus.create({ data: { id: busId, plate: `SSE-${Date.now()}`, type: "Xe kiểm thử", capacity: 9, status: "Đang hoạt động" } });
     for (let index = 0; index < 2; index += 1) {
       const trip = await prisma.trip.create({ data: {
         from: testLabel, to: "Điểm thử " + index,
         time: new Date(Date.now() + 2 * 86400000),
-        price: 100000, capacity: 9, availableSeats: 9,
+        price: 100000, busId, availableSeats: 9,
       } });
       createdTripIds.push(trip.id);
     }
@@ -272,6 +274,7 @@ test("browser sessions disable remote seats, count viewers, isolate trips and re
     if (browser) await browser.close();
     // Chỉ xóa fixture do lần kiểm thử này tạo, kiểm tra cả ID và nhãn riêng.
     await prisma.trip.deleteMany({ where: { id: { in: createdTripIds }, from: testLabel } });
+    await prisma.bus.deleteMany({ where: { id: busId, type: "Xe kiểm thử" } });
     await prisma.$disconnect();
     console.log("Temporary trip fixtures cleaned up. Passed checks: " + results.length);
   }

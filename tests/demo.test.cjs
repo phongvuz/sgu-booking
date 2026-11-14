@@ -61,7 +61,8 @@ test("demo snapshot restricts updates only on the CHECK-dependent relation, pres
   const snapshot = createDemoSchema(source);
   assert.equal(snapshot.includes("onDelete: Restrict, onUpdate: Restrict, map: \"Booking_tripId_fkey\""), true);
   assert.equal(snapshot.includes("onDelete: Cascade)"), true);
-  assert.equal(source.includes("onUpdate: Restrict"), false);
+  assert.equal(source.includes('onDelete: Restrict, map: "Booking_tripId_fkey"'), true);
+  assert.equal(source.includes('onUpdate: Restrict, map: "trip_busId_fkey"'), true);
   assert.equal(createDemoSchema(source), snapshot);
   assert.throws(() => createDemoSchema("model unrelated {}"), /relation changed/);
 });
@@ -127,10 +128,11 @@ test("seed includes usable ADMIN and CUSTOMER hashes, matching customer profile,
     assert.equal(timingSafeEqual(scryptSync("Demo@12345", salt, 64), Buffer.from(hash, "hex")), true);
   }
   assert.equal(data.trips.length, 6);
-  assert.equal(data.trips.every((trip) => trip.time > now && trip.availableSeats === trip.capacity && trip.price > 0), true);
+  const buses = new Map(data.buses.map((bus) => [bus.id, bus]));
+  assert.equal(data.trips.every((trip) => trip.time > now && trip.availableSeats === buses.get(trip.busId).capacity && trip.price > 0), true);
+  assert.equal(data.trips.every((trip) => !Object.hasOwn(trip, "capacity")), true);
+  assert.equal(new Set(data.trips.map((trip) => buses.get(trip.busId).capacity)).size, 2);
   assert.equal(data.trips.every((trip) => trip.status === "OPEN" && trip.endsAt > trip.time && trip.driverId === data.employee.id), true);
-  assert.equal(data.trips.every((trip) => data.buses.some((bus) => bus.id === trip.busId && bus.seats === trip.capacity)), true);
-  assert.equal(new Set(data.trips.map((trip) => trip.capacity)).size, 2);
 });
 
 test("existing database without an owned schema marker is never changed or pushed", async () => {

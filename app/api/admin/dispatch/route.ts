@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     }
     const excludeTripId = excludeTripValue !== null ? parseTripId(excludeTripValue) : undefined;
     const [buses, drivers] = await Promise.all([
-      prisma.bus.findMany({ select: { id: true, plate: true, seats: true, status: true }, orderBy: { plate: "asc" } }),
+      prisma.bus.findMany({ select: { id: true, plate: true, capacity: true, status: true }, orderBy: { plate: "asc" } }),
       prisma.employee.findMany({ where: { role: "Tài xế" }, select: { id: true, name: true, status: true }, orderBy: { name: "asc" } }),
     ]);
     const conflicts = time && endsAt && drivers.length ? await prisma.trip.findMany({

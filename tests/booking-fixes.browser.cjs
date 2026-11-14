@@ -75,7 +75,7 @@ async function stopChild(child) {
 test("real browsers isolate seat ownership, update booked/cancelled seats and recover offline choices", { timeout: 180000 }, async () => {
   const chromePath = "C:/Program Files/Google/Chrome/Application/chrome.exe";
   assert.ok(fs.existsSync(chromePath), "Google Chrome must be installed for this optional smoke test");
-  assert.ok(fs.existsSync(path.resolve(".next/BUILD_ID")), "Run npm run build before the smoke test");
+  assert.ok(fs.existsSync(path.resolve(process.env.SGU_DEMO === "true" ? ".next-demo/BUILD_ID" : ".next/BUILD_ID")), "Run npm run build before the smoke test");
   const database = `nha_xe_browser_fixes_verify_${Date.now()}`;
   assert.match(database, /^nha_xe_browser_fixes_verify_\d+$/);
   const temporaryUrl = new URL(process.env.DATABASE_URL);
@@ -96,8 +96,9 @@ test("real browsers isolate seat ownership, update booked/cancelled seats and re
     created = true;
     const pushed = spawnSync(process.execPath, [require.resolve("prisma/build/index.js"), "db", "push", "--skip-generate"], { env, encoding: "utf8", windowsHide: true });
     assert.equal(pushed.status, 0, pushed.error?.message || pushed.stderr || pushed.stdout);
+    const bus = await prisma.bus.create({ data: { id: "browser-smoke-bus", plate: "51B-006.00", type: "Xe kiểm thử", capacity: 6, status: "Đang hoạt động" } });
     const trip = await prisma.trip.create({ data: { from: "Browser Smoke Origin", to: "Browser Smoke Destination", time: new Date(Date.now() + 2 * 86400000),
-      price: 100000, capacity: 6, availableSeats: 6 } });
+      price: 100000, busId: bus.id, availableSeats: bus.capacity } });
     const port = await unusedPort();
     const baseUrl = `http://127.0.0.1:${port}`;
     server = spawn(process.execPath, [require.resolve("next/dist/bin/next"), "start", "-H", "127.0.0.1", "-p", String(port)], { env, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });

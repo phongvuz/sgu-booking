@@ -93,21 +93,21 @@ test("payment API rejects unauthenticated users, cross-origin writes and injecte
 
 function dispatchSetup() {
   const time = new Date(Date.now() + 86400000);
-  const bus = { id: "BUS-1", plate: "51B-123.45", seats: 3, status: "Đang hoạt động" };
+  const bus = { id: "BUS-1", plate: "51B-123.45", capacity: 3, status: "Đang hoạt động" };
   const driver = { id: "EMP-1", name: "Driver", role: "Tài xế", status: "Đang làm việc" };
-  const trip = { id: 7, from: "Sai Gon", to: "Da Lat", time, endsAt: new Date(time.getTime() + 3600000), price: 100000, capacity: 3, availableSeats: 3, status: "OPEN", busId: bus.id, driverId: driver.id, booking: [] };
+  const trip = { id: 7, from: "Sai Gon", to: "Da Lat", time, endsAt: new Date(time.getTime() + 3600000), price: 100000, bus, availableSeats: 3, status: "OPEN", busId: bus.id, driverId: driver.id, booking: [] };
   const state = { held: 0, conflict: null, deleted: false, conflictQuery: null };
   const tx = {
     bus: { findUnique: async () => bus }, employee: { findUnique: async () => driver },
     trip: {
       findUnique: async () => trip,
       findFirst: async (query) => { state.conflictQuery = query; return state.conflict; },
-      create: async ({ data }) => ({ id: 8, ...data }),
+      create: async ({ data }) => ({ id: 8, ...data, bus }),
       update: async ({ data }) => Object.assign(trip, data),
       delete: async () => { state.deleted = true; return trip; },
     },
     booking: { count: async () => trip.booking.length },
-    seatHold: { count: async () => state.held, deleteMany: async () => ({ count: 0 }) },
+    seatHold: { count: async () => state.held, findMany: async () => Array.from({ length: state.held }, () => ({ seatNumber: "A01" })), deleteMany: async () => ({ count: 0 }) },
   };
   const service = load("services/tripService.ts", {
     "@/lib/prisma": { prisma: tx }, "@/lib/transaction": { runTransaction: async (work) => work(tx) },
@@ -115,6 +115,48 @@ function dispatchSetup() {
   });
   return { trip, bus, driver, state, service };
 }
+
+function tripCreateApi(service) {
+  return load("app/api/trips/route.ts", {
+    "@/lib/admin-api": {
+      requireAdmin: async () => ({ id: 7, role: "ADMIN" }),
+      readJson: (request) => request.json(),
+      apiError: (error) => Response.json({ success: false, message: error.message }, { status: error.status ?? 500 }),
+    },
+    "@/services/tripService": service,
+  });
+}
+
+test("creating through the admin API saves status, driver and end time on the first submission", async () => {
+  for (const status of ["OPEN", "DRAFT"]) {
+    const { bus, driver, service } = dispatchSetup();
+    const payload = {
+      from: "Sai Gon", to: "Da Lat", price: 100000, busId: bus.id,
+      status, driverId: driver.id, time: "2099-12-02T08:00", endsAt: "2099-12-02T10:30",
+    };
+    const response = await tripCreateApi(service).POST(new Request("http://localhost/api/trips", { method: "POST", body: JSON.stringify(payload) }));
+    assert.equal(response.status, 201);
+    const { data } = await response.json();
+    assert.equal(data.status, status);
+    assert.equal(data.driverId, driver.id);
+    assert.equal(data.endsAt, "2099-12-02T03:30:00.000Z");
+    assert.equal(data.time, "2099-12-02T01:00:00.000Z");
+    assert.equal(data.availableSeats, bus.capacity);
+  }
+});
+
+test("admin creation validates the submitted OPEN assignment instead of silently creating a draft", async () => {
+  const { trip, state, service } = dispatchSetup();
+  state.conflict = { id: 99 };
+  const response = await tripCreateApi(service).POST(new Request("http://localhost/api/trips", {
+    method: "POST", body: JSON.stringify({
+      from: trip.from, to: trip.to, price: trip.price, busId: trip.busId,
+      time: trip.time.toISOString(), endsAt: trip.endsAt.toISOString(), status: "OPEN", driverId: trip.driverId,
+    }),
+  }));
+  assert.equal(response.status, 409);
+  assert.match((await response.json()).message, /99/);
+});
 
 test("live holds block route changes, vehicle swaps, closing sales and deleting trips", async () => {
   const { trip, state, service } = dispatchSetup();
@@ -128,9 +170,9 @@ test("live holds block route changes, vehicle swaps, closing sales and deleting 
   assert.equal((await service.updateTrip(7, { from: "Can Tho" })).from, "Can Tho");
 });
 
-test("opening a trip requires available vehicle, working driver, matching seat map and valid interval", async () => {
+test("opening a trip requires available vehicle, working driver and valid interval", async () => {
   for (const change of [
-    { busId: null }, { driverId: null }, { endsAt: null }, { capacity: 22 },
+    { busId: null }, { driverId: null }, { endsAt: null },
     { endsAt: new Date(0) },
   ]) {
     const { trip, service } = dispatchSetup();

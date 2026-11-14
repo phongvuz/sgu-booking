@@ -37,7 +37,11 @@ test("public queries exclude departed and sold out trips with bounded stable pag
   assert.ok(pageQuery.where.time.gt.getTime() >= before);
   assert.ok(pageQuery.where.time.gt.getTime() <= Date.now());
   assert.deepEqual(pageQuery.where.from, { contains: "Huế" });
-  assert.deepEqual(pageQuery.where.OR, [{ capacity: { in: [34] } }, { capacity: { notIn: [22, 34] } }]);
+  assert.deepEqual(pageQuery.where.bus, { is: { OR: [
+    { type: { contains: "Giường nằm" } },
+    { AND: [{ NOT: { type: { contains: "Limousine" } } }, { NOT: { type: { contains: "Giường nằm" } } }] },
+  ] } });
+  assert.deepEqual(pageQuery.include.bus.select, { id: true, plate: true, type: true, capacity: true, status: true });
   assert.deepEqual(pageQuery.orderBy, [{ time: "asc" }, { id: "asc" }]);
   assert.equal(pageQuery.skip, 20);
   assert.equal(pageQuery.take, 10);
@@ -56,22 +60,23 @@ test("Vietnam hour filters are bound in SQL before counting and pagination", asy
   const { queryPublicTrips } = load("services/tripService.ts", {
     "@/lib/prisma": { prisma: {
       $queryRaw: async (query) => { queries.push(query); return queries.length === 1 ? [{ total: 12n }] : [{ id: 19 }, { id: 20 }]; },
-      trip: { findMany: async (query) => { pageQuery = query; return [{ id: 19 }, { id: 20 }]; } },
+      trip: { findMany: async (query) => { pageQuery = query; return [{ id: 19, bus: { capacity: 22 } }, { id: 20, bus: { capacity: 22 } }]; } },
     } },
   });
   const result = await queryPublicTrips({ fromCity: maliciousCity, date: "2099-10-02", page: 2, times: ["morning", "night"], vehicles: ["limousine"] });
   assert.deepEqual(result.pagination, { total: 12, page: 2, limit: 10, totalPages: 2 });
   assert.equal(queries.length, 2);
   for (const query of queries) {
-    assert.match(query.sql, /HOUR\(DATE_ADD\(time, INTERVAL 7 HOUR\)\)/);
+    assert.match(query.sql, /HOUR\(DATE_ADD\(t\.time, INTERVAL 7 HOUR\)\)/);
+    assert.match(query.sql, /INNER JOIN bus b ON b\.id = t\.busId/);
     assert.match(query.sql, /availableSeats > 0/);
     assert.equal(query.sql.includes(maliciousCity), false);
     assert.ok(query.values.includes(`%${maliciousCity}%`));
   }
-  assert.deepEqual(queries[0].values.slice(-5), [22, 6, 12, 18, 24]);
+  assert.deepEqual(queries[0].values.slice(-5), ["%Limousine%", 6, 12, 18, 24]);
   assert.deepEqual(queries[1].values.slice(0, -2), queries[0].values);
   assert.deepEqual(queries[1].values.slice(-2), [10, 10]);
-  assert.match(queries[1].sql, /ORDER BY time ASC, id ASC LIMIT \? OFFSET \?/);
+  assert.match(queries[1].sql, /ORDER BY t\.time ASC, t\.id ASC LIMIT \? OFFSET \?/);
   assert.deepEqual(pageQuery.where.AND[1], { id: { in: [19, 20] } });
   assert.deepEqual(pageQuery.where.AND[0].availableSeats, { gt: 0 });
   assert.ok(pageQuery.where.AND[0].time.gt instanceof Date);
@@ -79,17 +84,18 @@ test("Vietnam hour filters are bound in SQL before counting and pagination", asy
   assert.equal(pageQuery.skip, undefined);
 });
 
-test("vehicle labels use fixed capacity and page links keep active filters", () => {
+test("vehicle labels use the assigned bus type and page links keep active filters", () => {
   assert.equal(tripVehicleLabel(22), "Limousine 22 phòng");
   assert.equal(tripVehicleLabel(34), "Giường nằm 34 chỗ");
   assert.equal(tripVehicleLabel(36), "Xe 36 chỗ");
+  assert.equal(tripVehicleLabel(34, "Limousine 34 chỗ"), "Limousine 34 chỗ");
   const { default: TripFilter } = load("components/trips/TripFilter.tsx", {
     "next/navigation": { useRouter: () => ({ push: () => {} }) },
   });
   const html = renderToStaticMarkup(require("react").createElement(TripFilter, {
     initialTrips: [
-      { id: 1, from: "A", to: "B", time: "2099-10-02T00:00:00Z", price: 100000, availableSeats: 1, capacity: 34 },
-      { id: 2, from: "A", to: "B", time: "2099-10-02T00:00:00Z", price: 100000, availableSeats: 20, capacity: 36 },
+      { id: 1, from: "A", to: "B", time: "2099-10-02T00:00:00Z", price: 100000, availableSeats: 1, capacity: 34, busId: "BUS-A", bus: { id: "BUS-A", capacity: 34, type: "Giường nằm 34 chỗ", plate: "51B-10001" } },
+      { id: 2, from: "A", to: "B", time: "2099-10-02T00:00:00Z", price: 100000, availableSeats: 20, capacity: 36, busId: "BUS-B", bus: { id: "BUS-B", capacity: 36, type: "Xe 36 chỗ", plate: "51B-10002" } },
     ],
     filters: parsePublicTripFilters({ from: "A", times: "morning", vehicles: "sleeper,other" }),
     pagination: { page: 1, limit: 10, total: 12, totalPages: 2 },

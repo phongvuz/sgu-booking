@@ -37,7 +37,7 @@ export function BusModal({
     defaultValues: {
       plate: "",
       type: "Limousine 22 phòng",
-      seats: 22,
+      capacity: 22,
       status: "Đang hoạt động",
       brand: "",
       year: new Date().getFullYear(),
@@ -53,7 +53,7 @@ export function BusModal({
       reset({
         plate: initialData.plate,
         type: initialData.type,
-        seats: initialData.seats,
+        capacity: initialData.capacity,
         status: initialData.status as BusFormValues["status"],
         brand: initialData.brand || "",
         year: initialData.year ?? "",
@@ -66,7 +66,7 @@ export function BusModal({
       reset({
         plate: "",
         type: "Limousine 22 phòng",
-        seats: 22,
+        capacity: 22,
         status: "Đang hoạt động",
         brand: "",
         year: new Date().getFullYear(),
@@ -145,6 +145,9 @@ export function BusModal({
                 {...register("type")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               >
+                {initialData?.type && !["Limousine 22 phòng", "Giường nằm 34 chỗ", "Ghế ngồi 28 chỗ"].includes(initialData.type) && (
+                  <option value={initialData.type}>{initialData.type}</option>
+                )}
                 <option value="Limousine 22 phòng">Limousine 22 phòng</option>
                 <option value="Giường nằm 34 chỗ">Giường nằm 34 chỗ</option>
                 <option value="Ghế ngồi 28 chỗ">Ghế ngồi 28 chỗ</option>
@@ -163,11 +166,13 @@ export function BusModal({
               </label>
               <input
                 type="number"
-                {...register("seats")}
+                min={1}
+                max={60}
+                {...register("capacity")}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-xs focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
               />
-              {errors.seats && (
-                <p className="text-[11px] text-rose-500 mt-1">{errors.seats.message}</p>
+              {errors.capacity && (
+                <p className="text-[11px] text-rose-500 mt-1">{errors.capacity.message}</p>
               )}
             </div>
 

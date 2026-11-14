@@ -37,10 +37,10 @@ async function main() {
   console.log("PASS: fresh database accepts all migrations.");
 
   const actor = await prisma.user.create({ data: { fullName: "Finance test admin", phone: "0911000021", password: "integration-only", role: "ADMIN" } });
-  const bus = await prisma.bus.create({ data: { id: "BUS-TEST", plate: "99B-123.45", type: "Ghế ngồi", seats: 3 } });
+  const bus = await prisma.bus.create({ data: { id: "BUS-TEST", plate: "99B-123.45", type: "Ghế ngồi", capacity: 3 } });
   const driver = await prisma.employee.create({ data: { id: "EMP-TEST", name: "Test driver", email: "driver@example.test", phone: "0911000022", role: "Tài xế", department: "Đội xe", startDate: "2026-01-01" } });
   const time = new Date(Date.now() + 86400000);
-  const input = { from: "Sai Gon", to: "Da Lat", time, endsAt: new Date(time.getTime() + 7200000), price: 100000, capacity: 3, status: "OPEN", busId: bus.id, driverId: driver.id };
+  const input = { from: "Sai Gon", to: "Da Lat", time, endsAt: new Date(time.getTime() + 7200000), price: 100000, status: "OPEN", busId: bus.id, driverId: driver.id };
   const trip = await trips.createTrip(input);
   await assert.rejects(trips.createTrip(input), { status: 409 });
   await assert.rejects(buses.updateBusStatus(bus.id, "Bảo dưỡng"), { status: 409 });
@@ -93,6 +93,17 @@ async function main() {
   assert.equal(await prisma.bookingTransaction.count({ where: { bookingId: pending.bookingIds[0], kind: "RECEIPT" } }), 1);
   assert.equal((await orders.getOrderById(pending.bookingIds[0])).amountDue, 0);
   console.log("PASS: concurrent counter collection produces exactly one receipt.");
+
+  const onlineStarted = Date.now();
+  const anonymous = await bookings.createBooking({ tripId: trip.id, seats: ["A01"], fullName: "Online guest", phone: actor.phone, isOnline: true });
+  const anonymousTicket = await prisma.booking.findUnique({ where: { id: anonymous.bookingIds[0] }, include: { user: true } });
+  assert.notEqual(anonymousTicket.userId, actor.id);
+  assert.match(anonymousTicket.user.phone, /^guest:/);
+  assert.equal(anonymousTicket.passengerPhone, actor.phone);
+  assert.ok(anonymousTicket.expiresAt.getTime() > onlineStarted);
+  assert.ok(anonymousTicket.expiresAt.getTime() <= Date.now() + 5 * 60000);
+  await orders.deleteOrder(anonymousTicket.id);
+  console.log("PASS: online guest bookings preserve account ownership and payment expiry.");
 
   const nextTime = new Date(time.getTime() + 86400000);
   const nextInput = { ...input, time: nextTime, endsAt: new Date(nextTime.getTime() + 7200000) };

@@ -65,7 +65,7 @@ export function BusDetailModal({
             </div>
             <div>
               <span className="text-gray-400 block text-[11px]">Sức chứa</span>
-              <span className="font-bold text-gray-900">{bus.seats} chỗ ngồi/phòng</span>
+              <span className="font-bold text-gray-900">{bus.capacity} chỗ ngồi/phòng</span>
             </div>
           </div>
 

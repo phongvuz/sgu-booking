@@ -11,7 +11,8 @@ const demoPassword = "Demo@12345";
 class DemoSetupError extends Error {}
 const accounts = Object.freeze({ admin: "0911000001", customer: "0911000002", email: "customer@example.test" });
 const constraints = [
-  "ALTER TABLE `trip` ADD CONSTRAINT `trip_seat_counts_check` CHECK (`capacity` BETWEEN 1 AND 60 AND `availableSeats` BETWEEN 0 AND `capacity`)",
+  "ALTER TABLE `bus` ADD CONSTRAINT `bus_capacity_check` CHECK (`capacity` BETWEEN 1 AND 60)",
+  "ALTER TABLE `trip` ADD CONSTRAINT `trip_seat_counts_check` CHECK (`availableSeats` BETWEEN 0 AND 60)",
   "ALTER TABLE `booking` ADD CONSTRAINT `booking_status_check` CHECK (`status` IN ('CONFIRMED', 'PENDING', 'CANCELLED') AND `totalPrice` >= 0)",
   "ALTER TABLE `booking` ADD CONSTRAINT `booking_active_seat_check` CHECK ((`status` = 'CANCELLED' AND `activeSeat` IS NULL) OR (`status` <> 'CANCELLED' AND `activeSeat` IS NOT NULL AND `activeSeat` = CONCAT(`tripId`, ':', `seatNumber`)))",
   "ALTER TABLE `trip` ADD CONSTRAINT `trip_integer_vnd_check` CHECK (`price` BETWEEN 0 AND 2147483647)",
@@ -102,16 +103,15 @@ function createSeedData(now = new Date(), password = demoPassword) {
     ],
     customer: { id: "CUS-DEMO-001", name: "Khách hàng Demo", email: accounts.email, phone: accounts.customer, status: "Đang hoạt động", address: "Địa chỉ minh họa" },
     trips: departures.map(([from, to, price, capacity], index) => ({
-      from, to, price, capacity, availableSeats: capacity,
+      from, to, price, busId: capacity === 22 ? "BUS-DEMO-001" : "BUS-DEMO-002", availableSeats: capacity,
       time: new Date(now.getTime() + (index + 1) * 86400000),
       endsAt: new Date(now.getTime() + (index + 1) * 86400000 + 12 * 3600000),
       status: "OPEN",
-      busId: capacity === 22 ? "BUS-DEMO-001" : "BUS-DEMO-002",
       driverId: "EMP-DEMO-001",
     })),
     buses: [
-      { id: "BUS-DEMO-001", plate: "51B-111.11", type: "Limousine 22 phòng", seats: 22, status: "Đang hoạt động", brand: "Xe minh họa", year: 2024 },
-      { id: "BUS-DEMO-002", plate: "51B-222.22", type: "Giường nằm 34 chỗ", seats: 34, status: "Đang hoạt động", brand: "Xe minh họa", year: 2024 },
+      { id: "BUS-DEMO-001", plate: "51B-111.11", type: "Limousine 22 phòng", capacity: 22, status: "Đang hoạt động", brand: "Xe minh họa", year: 2024 },
+      { id: "BUS-DEMO-002", plate: "51B-222.22", type: "Giường nằm 34 chỗ", capacity: 34, status: "Đang hoạt động", brand: "Xe minh họa", year: 2024 },
     ],
     employee: { id: "EMP-DEMO-001", name: "Nhân viên Demo", email: "employee@example.test", phone: "0911000003", role: "Tài xế", department: "Đội xe", status: "Đang làm việc", startDate: "2024-01-01" },
   };
@@ -123,8 +123,8 @@ async function seedFreshDatabase(prisma, fingerprint, password) {
     await tx.user.createMany({ data: data.users });
     await tx.customer.create({ data: data.customer });
     const customer = await tx.user.findUnique({ where: { phone: accounts.customer } });
-    const trips = [];
     await tx.bus.createMany({ data: data.buses });
+    const trips = [];
     await tx.employee.create({ data: data.employee });
     for (const trip of data.trips) trips.push(await tx.trip.create({ data: trip }));
     const booking = await tx.booking.create({ data: {

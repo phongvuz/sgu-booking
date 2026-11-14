@@ -28,7 +28,7 @@ test("search applies both cities and the full Vietnam day regardless of server t
     { id: 4, from: "Hồ Chí Minh", to: "Huế", time: new Date("2099-10-02T17:00:00Z") },
     { id: 5, from: "Hà Nội", to: "Huế", time: new Date("2099-10-02T08:00:00Z") },
     { id: 6, from: "Hồ Chí Minh", to: "Đà Lạt", time: new Date("2099-10-02T08:00:00Z") },
-  ].map((trip) => ({ ...trip, availableSeats: 1 }));
+  ].map((trip) => ({ ...trip, busId: "BUS-SEARCH", bus: { id: "BUS-SEARCH", capacity: 22, type: "Limousine" }, availableSeats: 1 }));
   const prisma = { trip: { findMany: async ({ where }) => trips.filter((trip) =>
     trip.from.includes(where.from.contains) && trip.to.includes(where.to.contains) &&
     trip.time >= where.time.gte && trip.time < where.time.lt &&

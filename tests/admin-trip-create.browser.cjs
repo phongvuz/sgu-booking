@@ -15,7 +15,7 @@ const { ensureNumericTripIds } = require("../scripts/setup-trips.cjs");
 test("admin selects locations and creates/edits trips after a backed-up legacy-code repair", { timeout: 180000 }, async () => {
   const chromePath = "C:/Program Files/Google/Chrome/Application/chrome.exe";
   assert.ok(fs.existsSync(chromePath), "Google Chrome is required for the optional browser smoke");
-  assert.ok(fs.existsSync(path.resolve(".next/BUILD_ID")), "Build the app before this smoke test");
+  assert.ok(fs.existsSync(path.resolve(process.env.SGU_DEMO === "true" ? ".next-demo/BUILD_ID" : ".next/BUILD_ID")), "Build the app before this smoke test");
   const database = `nha_xe_admin_trip_browser_${Date.now()}`;
   assert.match(database, /^nha_xe_admin_trip_browser_\d+$/);
   const temporaryUrl = new URL(process.env.DATABASE_URL);
@@ -39,7 +39,10 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
     const legacyFrom = "Bến xe Miền Đông cũ";
     const legacyTo = "Bến xe Miền Tây cũ";
     const legacyTime = new Date("2099-12-02T01:00:45.000Z");
-    await prisma.$executeRaw`INSERT INTO trip (code, \`from\`, \`to\`, time, price, capacity, availableSeats, createdAt) VALUES (${"LEGACY-BROWSER"}, ${legacyFrom}, ${legacyTo}, ${legacyTime}, ${100000}, ${6}, ${6}, NOW())`;
+    const legacyBus = await prisma.bus.create({ data: { id: "BROWSER-LEGACY", plate: "51B-006.00", type: "Xe kiểm thử", capacity: 6, status: "Đang hoạt động" } });
+    const selectedBus = await prisma.bus.create({ data: { id: "BROWSER-SELECTED", plate: "51B-012.00", type: "Xe kiểm thử", capacity: 12, status: "Đang hoạt động" } });
+    const selectedDriver = await prisma.employee.create({ data: { id: "BROWSER-DRIVER", name: "Test driver", email: "trip-driver@example.test", phone: "0999000072", role: "Tài xế", department: "Đội xe", startDate: "2026-01-01" } });
+    await prisma.$executeRaw`INSERT INTO trip (code, \`from\`, \`to\`, time, price, busId, availableSeats, createdAt) VALUES (${"LEGACY-BROWSER"}, ${legacyFrom}, ${legacyTo}, ${legacyTime}, ${100000}, ${legacyBus.id}, ${legacyBus.capacity}, NOW())`;
     const legacy = await prisma.trip.findFirst();
     assert.ok(legacy);
     const repair = await ensureNumericTripIds(prisma, { backupDirectory: path.join(profile, "schema-backup") });
@@ -109,8 +112,8 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
       await waitUntil(() => evaluate("document.querySelector('#trip-from') === null"), "Trip modal did not save");
     }
     async function openEdit(id) {
-      await waitUntil(() => evaluate(`Array.from(document.querySelectorAll('tbody tr')).some((row) => row.cells[0]?.textContent.trim() === ${JSON.stringify(String(id))})`), "Created trip did not appear in the table");
-      await evaluate(`Array.from(document.querySelectorAll('tbody tr')).find((row) => row.cells[0]?.textContent.trim() === ${JSON.stringify(String(id))}).querySelector('button[aria-label="Chỉnh sửa chuyến xe"]').click()`);
+      await waitUntil(() => evaluate(`Array.from(document.querySelectorAll('tbody tr')).some((row) => row.cells[0]?.querySelector('span')?.textContent.trim() === ${JSON.stringify(String(id))})`), "Created trip did not appear in the table");
+      await evaluate(`Array.from(document.querySelectorAll('tbody tr')).find((row) => row.cells[0]?.querySelector('span')?.textContent.trim() === ${JSON.stringify(String(id))}).querySelector('button[aria-label="Chỉnh sửa chuyến xe"]').click()`);
       await waitUntil(() => evaluate("document.querySelector('#trip-from')?.tagName === 'SELECT'"), "Edit modal did not open");
     }
 
@@ -121,18 +124,27 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
     assert.equal(await evaluate(`Array.from(document.querySelector('#trip-to').options).find((option) => option.value === ${JSON.stringify(legacyFrom)})?.disabled`), true);
     await setField("trip-to", legacyTo);
     await setField("trip-time", "2099-12-04T08:30");
+    await setField("trip-ends-at", "2099-12-04T12:30");
     await setField("trip-price", "250000");
-    await setField("trip-capacity", "12");
+    await waitUntil(() => evaluate("document.querySelector('#trip-bus')?.disabled === false"), "Bus choices did not load");
+    await setField("trip-bus", selectedBus.id);
+    assert.equal(await evaluate("document.querySelector('#trip-capacity').textContent"), "12 chỗ");
+    await waitUntil(() => evaluate(`document.querySelector('option[value="${selectedDriver.id}"]')?.disabled === false && document.querySelector('option[value="${selectedDriver.id}"]').closest('select').disabled === false`), "Driver availability did not load");
+    await evaluate(`(() => { const field = document.querySelector('option[value="${selectedDriver.id}"]').closest('select'); Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value').set.call(field, ${JSON.stringify(selectedDriver.id)}); field.dispatchEvent(new Event('change', { bubbles: true })); })()`);
+    await setField("trip-status", "OPEN");
     await saveModal();
-    const newTrip = await prisma.trip.findFirst({ where: { price: 250000, capacity: 12 } });
+    const newTrip = await prisma.trip.findFirst({ where: { price: 250000, busId: selectedBus.id } });
     assert.ok(newTrip);
     assert.equal(newTrip.from, legacyFrom);
     assert.equal(newTrip.to, legacyTo);
     assert.equal(newTrip.time.toISOString(), "2099-12-04T01:30:00.000Z");
+    assert.equal(newTrip.status, "OPEN");
+    assert.equal(newTrip.driverId, selectedDriver.id);
+    assert.equal(newTrip.endsAt.toISOString(), "2099-12-04T05:30:00.000Z");
     assert.equal(newTrip.availableSeats, 12);
     assert.equal(await prisma.trip.count(), 2);
     assert.equal(await evaluate("window.tripSmoke.writes.at(-1).status"), 201);
-    console.log("PASS: real admin selects existing location options and creates a numeric-ID trip through the form without a legacy code error.");
+    console.log("PASS: real admin creates a trip with status, driver and end time saved immediately, before opening its details or editing it.");
 
     await openEdit(legacy.id);
     assert.equal(await evaluate("document.querySelector('#trip-from').value"), legacyFrom);
@@ -150,12 +162,14 @@ test("admin selects locations and creates/edits trips after a backed-up legacy-c
     await setField("trip-from", legacyTo);
     await setField("trip-to", legacyFrom);
     await setField("trip-time", "2099-12-05T09:30");
+    await setField("trip-ends-at", "2099-12-05T13:30");
+    await waitUntil(() => evaluate(`document.querySelector('option[value="${selectedDriver.id}"]')?.closest('select').disabled === false`), "Updated driver availability did not load");
     await saveModal();
     const updated = await prisma.trip.findUnique({ where: { id: newTrip.id } });
     assert.equal(updated.from, legacyTo);
     assert.equal(updated.to, legacyFrom);
     assert.equal(updated.time.toISOString(), "2099-12-05T02:30:00.000Z");
-    const invalid = await evaluate(`fetch('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: ${JSON.stringify(legacyFrom)}, to: ${JSON.stringify(legacyFrom)}, time: '2099-12-05T09:30', price: 250000, capacity: 12 }) }).then((response) => response.status)`);
+    const invalid = await evaluate(`fetch('/api/trips', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: ${JSON.stringify(legacyFrom)}, to: ${JSON.stringify(legacyFrom)}, time: '2099-12-05T09:30', price: 250000, busId: ${JSON.stringify(selectedBus.id)} }) }).then((response) => response.status)`);
     assert.equal(invalid, 400);
     assert.equal(await prisma.trip.count(), 2);
     assert.deepEqual(await evaluate("window.tripSmoke.errors"), []);
