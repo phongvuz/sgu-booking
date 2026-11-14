@@ -19,7 +19,7 @@ const legacySchema = sourceSchema
   .replace(/model trip \{([\s\S]*?)\n\}/, (_, body) => "model trip {" + body
     .replace(/^\s*busId\s+String\s*$/m, "  capacity       Int")
     .replace(/^.*bus\s+bus\s+@relation[^\n]*\n/m, "")
-    .replace(/^.*@@index\(\[busId\][^\n]*$/m, "") + "\n}")
+    .replace(/^.*@@index\(\[busId(?:\]|,)[^\n]*$/gm, "") + "\n}")
   .replace(/model bus \{([\s\S]*?)\n\}/, (_, body) => "model bus {" + body
     .replace(/\bcapacity\s+Int/, "seats           Int")
     .replace(/^.*trips\s+trip\[\][^\n]*$/m, "") + "\n}");

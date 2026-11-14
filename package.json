@@ -18,6 +18,7 @@
     "test:admin-db": "node tests/admin-db.cjs",
     "test:finance-db": "node tests/finance-dispatch-db.cjs",
     "test:trip-bus-db": "node tests/trip-bus-db.cjs",
+    "test:trip-bus-dispatch-db": "node tests/trip-bus-dispatch-db.cjs",
     "test:trip-bus-browser": "node --test tests/trip-bus.browser.cjs",
     "test:booking-concurrency": "node tests/booking-concurrency-http.cjs"
   },

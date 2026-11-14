@@ -113,6 +113,39 @@ test("data preflight refuses accounting errors, out-of-map seats, or a conflicti
   assert.doesNotThrow(() => validateData(snapshot, validateSchema(schema), { sampleBuses: true }));
 });
 
+test("dispatch imports retain known bus assignments and plan only missing assignments", async (t) => {
+  const { schema, snapshot } = fixture();
+  schema.columns.push({ tableName: "trip", name: "busId", type: "varchar", length: 191, collation: "utf8mb4_unicode_ci", nullable: "YES" });
+  schema.keys.push({ tableName: "trip", name: "trip_busId_fkey", columnName: "busId", referencedTable: "bus", referencedColumn: "id", deleteRule: "NO ACTION", updateRule: "CASCADE" });
+  schema.indexes.push({ tableName: "trip", name: "trip_busId_time_endsAt_idx", columnName: "busId", position: 1 });
+  snapshot.bus.rows.push({ id: "BUS-EXISTING", plate: "51B-123.45", seats: 3 });
+  snapshot.trip.rows[0].busId = "BUS-EXISTING";
+  snapshot.trip.rows.push({ ...snapshot.trip.rows[0], id: 15, availableSeats: 3, busId: null });
+  const state = validateSchema(schema);
+  assert.doesNotThrow(() => validateData(snapshot, state));
+  const { prisma, writes } = mockDatabase(schema, snapshot);
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(), "sgu-trip-bus-dispatch-"));
+  t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+  const plan = await ensureTripBusRelation(prisma, { checkOnly: true, backupDirectory: directory });
+  assert.equal(plan.changed, true);
+  assert.equal(plan.createdBusCount, 1);
+  assert.equal(plan.assignments[0].tripId, 15);
+  assert.equal(plan.assignments[0].id, "LEGACY-TRIP-15");
+  assert.equal(plan.assignments[0].status, "Ngừng hoạt động");
+  assert.deepEqual(writes, []);
+  assert.deepEqual(fs.readdirSync(directory), []);
+});
+
+test("a required dispatch FK with CASCADE still needs conversion on an otherwise migrated database", async () => {
+  const { schema, snapshot } = fixture({ migrated: true });
+  schema.keys[0].updateRule = "CASCADE";
+  const { prisma, writes } = mockDatabase(schema, snapshot);
+  const plan = await ensureTripBusRelation(prisma, { checkOnly: true });
+  assert.equal(plan.changed, true);
+  assert.equal(plan.createdBusCount, 0);
+  assert.deepEqual(writes, []);
+});
+
 test("check-only planning returns the exact active sample assignment without writing a backup or executing SQL mutations", async (t) => {
   const { schema, snapshot } = fixture();
   const { prisma, writes } = mockDatabase(schema, snapshot);

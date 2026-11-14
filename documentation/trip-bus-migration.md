@@ -62,6 +62,8 @@ Trước DDL đầu tiên, helper kiểm tra schema, sức chứa, mã ghế, gh
 
 Helper đối chiếu lại snapshot trước DDL và kiểm tra dữ liệu vé, giữ ghế, các trường chuyến sau chuyển đổi. MySQL tự commit DDL nên toàn bộ lần nâng cấp không phải một transaction có thể rollback bằng một lệnh. Nếu gặp lỗi, giữ backup và kiểm tra schema/kết quả trước khi chạy tiếp; helper hỗ trợ chạy lại những giai đoạn chuyển đổi đã nhận diện được. Khi schema đã đúng và dữ liệu hợp lệ, chạy lại trả `changed: false`, không tạo thêm xe hoặc backup.
 
+Database đã có thu/hoàn tiền và phân công tài xế vẫn có thể còn `bus.seats`, `trip.capacity` và `trip.busId` nullable. Helper giữ nguyên xe đã phân công, tài xế, giờ kết thúc và trạng thái chuyến; chỉ tạo bản ghi xe chưa xác minh cho chuyến còn thiếu xe. Khóa ngoại phân công cũ có `ON UPDATE CASCADE` được chuyển sang `RESTRICT` bằng tên tạm để tránh lỗi MySQL 1826; chạy lại nhận diện được giai đoạn này. Không sửa lịch sử migration đã áp dụng. Chạy `npm run test:trip-bus-dispatch-db` để kiểm tra trường hợp này trên database tạm, bao gồm việc giữ nguyên sổ thu/hoàn và phục hồi sau gián đoạn.
+
 Helper không xóa/reset database, không sửa PNR/giá vé, không tự chuyển `trip.price` hoặc `booking.totalPrice` sang kiểu khác. Nó không ghi `_prisma_migrations`, không xác nhận baseline và không tự xử lý các lệch schema khác. Không sửa checksum migration cũ hoặc dùng `migrate resolve` chỉ để bỏ qua lỗi. Lỗi MySQL 3823 trong chuỗi migration lịch sử vẫn cần xử lý riêng khi sử dụng `db:upgrade`/`db:deploy`.
 
 Sau khi đối chiếu kết quả, chạy kiểm tra source rồi khởi động lại ứng dụng:

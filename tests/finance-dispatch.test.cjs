@@ -116,6 +116,48 @@ function dispatchSetup() {
   return { trip, bus, driver, state, service };
 }
 
+function tripCreateApi(service) {
+  return load("app/api/trips/route.ts", {
+    "@/lib/admin-api": {
+      requireAdmin: async () => ({ id: 7, role: "ADMIN" }),
+      readJson: (request) => request.json(),
+      apiError: (error) => Response.json({ success: false, message: error.message }, { status: error.status ?? 500 }),
+    },
+    "@/services/tripService": service,
+  });
+}
+
+test("creating through the admin API saves status, driver and end time on the first submission", async () => {
+  for (const status of ["OPEN", "DRAFT"]) {
+    const { bus, driver, service } = dispatchSetup();
+    const payload = {
+      from: "Sai Gon", to: "Da Lat", price: 100000, busId: bus.id,
+      status, driverId: driver.id, time: "2099-12-02T08:00", endsAt: "2099-12-02T10:30",
+    };
+    const response = await tripCreateApi(service).POST(new Request("http://localhost/api/trips", { method: "POST", body: JSON.stringify(payload) }));
+    assert.equal(response.status, 201);
+    const { data } = await response.json();
+    assert.equal(data.status, status);
+    assert.equal(data.driverId, driver.id);
+    assert.equal(data.endsAt, "2099-12-02T03:30:00.000Z");
+    assert.equal(data.time, "2099-12-02T01:00:00.000Z");
+    assert.equal(data.availableSeats, bus.capacity);
+  }
+});
+
+test("admin creation validates the submitted OPEN assignment instead of silently creating a draft", async () => {
+  const { trip, state, service } = dispatchSetup();
+  state.conflict = { id: 99 };
+  const response = await tripCreateApi(service).POST(new Request("http://localhost/api/trips", {
+    method: "POST", body: JSON.stringify({
+      from: trip.from, to: trip.to, price: trip.price, busId: trip.busId,
+      time: trip.time.toISOString(), endsAt: trip.endsAt.toISOString(), status: "OPEN", driverId: trip.driverId,
+    }),
+  }));
+  assert.equal(response.status, 409);
+  assert.match((await response.json()).message, /99/);
+});
+
 test("live holds block route changes, vehicle swaps, closing sales and deleting trips", async () => {
   const { trip, state, service } = dispatchSetup();
   state.held = 1;

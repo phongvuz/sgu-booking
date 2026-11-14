@@ -5948,7 +5948,7 @@
       "app/api/trips/[id]/seat-events/route.ts": "94d44e5de5ac6b05cc51ad98ff1a0bd21732547020e6cf8a5ca92c9472f4ecd6",
       "app/api/trips/[id]/stream/route.ts": "d4490ed2d4b369bb90ee4bf719b470ed7ed662f303bf83db3cb5724830bea228",
       "app/api/trips/locations/route.ts": "7f9b0f824a92b431690f3eb7f5a56b271754156b468db21ccbbec119794fbe64",
-      "app/api/trips/route.ts": "20bd999410be317b89e09992f41549082fc4f8011734f7e97b7b716cbec265f5",
+      "app/api/trips/route.ts": "434ce979c22892527c3f89a8fe720a5b1bd7046ad44365e99289bd5fbdeadac2",
       "app/api/users/[id]/role/route.ts": "1967399716e40e17cf8809b52c2d84545b47d16c22de619af7dd05c3bff2f792",
       "app/api/users/[id]/route.ts": "d67f00ded0db5e3fef73f8eebd6d5af5a511461488dce1e2635c499f69839d70",
       "app/api/users/route.ts": "6a0acf89ba3e43ae0983e44fc9ed852b8553ddee3abca11fd1e3147a80293181",

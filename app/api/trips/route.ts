@@ -5,7 +5,7 @@ import { resolveLocationName } from "@/lib/trip-display";
 import { queryPublicTrips, createTrip, queryTripsAdmin } from "@/services/tripService";
 import { tripSchema } from "@/lib/validations/trip";
 import { parsePublicTripFilters } from "@/lib/public-trip-search";
-
+import { BusinessError } from "@/lib/business-error";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
@@ -37,6 +37,25 @@ export async function GET(request: NextRequest) {
         message: "Lấy danh sách chuyến xe quản trị thành công",
       });
     }
+    const rawMaxPrice=searchParams.get("maxPrice");
+    const rawMinSeats=searchParams.get("minSeats");
+    const maxPrice = rawMaxPrice === null ? undefined : Number(rawMaxPrice);
+    const minSeats = rawMinSeats === null ? 1 : Number(rawMinSeats);
+    if(
+      rawMaxPrice !== null && (!/^\d+$/.test(rawMaxPrice) || !Number.isSafeInteger(maxPrice))
+    ){
+      throw new BusinessError("maxPirce phải là số nguyên không âm");
+    }
+    if (
+      rawMinSeats !== null && 
+      (
+        !/^\d+$/.test(rawMinSeats) ||
+        !Number.isSafeInteger(minSeats) ||
+        minSeats < 1
+      )
+    ){
+      throw new BusinessError("minSeats phải là số nguyên dương");
+    }
 
     const filters = parsePublicTripFilters({
       from: searchParams.getAll("from"),
@@ -54,6 +73,8 @@ export async function GET(request: NextRequest) {
       vehicles: filters.vehicles,
       page: filters.page,
       limit: positiveInteger(searchParams.get("limit"), 10, 100),
+      maxPrice,
+      minSeats,
     });
 
     return NextResponse.json({
@@ -88,15 +109,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const validData = validationResult.data;
-
-    const newTrip = await createTrip({
-      from: validData.from,
-      to: validData.to,
-      time: validData.time,
-      price: validData.price,
-      busId: validData.busId,
-    });
+    const newTrip = await createTrip(validationResult.data);
 
     return NextResponse.json(
       {

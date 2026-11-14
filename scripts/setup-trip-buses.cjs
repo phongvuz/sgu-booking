@@ -9,6 +9,9 @@ const legacyStatus = "Ngừng hoạt động";
 const legacyNote = (trip) => `Bản ghi chuyển đổi cho chuyến ${trip.id}. Chưa xác minh xe thực tế; không phải biển số xe. Giữ nguyên sức chứa cũ: ${trip.capacity}.`;
 const stringify = (value) => JSON.stringify(value, (_, item) => typeof item === "bigint" ? item.toString() : item);
 const fail = (message) => { throw new Error(message); };
+const busForeignKeyName = "trip_busId_fkey";
+const temporaryBusForeignKeyName = "trip_busId_upgrade_fkey";
+const isTargetBusForeignKey = (key) => key?.name === busForeignKeyName && key.deleteRule === "RESTRICT" && key.updateRule === "RESTRICT";
 
 function createBackfillBus(trip, { sampleBuses = false } = {}) {
   if (!sampleBuses) return { id: `${legacyPrefix}${trip.id}`, plate: `${legacyPrefix}${trip.id}`, type: legacyType, capacity: trip.capacity, status: legacyStatus, notes: legacyNote(trip) };
@@ -57,7 +60,7 @@ function validateSchema(schema) {
   const busIndex = schema.indexes.filter((index) => index.tableName === "trip" && index.name === "trip_busId_idx");
   if (busIndex.length && (busIndex.length !== 1 || busIndex[0].columnName !== "busId" || Number(busIndex[0].position) !== 1)) fail("Index trip_busId_idx đã tồn tại với cấu trúc khác.");
   const foreign = schema.keys.filter((key) => key.tableName === "trip" && key.columnName === "busId" && key.referencedTable);
-  if (foreign.length && (foreign.length !== 1 || foreign[0].name !== "trip_busId_fkey" || foreign[0].referencedTable !== "bus" || foreign[0].referencedColumn !== "id" || foreign[0].deleteRule !== "RESTRICT" || foreign[0].updateRule !== "RESTRICT")) fail("Khóa ngoại trip.busId khác cấu trúc đích. Dừng để kiểm tra.");
+  if (foreign.length && (foreign.length !== 1 || ![busForeignKeyName, temporaryBusForeignKeyName].includes(foreign[0].name) || foreign[0].referencedTable !== "bus" || foreign[0].referencedColumn !== "id" || !["RESTRICT", "NO ACTION"].includes(foreign[0].deleteRule) || !["RESTRICT", "CASCADE"].includes(foreign[0].updateRule))) fail("Khóa ngoại trip.busId khác cấu trúc được hỗ trợ. Dừng để kiểm tra.");
   const unexpectedCheck = schema.checks.find((check) => check.tableName === "trip" && /\bcapacity\b/i.test(check.clause) && check.name !== "trip_seat_counts_check");
   if (unexpectedCheck) fail("Có CHECK tùy chỉnh tham chiếu trip.capacity; cần kiểm tra trước khi bỏ cột.");
   return { legacyTripCapacity: Boolean(column("trip", "capacity")), legacyBusSeats: Boolean(seats), tripBusId, foreignKey: foreign[0], busIndex: busIndex[0], collation: busId.collation };
@@ -73,8 +76,16 @@ async function readSnapshot(prisma) {
       // SELECT *. An explicit current projection changes the SQL after rename/
       // drop/add and prevents old column metadata from misreading the new rows.
       const projection = columns.map((column) => `\`${column.Field}\``).join(", ");
+      const definitions = await tx.$queryRawUnsafe(`SHOW CREATE TABLE \`${table}\``);
       tables[table] = {
-        schema: await tx.$queryRawUnsafe(`SHOW CREATE TABLE \`${table}\``),
+        // With lower_case_table_names=1, MySQL can return SeatHold on the first
+        // prepared SHOW CREATE and seathold on later executions. Only the DDL
+        // describes the schema; its display-name column must not trip the guard.
+        schema: definitions.map((definition) => {
+          const createTable = Object.values(definition).find((value) => typeof value === "string" && /^CREATE TABLE\s/i.test(value));
+          if (!createTable) fail(`Không đọc được cấu trúc bảng ${table}. Chưa thay đổi dữ liệu.`);
+          return { createTable };
+        }),
         rows: await tx.$queryRawUnsafe(`SELECT ${projection} FROM \`${table}\` ORDER BY \`id\``),
       };
     }
@@ -136,7 +147,7 @@ async function ensureTripBusRelation(prisma, { backupDirectory = path.resolve(".
   const busCheck = schema.checks.find((item) => item.tableName === "bus" && item.name === "bus_capacity_check");
   if (busCheck && normalizedCheck(busCheck.clause) !== "capacitybetween1and60") fail("CHECK bus_capacity_check khác cấu trúc được hỗ trợ.");
   if (tripCheck && !["availableSeatsbetween0and60".toLowerCase(), "capacitybetween1and60andavailableseatsbetween0andcapacity"].includes(normalizedCheck(tripCheck.clause))) fail("CHECK trip_seat_counts_check khác cấu trúc được hỗ trợ.");
-  const finished = !state.legacyTripCapacity && !state.legacyBusSeats && state.tripBusId?.nullable === "NO" && state.foreignKey && state.busIndex && tripCheck && busCheck;
+  const finished = !state.legacyTripCapacity && !state.legacyBusSeats && state.tripBusId?.nullable === "NO" && isTargetBusForeignKey(state.foreignKey) && state.busIndex && tripCheck && busCheck;
   const assignments = snapshot.trip.rows.filter((trip) => !trip.busId).map((trip) => ({ tripId: trip.id, ...createBackfillBus(trip, { sampleBuses }) }));
   const plan = { changed: !finished, migrationName, sampleBuses, tripCount: snapshot.trip.rows.length, createdBusCount: assignments.length, assignments };
   if (finished || checkOnly) return { ...plan, checkOnly };
@@ -161,24 +172,38 @@ async function ensureTripBusRelation(prisma, { backupDirectory = path.resolve(".
   }, { isolationLevel: "Serializable", timeout: 30000 });
   if (tripCheck && state.legacyTripCapacity) await prisma.$executeRawUnsafe("ALTER TABLE `trip` DROP CHECK `trip_seat_counts_check`");
   if (state.legacyTripCapacity) await prisma.$executeRawUnsafe("ALTER TABLE `trip` DROP COLUMN `capacity`");
-  if (state.tripBusId?.nullable !== "NO") await prisma.$executeRawUnsafe(`ALTER TABLE \`trip\` MODIFY \`busId\` VARCHAR(191) CHARACTER SET ${state.collation.split("_")[0]} COLLATE ${state.collation} NOT NULL`);
   const indexes = await prisma.$queryRawUnsafe("SHOW INDEX FROM `trip`");
   if (!indexes.some((index) => index.Key_name === "trip_busId_idx" && index.Column_name === "busId" && Number(index.Seq_in_index) === 1)) {
     if (indexes.some((index) => index.Key_name === "trip_busId_idx")) fail("Index trip_busId_idx đã tồn tại với cấu trúc khác.");
     await prisma.$executeRawUnsafe("ALTER TABLE `trip` ADD INDEX `trip_busId_idx` (`busId`)");
   }
-  if (!state.foreignKey) await prisma.$executeRawUnsafe("ALTER TABLE `trip` ADD CONSTRAINT `trip_busId_fkey` FOREIGN KEY (`busId`) REFERENCES `bus` (`id`) ON DELETE RESTRICT ON UPDATE RESTRICT");
+  if (state.tripBusId?.nullable !== "NO" || !isTargetBusForeignKey(state.foreignKey)) {
+    // Finance/dispatch imports already have a nullable FK with ON UPDATE CASCADE.
+    // MySQL refuses dropping/recreating the same FK name in one ALTER (1826).
+    // Use a temporary constraint name, then restore the original name, keeping
+    // FK protection throughout both statements. A rerun recognizes either name.
+    const changes = [];
+    const nextName = state.foreignKey?.name === busForeignKeyName ? temporaryBusForeignKeyName : busForeignKeyName;
+    if (state.foreignKey) changes.push(`DROP FOREIGN KEY \`${state.foreignKey.name}\``);
+    if (state.tripBusId?.nullable !== "NO") changes.push(`MODIFY \`busId\` VARCHAR(191) CHARACTER SET ${state.collation.split("_")[0]} COLLATE ${state.collation} NOT NULL`);
+    changes.push(`ADD CONSTRAINT \`${nextName}\` FOREIGN KEY (\`busId\`) REFERENCES \`bus\` (\`id\`) ON DELETE RESTRICT ON UPDATE RESTRICT`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE \`trip\` ${changes.join(", ")}`);
+    if (nextName === temporaryBusForeignKeyName) await prisma.$executeRawUnsafe(`ALTER TABLE \`trip\` DROP FOREIGN KEY \`${temporaryBusForeignKeyName}\`, ADD CONSTRAINT \`${busForeignKeyName}\` FOREIGN KEY (\`busId\`) REFERENCES \`bus\` (\`id\`) ON DELETE RESTRICT ON UPDATE RESTRICT`);
+  }
   if (!busCheck) await prisma.$executeRawUnsafe("ALTER TABLE `bus` ADD CONSTRAINT `bus_capacity_check` CHECK (`capacity` BETWEEN 1 AND 60)");
   if (!tripCheck || state.legacyTripCapacity) await prisma.$executeRawUnsafe("ALTER TABLE `trip` ADD CONSTRAINT `trip_seat_counts_check` CHECK (`availableSeats` BETWEEN 0 AND 60)");
   const afterSchema = await inspectTripBusSchema(prisma);
   const afterState = validateSchema(afterSchema);
-  if (afterState.legacyTripCapacity || afterState.legacyBusSeats || afterState.tripBusId?.nullable !== "NO" || !afterState.foreignKey || !afterState.busIndex) fail(`Schema đích chưa đầy đủ. Giữ bản sao lưu ${backupPath}.`);
+  if (afterState.legacyTripCapacity || afterState.legacyBusSeats || afterState.tripBusId?.nullable !== "NO" || !isTargetBusForeignKey(afterState.foreignKey) || !afterState.busIndex) fail(`Schema đích chưa đầy đủ. Giữ bản sao lưu ${backupPath}.`);
   const after = await readSnapshot(prisma);
   validateData(after, afterState);
   for (const table of ["booking", "SeatHold"]) if (stringify(snapshot[table].rows) !== stringify(after[table].rows)) fail(`Dữ liệu ${table} đã thay đổi; cần kiểm tra bản sao lưu ${backupPath}.`);
   const beforeTrips = snapshot.trip.rows.map(({ capacity, busId, ...trip }) => trip);
   const afterTrips = after.trip.rows.map(({ busId, ...trip }) => trip);
   if (stringify(beforeTrips) !== stringify(afterTrips)) fail(`Dữ liệu chuyến ngoài quan hệ xe đã thay đổi; kiểm tra ${backupPath}.`);
+  for (const trip of snapshot.trip.rows.filter((trip) => trip.busId)) {
+    if (after.trip.rows.find((row) => row.id === trip.id)?.busId !== trip.busId) fail(`Phân công xe chuyến ${trip.id} đã thay đổi; kiểm tra ${backupPath}.`);
+  }
   return { ...plan, backupPath, checkOnly: false };
 }
 

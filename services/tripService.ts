@@ -25,6 +25,8 @@ interface GetTripsFilter {
 interface PublicTripQuery extends Omit<GetTripsFilter, "includeBookings"> {
   times?: TripTimeSlot[];
   vehicles?: TripVehicleFilter[];
+  maxPrice?: number;
+  minSeats?: number;
 }
 
 const tripBusSelect = { id: true, plate: true, type: true, capacity: true, status: true } satisfies Prisma.busSelect;
@@ -268,17 +270,33 @@ export async function getTrips({
 }
 
 export async function queryPublicTrips({
-  fromCity, toCity, date, page = 1, limit = 10, times = [], vehicles = [],
+  fromCity, toCity, date, page = 1, limit = 10, times = [], vehicles = [],maxPrice,minSeats=1,
 }: PublicTripQuery) {
   times = [...new Set(times)].filter((time) => Object.hasOwn(tripTimeSlots, time));
   vehicles = [...new Set(vehicles)].filter((vehicle) => ["limousine", "sleeper", "other"].includes(vehicle));
   const now = new Date();
-  const where = { ...bookableTripWhere({ fromCity, toCity, date }, now), ...vehicleWhere(vehicles) };
+  const where: Prisma.tripWhereInput={
+    ...bookableTripWhere({fromCity,toCity,date},now),
+    ... vehicleWhere(vehicles),
+    availableSeats:{
+      gt: 0,
+      gte: minSeats,
+    },
+    ...(maxPrice!== undefined
+      ?{price:{lte:maxPrice}}
+      :{}
+    ),
+  }
   const take = positiveInteger(limit, 10, 100);
 
   // MySQL stores Prisma DateTimes in UTC. Use the same Vietnam hours as the UI,
   // and filter before LIMIT so the total and every page share the same filters.
+  
   const conditions = [Prisma.sql`t.status = 'OPEN'`, Prisma.sql`t.time > ${now}`, Prisma.sql`t.availableSeats > 0`];
+  conditions.push(Prisma.sql`t.availableSeats>=${minSeats}`);
+  if (maxPrice!== undefined){
+    conditions.push(Prisma.sql`t.price<=${maxPrice}`);
+  }
   if (fromCity) conditions.push(Prisma.sql`t.\`from\` LIKE ${`%${fromCity}%`}`);
   if (toCity) conditions.push(Prisma.sql`t.\`to\` LIKE ${`%${toCity}%`}`);
   const dayRange = date ? getDepartureDayRange(date) : null;
@@ -334,6 +352,22 @@ export async function getTripById(tripId: number, includeBookings = false) {
   });
   return trip ? withBusCapacity(trip) : null;
 }
+
+export async function getTripAvailability(tripId: number) {
+  const id = assertTripId(tripId);
+  const trip = await prisma.trip.findUnique({
+    where: { id },
+    select: {
+      id: true, from: true, to: true, status: true,
+      availableSeats: true,
+      bus: { select: { capacity: true } },
+    },
+  });
+  if (!trip) return null;
+  const { bus, ...data } = trip;
+  return { ...data, capacity: bus.capacity };
+}
+
 
 export async function getBookedSeats(tripId: number): Promise<string[]> {
   assertTripId(tripId);
